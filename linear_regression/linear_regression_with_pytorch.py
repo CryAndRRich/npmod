@@ -15,8 +15,8 @@ class LinearRegressionModel(nn.Module):
     def forward(self, x):
         return self.linear(x)
 
-def train_model_pytorch(x_train, y_train, number_of_epochs, learn_rate):
-    model=LinearRegressionModel()
+def train_model_pytorch(x_train, y_train, learn_rate, number_of_epochs):
+    model = LinearRegressionModel()
     optimizer = optim.SGD(model.parameters(), lr=learn_rate)
 
     for epoch in range(number_of_epochs + 1):
@@ -31,7 +31,8 @@ def train_model_pytorch(x_train, y_train, number_of_epochs, learn_rate):
         
         if epoch % 100 == 0:
             params = list(model.parameters())
-            m = params[0].item()
-            b = params[1].item()
-            print('Epoch: {:4d}/{} m: {:.3f}, b: {:.3f} Cost: {:.6f}'.format(
-                  epoch, number_of_epochs, m, b, cost.item()))
+            weight = params[0].item()
+            bias = params[1].item()
+            print('Epoch: {:4d}/{} Weight: {:.3f}, Bias: {:.3f} Cost: {:.6f}'.format(
+                  epoch, number_of_epochs, weight, bias, cost.item()))
+
