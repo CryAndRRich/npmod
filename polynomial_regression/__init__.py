@@ -1,0 +1,3 @@
+from .polynomial_regression_data import PolynomialRegressionData
+from .polynomial_regression_from_scratch import train_model_scratch
+from .polynomial_regression_with_pytorch import train_model_pytorch
