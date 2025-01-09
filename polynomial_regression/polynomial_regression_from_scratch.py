@@ -50,9 +50,7 @@ def train_model_scratch(x_train, y_train, learn_rate, batch_size, number_of_epoc
             print('Epoch: {:4d}/{} Cost: {:.6f}'.format(
                   epoch, number_of_epochs, cost))
     
-    print('x0={:.3f}'.format(bias), end=' ')
-    for i in range(degree):
-        print('x{}:{:.3f}'.format(i + 1, weight[i]), end=' ')
-
-
-
+            print('x0={:.3f}'.format(bias), end=' ')
+            for i in range(degree):
+                print('x{}:{:.3f}'.format(i + 1, weight[i]), end=' ')
+            print('')
