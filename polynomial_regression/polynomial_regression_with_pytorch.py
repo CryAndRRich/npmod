@@ -50,4 +50,5 @@ def train_model_pytorch(x_train, y_train, learn_rate, number_of_epochs, degree=1
             print('Epoch: {:4d}/{} Cost: {:.6f}'.format(
                   epoch, number_of_epochs, cost.item()))
     
-    model.get_coefs()
+            model.get_coefs()
+            print('')
