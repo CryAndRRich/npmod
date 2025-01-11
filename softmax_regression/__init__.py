@@ -1,0 +1,3 @@
+from .softmax_regression_data import SoftmaxRegressionData
+from .softmax_regression_from_scratch import train_model_scratch
+from .softmax_regression_with_pytorch import train_model_pytorch
