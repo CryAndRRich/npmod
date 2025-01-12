@@ -43,7 +43,7 @@ def train_model_scratch(x_train, y_train, x_test, y_test, learn_rate, number_of_
 
         if epoch % 100 == 0:
             accuracy = test_model_scratch(x_test, y_test, weights, bias)
-            print('Epoch: {:2d}/{} Cost: {:.6f} Accuracy: {:.2f}%'.format(
+            print('Epoch: {:4d}/{} Cost: {:.6f} Accuracy: {:.2f}%'.format(
                 epoch, number_of_epochs, cost, accuracy * 100))
 
 def test_model_scratch(x_test, y_test, weights, bias):
