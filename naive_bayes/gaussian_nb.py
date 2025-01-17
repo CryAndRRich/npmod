@@ -1,8 +1,8 @@
 import numpy as np
-from sklearn.metrics import accuracy_score, f1_score
+from base_model import ModelML
 
-class GaussianNaiveBayes():
-    def __init__(self, features, labels):
+class GaussianNaiveBayes(ModelML):
+    def fit(self, features, labels):
         self.features = features
         self.labels = labels
         self.unique_labels = np.unique(labels)
@@ -20,7 +20,7 @@ class GaussianNaiveBayes():
 
         return coeff * exponent + eps
 
-    def train_model(self, test_features, test_labels):
+    def predict(self, test_features, test_labels):
         num_samples, _ = test_features.shape
 
         predictions = np.empty(num_samples)
@@ -36,12 +36,8 @@ class GaussianNaiveBayes():
 
             predictions[ind] = self.unique_labels[np.argmax(posteriors)]
 
-        accuracy, f1 = self.test_model(predictions, test_labels)
-        print("GNB model   Accuracy: {:.3f}% F1-score: {:.3f}".format(accuracy, f1))
+        accuracy, f1 = self.evaluate(predictions, test_labels)
+        print("Accuracy: {:.5f} F1-score: {:.5f}".format(accuracy, f1))
     
-    def test_model(self, predictions, test_labels):
-        accuracy = accuracy_score(test_labels, predictions)
-        f1 = f1_score(test_labels, predictions, average="weighted", zero_division=0)
-
-        return accuracy * 100, f1
-    
+    def __str__(self):
+        return "Gaussian Naive Bayes"

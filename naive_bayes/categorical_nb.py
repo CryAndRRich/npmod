@@ -1,12 +1,14 @@
 import numpy as np
-from sklearn.metrics import accuracy_score, f1_score
+from base_model import ModelML
 
-class CategoricalNaiveBayes():
-    def __init__(self, features, labels, alpha=1):
+class CategoricalNaiveBayes(ModelML):
+    def __init__(self, alpha=1):
+        self.alpha = alpha
+
+    def fit(self, features, labels):
         self.features = features
         self.labels = labels
         self.unique_labels = np.unique(labels)
-        self.alpha = alpha
 
         self.num_samples, self.num_features = self.features.shape
         self.num_classes = self.unique_labels.shape[0]
@@ -44,7 +46,7 @@ class CategoricalNaiveBayes():
 
         return log_prob
 
-    def train_model(self, test_features, test_labels):
+    def predict(self, test_features, test_labels):
         num_samples, _ = test_features.shape
 
         predictions = np.empty(num_samples)
@@ -56,11 +58,8 @@ class CategoricalNaiveBayes():
 
             predictions[ind] = self.unique_labels[np.argmax(posteriors)]
 
-        accuracy, f1 = self.test_model(predictions, test_labels)
-        print("CNB model Alpha: {} Accuracy: {:.3f}% F1-score: {:.3f}".format(self.alpha, accuracy, f1))
+        accuracy, f1 = self.evaluate(predictions, test_labels)
+        print("Alpha: {} Accuracy: {:.5f} F1-score: {:.5f}".format(self.alpha, accuracy, f1))
 
-    def test_model(self, predictions, test_labels):
-        accuracy = accuracy_score(test_labels, predictions)
-        f1 = f1_score(test_labels, predictions, average="weighted", zero_division=0)
-
-        return accuracy * 100, f1
+    def __str__(self):
+        return "Categorical Naive Bayes"
