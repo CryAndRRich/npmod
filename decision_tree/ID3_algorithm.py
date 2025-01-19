@@ -18,16 +18,13 @@ class ID3DecisionTree(ModelML):
         for feature in range(n):
             feature_values = set(features[:, feature])
             for value in feature_values:
-                true_features, true_label, false_feature, false_label = split_data(features, labels, feature, value)
-                true_entropy = entropy(true_label)
-                false_entropy = entropy(false_label)
-                p = len(true_label) / len(labels)
-                information_gain = current_entropy - p * true_entropy - (1 - p) * false_entropy
+                true_features, true_labels, false_features, false_labels = split_data(features, labels, feature, value)
+                information_gain_value = information_gain(true_labels, false_labels, current_entropy)
 
-                if information_gain > best_gain:
-                    best_gain = information_gain
+                if information_gain_value > best_gain:
+                    best_gain = information_gain_value
                     best_criteria = (feature, value)
-                    best_sets = (true_features, true_label, false_feature, false_label)
+                    best_sets = (true_features, true_labels, false_features, false_labels)
 
         if best_gain > 0:
             true_branch = self.build_tree(best_sets[0], best_sets[1])

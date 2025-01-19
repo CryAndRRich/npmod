@@ -41,7 +41,7 @@ class C50DecisionTree(ModelML):
             feature_values = set(features[:, feature])
             for value in feature_values:
                 true_features, true_labels, true_weights, false_features, false_labels, false_weights = split_data(features, labels, feature, value, weights)
-                gain_ratio_value = gain_ratio(true_labels, false_labels, current_entropy, true_weights, false_weights)
+                gain_ratio_value = information_gain(true_labels, false_labels, current_entropy, get_ratio=True, true_weights=true_weights, false_weights=false_weights)
 
                 if gain_ratio_value > best_gain_ratio:
                     best_gain_ratio = gain_ratio_value
@@ -71,7 +71,7 @@ class C50DecisionTree(ModelML):
             return tree.results
         else:
             branch = tree.false_branch
-            if sample[tree.feature] <= tree.value if isinstance(tree.value, (int, float)) else sample[tree.feature] == tree.value:
+            if sample[tree.feature] <= tree.value:
                 branch = tree.true_branch
             return self.predict_node(branch, sample)
     

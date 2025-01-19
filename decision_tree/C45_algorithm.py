@@ -18,13 +18,13 @@ class C45DecisionTree(ModelML):
         for feature in range(n):
             feature_values = set(features[:, feature])
             for value in feature_values:
-                true_features, true_label, false_feature, false_label = split_data(features, labels, feature, value)
-                gain_ratio_value = gain_ratio(true_label, false_label, current_entropy)
+                true_features, true_labels, false_features, false_labels = split_data(features, labels, feature, value)
+                gain_ratio_value = information_gain(true_labels, false_labels, current_entropy, get_ratio=True)
 
                 if gain_ratio_value > best_gain_ratio:
                     best_gain_ratio = gain_ratio_value
                     best_criteria = (feature, value)
-                    best_sets = (true_features, true_label, false_feature, false_label)
+                    best_sets = (true_features, true_labels, false_features, false_labels)
 
         if best_gain_ratio > 0:
             true_branch = self.build_tree(best_sets[0], best_sets[1])
@@ -48,7 +48,7 @@ class C45DecisionTree(ModelML):
             return tree.results
         else:
             branch = tree.false_branch
-            if sample[tree.feature] <= tree.value if isinstance(tree.value, (int, float)) else sample[tree.feature] == tree.value:
+            if sample[tree.feature] <= tree.value:
                 branch = tree.true_branch
             return self.predict_node(branch, sample)
     
