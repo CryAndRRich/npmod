@@ -1,9 +1,8 @@
 import numpy as np
-from base_model import ModelML
-from .tree import TreeNode
+from .tree import *
 from .utils import *
 
-class C50DecisionTree(ModelML):
+class C50DecisionTree(Tree):
     def __init__(self, n_estimators=10, min_samples=1):
         self.n_estimators = n_estimators
         self.min_samples = min_samples
@@ -41,7 +40,7 @@ class C50DecisionTree(ModelML):
             feature_values = set(features[:, feature])
             for value in feature_values:
                 true_features, true_labels, true_weights, false_features, false_labels, false_weights = split_data(features, labels, feature, value, weights)
-                gain_ratio_value = information_gain(true_labels, false_labels, current_entropy, get_ratio=True, true_weights=true_weights, false_weights=false_weights)
+                gain_ratio_value = information_gain(true_labels, false_labels, current_entropy, true_weights, false_weights, get_ratio=True)
 
                 if gain_ratio_value > best_gain_ratio:
                     best_gain_ratio = gain_ratio_value
@@ -65,15 +64,6 @@ class C50DecisionTree(ModelML):
         final_predictions = np.sign(predictions)
         accuracy, f1 = self.evaluate(final_predictions, test_labels)
         print("Accuracy: {:.5f} F1-score: {:.5f}".format(accuracy, f1))
-    
-    def predict_node(self, tree, sample):
-        if tree.results is not None:
-            return tree.results
-        else:
-            branch = tree.false_branch
-            if sample[tree.feature] <= tree.value:
-                branch = tree.true_branch
-            return self.predict_node(branch, sample)
     
     def __str__(self):
         return "Decision Trees: C5.0/See5 Algorithm"

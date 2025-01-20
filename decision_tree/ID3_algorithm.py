@@ -1,12 +1,8 @@
 import numpy as np
-from base_model import ModelML
-from .tree import TreeNode
+from .tree import *
 from .utils import *
 
-class ID3DecisionTree(ModelML):
-    def fit(self, features, labels):
-        self.decision_tree = self.build_tree(features, labels)
-    
+class ID3DecisionTree(Tree):
     def build_tree(self, features, labels):
         best_gain = 0
         best_criteria = None
@@ -33,24 +29,5 @@ class ID3DecisionTree(ModelML):
 
         return TreeNode(results=labels[0])
 
-    def predict(self, test_features, test_labels):
-        num_samples, _ = test_features.shape
-
-        predictions = np.zeros(num_samples)
-        for ind, feature in enumerate(test_features):
-            predictions[ind] = self.predict_node(self.decision_tree, feature)
-
-        accuracy, f1 = self.evaluate(predictions, test_labels)
-        print("Accuracy: {:.5f} F1-score: {:.5f}".format(accuracy, f1))
-    
-    def predict_node(self, tree, sample):
-        if tree.results is not None:
-            return tree.results
-        else:
-            branch = tree.false_branch
-            if sample[tree.feature] <= tree.value:
-                branch = tree.true_branch
-            return self.predict_node(branch, sample)
-    
     def __str__(self):
         return "Decision Trees: ID3 Algorithm"
