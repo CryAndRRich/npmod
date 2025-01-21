@@ -1,15 +1,29 @@
 import numpy as np
 from .tree import *
-from .utils import *
+from .utils import entropy, information_gain, split_data
 
 class C50DecisionTree(Tree):
-    def __init__(self, n_estimators=10, min_samples=1):
+    def __init__(self, 
+                 n_estimators: int = 10, 
+                 min_samples: int = 1):
+        """
+        Initializes the C5.0 decision tree with boosting
+
+        Parameters:
+        n_estimators: Number of boosting iterations
+        min_samples: Minimum number of samples required to split a node
+        """
         self.n_estimators = n_estimators
         self.min_samples = min_samples
         self.trees = []
         self.tree_weights = []
 
-    def fit(self, features, labels):
+    def fit(self, 
+            features: np.ndarray, 
+            labels: np.ndarray) -> None:
+        """
+        Fits the C5.0 model to the training data using boosting
+        """
         n_samples = len(labels)
         weights = np.ones(n_samples) / n_samples
         
@@ -28,7 +42,22 @@ class C50DecisionTree(Tree):
             weights *= np.exp(-tree_weight * labels * (2 * predictions - 1))
             weights /= np.sum(weights)
 
-    def build_tree(self, features, labels, weights):
+    def build_tree(self, 
+                   features: np.ndarray, 
+                   labels: np.ndarray, 
+                   weights: np.ndarray) -> TreeNode:
+        """
+        Builds a single decision tree using weighted data
+
+        Parameters:
+        features: Feature matrix of the training data
+        labels: Array of labels corresponding to the training data
+        weights: Weights for each sample in the training data
+
+        --------------------------------------------------
+        Returns:
+        TreeNode: Root node of the constructed decision tree
+        """
         best_gain_ratio = 0
         best_criteria = None
         best_sets = None
@@ -36,6 +65,7 @@ class C50DecisionTree(Tree):
 
         current_entropy = entropy(labels, weights)
 
+        # Iterate over each feature to find the best split
         for feature in range(n):
             feature_values = set(features[:, feature])
             for value in feature_values:
@@ -47,14 +77,19 @@ class C50DecisionTree(Tree):
                     best_criteria = (feature, value)
                     best_sets = (true_features, true_labels, true_weights, false_features, false_labels, false_weights)
 
+        # If a valid split is found, create branches recursively
         if best_gain_ratio > 0:
             true_branch = self.build_tree(best_sets[0], best_sets[1], best_sets[2])
             false_branch = self.build_tree(best_sets[3], best_sets[4], best_sets[5])
             return TreeNode(feature=best_criteria[0], value=best_criteria[1], true_branch=true_branch, false_branch=false_branch, samples=len(labels))
 
+        # If no further split is possible, return a leaf node with the most common label
         return TreeNode(results=np.argmax(np.bincount(labels, weights=weights)), samples=len(labels))
 
-    def predict(self, test_features, test_labels):
+    def predict(self, 
+                test_features: np.ndarray, 
+                test_labels: np.ndarray) -> None:
+        
         num_samples, _ = test_features.shape
 
         predictions = np.zeros(num_samples)
