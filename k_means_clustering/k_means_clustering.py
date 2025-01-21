@@ -142,7 +142,7 @@ class KMeansClustering(ModelML):
         labels = labels.detach().numpy()
 
         accuracy, f1 = self.evaluate(predictions, labels)
-        print("k: {} Accuracy: {:.5f} F1-score: {:.5f}".format(self.k, accuracy, f1))
+        print("Number of clusters: {} Accuracy: {:.5f} F1-score: {:.5f}".format(self.k, accuracy, f1))
     
     def __str__(self):
         return "K Means Clustering"

@@ -58,6 +58,7 @@ class LogisticRegressionPytorch(ModelML):
         features: The input features for training 
         labels: The target labels corresponding to the input features 
         """
+        labels = labels.to(dtype=torch.float)
         _, n = features.shape
 
         self.model = LogisticRegressionModule(n)  # Initialize the model
@@ -86,6 +87,7 @@ class LogisticRegressionPytorch(ModelML):
         test_features: The input features for testing 
         test_labels: The target labels corresponding to the test features 
         """
+        test_labels = test_labels.to(dtype=torch.float)
         with torch.no_grad():  # Disable gradient computation for inference
             outputs = self.model(test_features)  # Get the model's output
             predictions = (outputs >= 0.5).float()  # Convert probabilities to binary predictions

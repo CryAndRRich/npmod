@@ -95,6 +95,7 @@ class LinearRegressionNumpy(ModelML):
         features: The input features for training 
         labels: The target labels corresponding to the input features 
         """
+        features = features.squeeze()
         self.weight = 0  # Initialize weight to 0
         self.bias = 0    # Initialize bias to 0
 

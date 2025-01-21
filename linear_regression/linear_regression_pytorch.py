@@ -54,6 +54,7 @@ class LinearRegressionPytorch(ModelML):
         features: The input features for training
         labels: The target labels corresponding to the input features
         """
+        labels = labels.unsqueeze(1).to(dtype=torch.float)
         self.model = LinearRegressionModule()
         optimizer = optim.SGD(self.model.parameters(), lr=self.learn_rate)
 
