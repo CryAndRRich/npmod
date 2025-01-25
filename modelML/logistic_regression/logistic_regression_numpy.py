@@ -1,6 +1,6 @@
 from typing import Tuple
 import numpy as np
-from base_model import ModelML
+from ..base_model import ModelML
 
 def sigmoid_function(x: np.ndarray) -> np.ndarray:
     """

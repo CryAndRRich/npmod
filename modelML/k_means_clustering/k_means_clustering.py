@@ -1,6 +1,6 @@
 from typing import List, Tuple
 import torch
-from base_model import ModelML
+from ..base_model import ModelML
 
 torch.manual_seed(42)
 

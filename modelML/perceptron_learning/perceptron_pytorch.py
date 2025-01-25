@@ -1,6 +1,6 @@
 import torch
 import torch.nn as nn
-from base_model import ModelML
+from ..base_model import ModelML
 
 torch.manual_seed(42)
 

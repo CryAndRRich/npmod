@@ -1,6 +1,6 @@
 from typing import Tuple
 import numpy as np
-from base_model import ModelML
+from ..base_model import ModelML
 
 def cost_function(features: np.ndarray, 
                   labels: np.ndarray, 

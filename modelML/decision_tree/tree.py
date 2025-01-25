@@ -1,5 +1,5 @@
 import numpy as np
-from base_model import ModelML
+from ..base_model import ModelML
 
 class TreeNode:
     def __init__(self, 

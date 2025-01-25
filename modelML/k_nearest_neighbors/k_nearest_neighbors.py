@@ -1,5 +1,5 @@
 import torch
-from base_model import ModelML
+from ..base_model import ModelML
 
 def minkowski_dist(features: torch.Tensor, 
                    test_features: torch.Tensor, 

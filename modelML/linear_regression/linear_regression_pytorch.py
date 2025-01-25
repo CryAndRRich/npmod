@@ -2,7 +2,7 @@ import torch
 import torch.nn as nn
 import torch.nn.functional as func
 import torch.optim as optim
-from base_model import ModelML
+from ..base_model import ModelML
 
 torch.manual_seed(42)
 

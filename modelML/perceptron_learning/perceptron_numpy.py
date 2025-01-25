@@ -1,6 +1,6 @@
 from typing import List
 import numpy as np
-from base_model import ModelML
+from ..base_model import ModelML
 
 np.random.seed(42)
 

@@ -1,5 +1,5 @@
 import numpy as np
-from base_model import ModelML
+from ..base_model import ModelML
 
 class MultinomialNaiveBayes(ModelML):
     def __init__(self, alpha: int = 1) -> None:

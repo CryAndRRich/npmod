@@ -1,5 +1,5 @@
 import numpy as np
-from base_model import ModelML
+from ..base_model import ModelML
 
 class GaussianNaiveBayes(ModelML):
     def fit(self, 
