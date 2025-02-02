@@ -90,7 +90,8 @@ class C50DecisionTree(Tree):
 
     def predict(self, 
                 test_features: np.ndarray, 
-                test_labels: np.ndarray) -> np.ndarray:
+                test_labels: np.ndarray,
+                get_accuracy: bool = True) -> np.ndarray:
         
         num_samples, _ = test_features.shape
 
@@ -99,8 +100,10 @@ class C50DecisionTree(Tree):
             predictions += tree_weight * np.array([self.predict_node(tree, sample) for sample in test_features])
 
         final_predictions = np.sign(predictions)
-        accuracy, f1 = self.evaluate(final_predictions, test_labels)
-        print("Accuracy: {:.5f} F1-score: {:.5f}".format(accuracy, f1))
+
+        if get_accuracy:
+            accuracy, f1 = self.evaluate(final_predictions, test_labels)
+            print("Accuracy: {:.5f} F1-score: {:.5f}".format(accuracy, f1))
 
         return final_predictions
     
