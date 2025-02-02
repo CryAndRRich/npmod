@@ -14,8 +14,9 @@ class LogisticRegressionModule(nn.Module):
         Initializes the logistic regression model by defining a single linear layer
         and a sigmoid activation function
 
+        --------------------------------------------------
         Parameters:
-        n: Number of input features
+            n: Number of input features
         """
         super().__init__()
         self.linear = nn.Linear(in_features=n, out_features=1)
@@ -25,12 +26,13 @@ class LogisticRegressionModule(nn.Module):
         """
         Forward pass through the linear layer and sigmoid activation
 
+        --------------------------------------------------
         Parameters:
-        x: Input features
+            x: Input features
 
         --------------------------------------------------
         Returns:
-        Tensor: Output of the sigmoid-activated linear layer
+            Tensor: Output of the sigmoid-activated linear layer
         """
         return self.sigmoid(self.linear(x))
 
@@ -41,9 +43,10 @@ class LogisticRegressionPytorch(ModelML):
         """
         Initializes the Logistic Regression model with the learning rate and number of epochs
 
+        --------------------------------------------------
         Parameters:
-        learn_rate: The learning rate for the optimizer
-        number_of_epochs: The number of training iterations to run
+            learn_rate: The learning rate for the optimizer
+            number_of_epochs: The number of training iterations to run
         """
         self.learn_rate = learn_rate
         self.number_of_epochs = number_of_epochs
@@ -54,9 +57,10 @@ class LogisticRegressionPytorch(ModelML):
         """
         Trains the logistic regression model on the input data
 
+        --------------------------------------------------
         Parameters:
-        features: The input features for training 
-        labels: The target labels corresponding to the input features 
+            features: The input features for training 
+            labels: The target labels corresponding to the input features 
         """
         labels = labels.to(dtype=torch.float)
         _, n = features.shape
@@ -79,13 +83,20 @@ class LogisticRegressionPytorch(ModelML):
     
     def predict(self, 
                 test_features: torch.Tensor, 
-                test_labels: torch.Tensor) -> None:
+                test_labels: torch.Tensor,
+                get_accuracy: bool = True) -> torch.Tensor:
         """
-        Predicts the labels for the test data using the trained Logistic Regression model
+        Makes predictions on the test set and evaluates the model
 
+        --------------------------------------------------
         Parameters:
-        test_features: The input features for testing 
-        test_labels: The target labels corresponding to the test features 
+            test_features: The input features for testing
+            test_labels: The true target labels corresponding to the test features
+            get_accuracy: If True, calculates and prints the accuracy of predictions
+
+        --------------------------------------------------
+        Returns:
+            predictions: The prediction labels
         """
         test_labels = test_labels.to(dtype=torch.float)
         with torch.no_grad():  # Disable gradient computation for inference
@@ -94,10 +105,13 @@ class LogisticRegressionPytorch(ModelML):
             predictions = predictions.detach().numpy()
             test_labels = test_labels.detach().numpy()
 
-            # Evaluate accuracy and F1 score
-            accuracy, f1 = self.evaluate(predictions, test_labels)
-            print("Epoch: {}/{} Accuracy: {:.5f} F1-score: {:.5f}".format(
-                   self.number_of_epochs, self.number_of_epochs, accuracy, f1))
+            if get_accuracy:
+                # Evaluate accuracy and F1 score
+                accuracy, f1 = self.evaluate(predictions, test_labels)
+                print("Epoch: {}/{} Accuracy: {:.5f} F1-score: {:.5f}".format(
+                    self.number_of_epochs, self.number_of_epochs, accuracy, f1))
+        
+        return predictions
     
     def __str__(self) -> str:
         return "Logistic Regression (Pytorch)"

@@ -10,18 +10,19 @@ def split_data(features: np.ndarray,
     """
     Splits the dataset based on a specified feature and its value
 
+    --------------------------------------------------
     Parameters:
-    features: Feature matrix of the data
-    labels: Array of labels corresponding to the features
-    feature: Index of the feature used for splitting
-    value: Threshold value for the feature to split on
-    weights: Array of weights corresponding to each sample
+        features: Feature matrix of the data
+        labels: Array of labels corresponding to the features
+        feature: Index of the feature used for splitting
+        value: Threshold value for the feature to split on
+        weights: Array of weights corresponding to each sample
 
     --------------------------------------------------
     Returns:
-    true_features, true_labels, false_features, false_labels: 
-        Subsets of features and labels for the two branches
-    If weights are provided, returns true_weights and false_weights as well
+        true_features, true_labels, false_features, false_labels: 
+            Subsets of features and labels for the two branches
+        If weights are provided, returns true_weights and false_weights as well
     """
     if isinstance(value, (int, float)):
         true_indices = np.where(features[:, feature] <= value)[0]
@@ -44,13 +45,14 @@ def entropy(labels: np.ndarray,
     """
     Computes the entropy of a label distribution
 
+    --------------------------------------------------
     Parameters:
-    labels: Array of labels
-    weights: Array of weights corresponding to each label
+        labels: Array of labels
+        weights: Array of weights corresponding to each label
 
     --------------------------------------------------
     Returns:
-    float: Entropy of the label distribution
+        float: Entropy of the label distribution
     """
     if weights is None:
         weights = np.ones(len(labels))
@@ -68,17 +70,18 @@ def information_gain(true_labels: np.ndarray,
     """
     Calculates the information gain from a split
 
+    --------------------------------------------------
     Parameters:
-    true_labels: Labels of the left branch
-    false_labels: Labels of the right branch
-    current_entropy: Entropy before the split
-    true_weights: Weights of samples in the left branch
-    false_weights: Weights of samples in the right branch
-    get_ratio: Whether to return the gain ratio
+        true_labels: Labels of the left branch
+        false_labels: Labels of the right branch
+        current_entropy: Entropy before the split
+        true_weights: Weights of samples in the left branch
+        false_weights: Weights of samples in the right branch
+        get_ratio: Whether to return the gain ratio
 
     --------------------------------------------------
     Returns:
-    float: Information gain (or gain ratio if `get_ratio=True`)
+        float: Information gain (or gain ratio if `get_ratio=True`)
     """
     true = len(true_labels) if true_weights is None else np.sum(true_weights)
     false = len(false_labels) if false_weights is None else np.sum(false_weights)
@@ -102,13 +105,14 @@ def gini_impurity(labels: np.ndarray,
     """
     Computes the Gini impurity of a label distribution
 
+    --------------------------------------------------
     Parameters:
-    labels: Array of labels
-    weights: Array of weights corresponding to each label
+        labels: Array of labels
+        weights: Array of weights corresponding to each label
 
     --------------------------------------------------
     Returns:
-    float: Gini impurity of the label distribution
+        float: Gini impurity of the label distribution
     """
     if weights is None:
         weights = np.ones(len(labels))
@@ -125,16 +129,17 @@ def gini_index(true_labels: np.ndarray,
     """
     Calculates the Gini index for a split
 
+    --------------------------------------------------
     Parameters:
-    true_labels: Labels of the left branch
-    false_labels: Labels of the right branch
-    current_uncertainty:  Gini impurity before the split
-    true_weights: Weights of samples in the left branch
-    false_weights: Weights of samples in the right branch
+        true_labels: Labels of the left branch
+        false_labels: Labels of the right branch
+        current_uncertainty:  Gini impurity before the split
+        true_weights: Weights of samples in the left branch
+        false_weights: Weights of samples in the right branch
 
     --------------------------------------------------
     Returns:
-    float: Reduction in Gini impurity from the split
+        float: Reduction in Gini impurity from the split
     """
     true = len(true_labels) if true_weights is None else np.sum(true_weights)
     false = len(false_labels) if false_weights is None else np.sum(false_weights)
@@ -156,16 +161,17 @@ def chi_square(true_labels: np.ndarray,
     """
     Computes the chi-square statistic for a split
 
+    --------------------------------------------------
     Parameters:
-    true_labels: Labels of the left branch
-    false_labels: Labels of the right branch
-    total_labels: Total labels before the split
-    true_weights: Weights of samples in the left branch
-    false_weights: Weights of samples in the right branch
+        true_labels: Labels of the left branch
+        false_labels: Labels of the right branch
+        total_labels: Total labels before the split
+        true_weights: Weights of samples in the left branch
+        false_weights: Weights of samples in the right branch
 
     --------------------------------------------------
     Returns:
-    chi_square_stat: Chi-square statistic
+        chi_square_stat: Chi-square statistic
     """
     true = np.bincount(true_labels, weights=true_weights)
     false = np.bincount(false_labels, weights=false_weights)
@@ -188,13 +194,14 @@ def chi_square_p_value(chi_square_stat: float,
     """
     Calculates the p-value for a given chi-square statistic and degrees of freedom
 
+    --------------------------------------------------
     Parameters:
-    chi_square_stat: Chi-square statistic
-    df: Degrees of freedom
+        chi_square_stat: Chi-square statistic
+        df: Degrees of freedom
 
     --------------------------------------------------
     Returns:
-    float: p-value for the chi-square statistic
+        float: p-value for the chi-square statistic
     """
     def upper_incomplete_gamma(s, x):
         eps = 10e-4

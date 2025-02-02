@@ -14,6 +14,7 @@ class Loss:
         """
         Forward pass of the loss function
 
+        --------------------------------------------------
         Parameters:
             input: Predictions of Layer/Model
             target: Targets to be evaluated against

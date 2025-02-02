@@ -9,15 +9,16 @@ def cost_function(features: np.ndarray,
     """
     Computes the mean squared error cost for linear regression
 
+    --------------------------------------------------
     Parameters:
-    features: The input feature values 
-    labels: The target labels corresponding to the input features 
-    weight: The current weight value of the model
-    bias: The current bias value of the model
+        features: The input feature values 
+        labels: The target labels corresponding to the input features 
+        weight: The current weight value of the model
+        bias: The current bias value of the model
 
     --------------------------------------------------
     Returns:
-    avg_cost: The average cost (mean squared error) for the current weight and bias
+        avg_cost: The average cost (mean squared error) for the current weight and bias
     """
     m = features.shape[0]
     total_cost = 0
@@ -40,17 +41,18 @@ def gradient_descent(features: np.ndarray,
     """
     Performs one step of gradient descent to update the model's weight and bias
 
+    --------------------------------------------------
     Parameters:
-    features: The input feature values 
-    labels: The target labels corresponding to the input features 
-    weight: The current weight value of the model
-    bias: The current bias value of the model
-    learn_rate: The learning rate for gradient descent
+        features: The input feature values 
+        labels: The target labels corresponding to the input features 
+        weight: The current weight value of the model
+        bias: The current bias value of the model
+        learn_rate: The learning rate for gradient descent
 
     --------------------------------------------------
     Returns:
-    weight: The updated weight value after one step of gradient descent
-    bias: The updated bias value after one step of gradient descent
+        weight: The updated weight value after one step of gradient descent
+        bias: The updated bias value after one step of gradient descent
     """
     m = features.shape[0]
 
@@ -78,9 +80,10 @@ class LinearRegressionNumpy(ModelML):
         """
         Initializes the Linear Regression model using manual gradient descent
 
+        --------------------------------------------------
         Parameters:
-        learn_rate: The learning rate for the gradient descent
-        number_of_epochs: The number of training iterations to run
+            learn_rate: The learning rate for the gradient descent
+            number_of_epochs: The number of training iterations to run
         """
         self.learn_rate = learn_rate
         self.number_of_epochs = number_of_epochs
@@ -91,9 +94,10 @@ class LinearRegressionNumpy(ModelML):
         """
         Trains the linear regression model on the input data using gradient descent
 
+        --------------------------------------------------
         Parameters:
-        features: The input features for training 
-        labels: The target labels corresponding to the input features 
+            features: The input features for training 
+            labels: The target labels corresponding to the input features 
         """
         features = features.squeeze()
         self.weight = 0  # Initialize weight to 0

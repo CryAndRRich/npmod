@@ -18,21 +18,29 @@ class ModelML():
         """
         Fits the model to the training data
 
+        --------------------------------------------------
         Parameters:
-        features: The input features for training the model
-        labels: The corresponding target labels for the training data
+            features: The input features for training the model
+            labels: The corresponding target labels for the training data
         """
         pass
 
     def predict(self, 
                 test_features: np.ndarray, 
-                test_labels: np.ndarray) -> None:
+                test_labels: np.ndarray,
+                get_accuracy: bool = True) -> np.ndarray:
         """
-        Makes predictions on the test data
+        Makes predictions on the test set and evaluates the model
 
+        --------------------------------------------------
         Parameters:
-        test_features: The input features for testing
-        test_labels: The true labels corresponding to the test features
+            test_features: The input features for testing
+            test_labels: The true target labels corresponding to the test features
+            get_accuracy: If True, calculates and prints the accuracy of predictions
+
+        --------------------------------------------------
+        Returns:
+            predictions: The prediction labels
         """
         pass
 
@@ -42,17 +50,19 @@ class ModelML():
         """
         Evaluates the performance of the model using accuracy and F1-score
 
+        --------------------------------------------------
         Parameters:
-        predictions: The predicted labels by the model
-        test_labels: The true labels for the test set
+            predictions: The predicted labels by the model
+            test_labels: The true labels for the test set
 
+        --------------------------------------------------
         Returns:
-        accuracy, f1: The accuracy and F1-score of the model
+            accuracy, f1: The accuracy and F1-score of the model
         """
         accuracy = accuracy_score(test_labels, predictions)
         f1 = f1_score(test_labels, predictions, average="weighted", zero_division=0)
 
-        return accuracy, f1
+        return (accuracy, f1)
     
     def __str__(self):
         """

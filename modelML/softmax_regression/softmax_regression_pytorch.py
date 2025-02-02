@@ -16,9 +16,10 @@ class SoftmaxRegressionModule(nn.Module):
         """
         Initializes the softmax regression model by defining a linear layer
 
+        --------------------------------------------------
         Parameters:
-        number_of_features: The number of input features for each data point
-        number_of_classes: The number of classes for the output predictions
+            number_of_features: The number of input features for each data point
+            number_of_classes: The number of classes for the output predictions
         """
         super().__init__()
         self.linear = nn.Linear(in_features=number_of_features, out_features=number_of_classes)
@@ -27,12 +28,13 @@ class SoftmaxRegressionModule(nn.Module):
         """
         Forward pass through the softmax regression model
 
+        --------------------------------------------------
         Parameters:
-        x: The input features
+            x: The input features
 
         --------------------------------------------------
         Returns:
-        torch.Tensor: Output of the softmax regression model (logits)
+            torch.Tensor: Output of the softmax regression model (logits)
         """
         return self.linear(x)
 
@@ -48,10 +50,11 @@ class SoftmaxRegressionPytorch(ModelML):
         Initializes the softmax regression model with the specified learning rate, 
         number of epochs, and number of output classes
 
+        --------------------------------------------------
         Parameters:
-        learn_rate: The learning rate for the optimizer
-        number_of_epochs: The number of training iterations
-        number_of_classes: The number of output classes (default is 2 for binary classification)
+            learn_rate: The learning rate for the optimizer
+            number_of_epochs: The number of training iterations
+            number_of_classes: The number of output classes (default is 2 for binary classification)
         """
         self.learn_rate = learn_rate
         self.number_of_epochs = number_of_epochs
@@ -63,9 +66,10 @@ class SoftmaxRegressionPytorch(ModelML):
         """
         Trains the softmax regression model on the input data
 
+        --------------------------------------------------
         Parameters:
-        features: The input features for training
-        labels: The true target labels corresponding to the input features
+            features: The input features for training
+            labels: The true target labels corresponding to the input features
         """
         _, n = features.shape  # Get the number of features
         self.model = SoftmaxRegressionModule(n, self.number_of_classes)  # Initialize the Softmax regression model
@@ -92,13 +96,20 @@ class SoftmaxRegressionPytorch(ModelML):
     
     def predict(self, 
                 test_features: torch.Tensor, 
-                test_labels: torch.Tensor) -> None:
+                test_labels: torch.Tensor,
+                get_accuracy: bool = True) -> torch.Tensor:
         """
-        Predicts the labels for the test data using the trained softmax regression model.
+        Makes predictions on the test set and evaluates the model
 
+        --------------------------------------------------
         Parameters:
-        test_features: The input features for testing
-        test_labels: The true target labels corresponding to the test features
+            test_features: The input features for testing
+            test_labels: The true target labels corresponding to the test features
+            get_accuracy: If True, calculates and prints the accuracy of predictions
+
+        --------------------------------------------------
+        Returns:
+            predictions: The prediction labels
         """
         with torch.no_grad():
             # Forward pass: Get predictions from the model
@@ -111,10 +122,13 @@ class SoftmaxRegressionPytorch(ModelML):
             predictions = predictions.detach().numpy()
             test_labels = test_labels.detach().numpy()
 
-            # Evaluate the model using accuracy and F1-score
-            accuracy, f1 = self.evaluate(predictions, test_labels)
-            print("Epoch: {}/{} Accuracy: {:.5f} F1-score: {:.5f}".format(
-                   self.number_of_epochs, self.number_of_epochs, accuracy, f1))
+            if get_accuracy:
+                # Evaluate the model using accuracy and F1-score
+                accuracy, f1 = self.evaluate(predictions, test_labels)
+                print("Epoch: {}/{} Accuracy: {:.5f} F1-score: {:.5f}".format(
+                    self.number_of_epochs, self.number_of_epochs, accuracy, f1))
+        
+        return predictions
     
     def __str__(self) -> str:
         """

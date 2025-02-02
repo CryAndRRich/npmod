@@ -6,8 +6,9 @@ class MultinomialNaiveBayes(ModelML):
         """
         Initializes the Multinomial Naive Bayes model.
 
+        --------------------------------------------------
         Parameters:
-        alpha: Smoothing parameter for Laplace smoothing 
+            alpha: Smoothing parameter for Laplace smoothing 
         """
         self.alpha = alpha
 
@@ -17,9 +18,10 @@ class MultinomialNaiveBayes(ModelML):
         """
         Fits the Multinomial Naive Bayes model by calculating feature counts and total counts for each class.
 
+        --------------------------------------------------
         Parameters:
-        features: Input features for training
-        labels: Corresponding target labels for the input features
+            features: Input features for training
+            labels: Corresponding target labels for the input features
         """
         self.features = features
         self.labels = labels
@@ -49,13 +51,14 @@ class MultinomialNaiveBayes(ModelML):
         """
         Computes the probability of the input data using the multinomial distribution for a given class.
 
+        --------------------------------------------------
         Parameters:
-        data: Input feature values
-        class_idx: The class index for which to calculate the multinomial probability
+            data: Input feature values
+            class_idx: The class index for which to calculate the multinomial probability
 
         --------------------------------------------------
         Returns:
-        prob: The probability of the input data for the given class
+            prob: The probability of the input data for the given class
         """
         temp = []
         m = data.shape[0]
@@ -73,13 +76,20 @@ class MultinomialNaiveBayes(ModelML):
 
     def predict(self, 
                 test_features: np.ndarray, 
-                test_labels: np.ndarray) -> None:
+                test_labels: np.ndarray,
+                get_accuracy: bool = True) -> np.ndarray:
         """
-        Predicts the class labels for test data using the trained Multinomial Naive Bayes model.
+        Makes predictions on the test set and evaluates the model
 
+        --------------------------------------------------
         Parameters:
-        test_features: Input features for testing
-        test_labels: Corresponding target labels for the test features
+            test_features: The input features for testing
+            test_labels: The true target labels corresponding to the test features
+            get_accuracy: If True, calculates and prints the accuracy of predictions
+
+        --------------------------------------------------
+        Returns:
+            predictions: The prediction labels
         """
         num_samples, _ = test_features.shape
 
@@ -102,9 +112,12 @@ class MultinomialNaiveBayes(ModelML):
             # Choose the class with the highest posterior probability
             predictions[ind] = self.unique_labels[np.argmax(posteriors)]
 
-        # Evaluate accuracy and F1-score
-        accuracy, f1 = self.evaluate(predictions, test_labels)
-        print("Alpha: {} Accuracy: {:.5f} F1-score: {:.5f}".format(self.alpha, accuracy, f1))
+        if get_accuracy:
+            # Evaluate accuracy and F1-score
+            accuracy, f1 = self.evaluate(predictions, test_labels)
+            print("Alpha: {} Accuracy: {:.5f} F1-score: {:.5f}".format(self.alpha, accuracy, f1))
+
+        return predictions
 
     def __str__(self) -> str:
         """

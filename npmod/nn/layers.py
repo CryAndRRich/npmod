@@ -43,6 +43,7 @@ class Linear(Layer):
     """
     def __init__(self, in_features: int, out_features: int):
         """
+        --------------------------------------------------
         Parameters:
             in_features: Number of inputs to the Layer
             out_features: Number of outputs from the Layer
@@ -109,6 +110,7 @@ class Dropout(Layer):
     """
     def __init__(self, prob: float):
         """
+        --------------------------------------------------
         Parameters:
             prob: Probability with which to keep the inputs
         """
@@ -133,6 +135,7 @@ class Flatten(Layer):
     """
     def __init__(self, keep_channels: bool = False):
         """
+        --------------------------------------------------
         Parameters:
             keep_channels: If True, retains the channel dimension during flattening.\
                            Otherwise, flattens all dimensions except the batch size

@@ -12,16 +12,17 @@ def expectation_step(features: torch.Tensor,
     Computes the distance from each feature to each centroid and 
     assigns each feature to the closest centroid
 
+    --------------------------------------------------
     Parameters:
-    features: The input data features
-    centroids: The current centroids of the clusters
-    dists: Preallocated tensor to store distances from each sample to each centroid
-    number_of_clusters: The number of clusters
+        features: The input data features
+        centroids: The current centroids of the clusters
+        dists: Preallocated tensor to store distances from each sample to each centroid
+        number_of_clusters: The number of clusters
 
     --------------------------------------------------
     Returns:
-    dists_min: The minimum distance of each sample to the centroids
-    labels: The label of the closest centroid for each sample
+        dists_min: The minimum distance of each sample to the centroids
+        labels: The label of the closest centroid for each sample
     """
     for i in range(number_of_clusters):  
         ctr = centroids[:, i].unsqueeze(1)
@@ -37,15 +38,16 @@ def maximization_step(features: torch.Tensor,
     """
     Updates the centroids by computing the mean of all samples assigned to each cluster
 
+    --------------------------------------------------
     Parameters:
-    features: The input data features
-    centroids: The current centroids of the clusters
-    labels: The labels indicating the cluster assignment of each sample
-    number_of_clusters: The number of clusters
+        features: The input data features
+        centroids: The current centroids of the clusters
+        labels: The labels indicating the cluster assignment of each sample
+        number_of_clusters: The number of clusters
 
     --------------------------------------------------
     Returns:
-    centroids: The updated centroids
+        centroids: The updated centroids
     """
     for i in range(number_of_clusters):  
         ind = torch.where(labels == i)[0]
@@ -61,14 +63,15 @@ def arrange(centroids: torch.Tensor,
     """
     Arranges centroids and reassigns cluster labels for consistency
 
+    --------------------------------------------------
     Parameters:
-    centroids: The centroids of the clusters
-    predictions: The cluster labels for each sample
+        centroids: The centroids of the clusters
+        predictions: The cluster labels for each sample
 
     --------------------------------------------------
     Returns:
-    labeled_centroids: List of centroids with their labels sorted
-    predictions: The reassigned cluster labels
+        labeled_centroids: List of centroids with their labels sorted
+        predictions: The reassigned cluster labels
     """
     size = centroids.shape[1]
 
@@ -94,9 +97,10 @@ class KMeansClustering(ModelML):
         """
         K-Means Clustering model for unsupervised learning
 
+        --------------------------------------------------
         Parameters:
-        number_of_clusters: The number of clusters to form
-        max_number_of_epochs: The maximum number of iterations to run the algorithm
+            number_of_clusters: The number of clusters to form
+            max_number_of_epochs: The maximum number of iterations to run the algorithm
         """
         self.k = number_of_clusters
         self.max_number_of_epochs = max_number_of_epochs
@@ -107,9 +111,10 @@ class KMeansClustering(ModelML):
         """
         Fits the K-Means model to the input data
 
+        --------------------------------------------------
         Parameters:
-        features: Feature matrix of the training data
-        labels: Array of labels corresponding to the training data
+            features: Feature matrix of the training data
+            labels: Array of labels corresponding to the training data
         """
         xmax = features.max(dim=0)[0].unsqueeze(1)
         xmin = features.min(dim=0)[0].unsqueeze(1)

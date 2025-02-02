@@ -12,6 +12,7 @@ class Optimizer():
         """
         Initializes the optimizer with the given network and learning rate
 
+        --------------------------------------------------
         Parameters:
             network: The neural network layers to be optimized
             learn_rate: The learning rate for parameter updates
@@ -23,6 +24,7 @@ class Optimizer():
         """
         Initializes buffers (e.g., velocities, moments) for each layer's parameters
 
+        --------------------------------------------------
         Returns:
             List[List[np.ndarray]]: A list of buffers initialized to zero, with the same shape as the network parameters
         """
@@ -44,6 +46,7 @@ class GD(Optimizer):
         """
         Initializes the Gradient Descent optimizer
 
+        --------------------------------------------------
         Parameters:
             network: The neural network layers to be optimized
             learn_rate: The learning rate for parameter updates
@@ -70,6 +73,7 @@ class SGD(Optimizer):
         """
         Initializes the SGD optimizer with momentum
 
+        --------------------------------------------------
         Parameters:
             network: The neural network layers to be optimized
             learn_rate: The learning rate for parameter updates
@@ -101,6 +105,7 @@ class AdaGrad(Optimizer):
         """
         Initializes the AdaGrad optimizer
 
+        --------------------------------------------------
         Parameters:
             network: The neural network layers to be optimized
             learn_rate: The learning rate for parameter updates
@@ -134,6 +139,7 @@ class RMSprop(Optimizer):
         """
         Initializes the RMSprop optimizer
 
+        --------------------------------------------------
         Parameters:
             network: The neural network layers to be optimized
             learn_rate: The learning rate for parameter updates
@@ -168,6 +174,7 @@ class Adam(Optimizer):
         """
         Initializes the Adam optimizer
 
+        --------------------------------------------------
         Parameters:
             network: The neural network layers to be optimized
             learn_rate: The learning rate for parameter updates

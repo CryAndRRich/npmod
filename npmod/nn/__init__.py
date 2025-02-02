@@ -1,4 +1,4 @@
-from .activations import ReLU, LeakyReLU, Sigmoid, Tanh
+from .activations import ReLU, LeakyReLU, Sigmoid, Tanh, Softmax
 from .layers import Linear, Dropout, Flatten
 from .container import Sequential
 from .losses import MAE, MSE, MALE, RSquared, MAPE, wMAPE, SmoothL1, CE, BCE, KLDiv

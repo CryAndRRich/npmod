@@ -10,6 +10,7 @@ class Container:
                  eval: bool = False,
                  layers: List[Layer] = None):
         """
+        --------------------------------------------------
         Parameters:
             eval: Whether the Container is in eval mode
             layers: Layer to be included in the container
@@ -21,6 +22,7 @@ class Container:
         """
         Forward pass of Sequential
 
+        --------------------------------------------------
         Parameters:
             inputs: Inputs to the Layer
         """
@@ -30,6 +32,7 @@ class Container:
         """
         Calls the forward method
 
+        --------------------------------------------------
         Parameters:
             inputs: Inputs to the container
         """

@@ -11,9 +11,11 @@ class ReLU(Layer):
         Forward pass for the ReLU activation function.
         Computes the element-wise maximum of 0 and the input
 
+        --------------------------------------------------
         Parameters:
             x: Input data
 
+        --------------------------------------------------
         Returns:
             np.ndarray: Output after applying ReLU activation
         """
@@ -25,9 +27,11 @@ class ReLU(Layer):
         Backward pass for the ReLU activation function.
         Computes the gradient of the loss with respect to the input
 
+        --------------------------------------------------
         Parameters:
             previous_grad: Gradient of the loss with respect to the output.
 
+        --------------------------------------------------
         Returns:
             np.ndarray: Gradient of the loss with respect to the input.
         """
@@ -40,6 +44,7 @@ class LeakyReLU(Layer):
         """
         Initializes the LeakyReLU activation function
 
+        --------------------------------------------------
         Parameters:
             alpha: Slope for the negative input values (Leaky value)
         """
@@ -52,9 +57,11 @@ class LeakyReLU(Layer):
         Forward pass for the LeakyReLU activation function.
         Computes the element-wise activation where negative inputs are scaled by alpha.
 
+        --------------------------------------------------
         Parameters:
             x: Input data
 
+        --------------------------------------------------
         Returns:
             np.ndarray: Output after applying LeakyReLU activation
         """
@@ -66,9 +73,11 @@ class LeakyReLU(Layer):
         Backward pass for the LeakyReLU activation function.
         Computes the gradient of the loss with respect to the input
 
+        --------------------------------------------------
         Parameters:
             previous_grad: Gradient of the loss with respect to the output
 
+        --------------------------------------------------
         Returns:
             np.ndarray: Gradient of the loss with respect to the input
         """
@@ -85,9 +94,11 @@ class Sigmoid(Layer):
         Forward pass for the Sigmoid activation function.
         Computes the element-wise sigmoid of the input
 
+        --------------------------------------------------
         Parameters:
             x: Input data
 
+        --------------------------------------------------
         Returns:
             np.ndarray: Output after applying Sigmoid activation
         """
@@ -100,9 +111,11 @@ class Sigmoid(Layer):
         Backward pass for the Sigmoid activation function.
         Computes the gradient of the loss with respect to the input
 
+        --------------------------------------------------
         Parameters:
             previous_grad: Gradient of the loss with respect to the output
 
+        --------------------------------------------------
         Returns:
             np.ndarray: Gradient of the loss with respect to the input
         """
@@ -119,9 +132,11 @@ class Tanh(Layer):
         Forward pass for the Tanh activation function.
         Computes the hyperbolic tangent of the input
 
+        --------------------------------------------------
         Parameters:
             x: Input data.
 
+        --------------------------------------------------
         Returns:
             np.ndarray: Output after applying Tanh activation
         """
@@ -133,9 +148,11 @@ class Tanh(Layer):
         Backward pass for the Tanh activation function.
         Computes the gradient of the loss with respect to the input
 
+        --------------------------------------------------
         Parameters:
             previous_grad: Gradient of the loss with respect to the output
 
+        --------------------------------------------------
         Returns:
             np.ndarray: Gradient of the loss with respect to the input
         """
@@ -152,9 +169,11 @@ class Softmax(Layer):
         Forward pass for the Softmax activation function.
         Computes the softmax of the input array along the last axis
 
+        --------------------------------------------------
         Parameters:
             x: Input data
 
+        --------------------------------------------------
         Returns:
             np.ndarray: Output after applying Softmax activation
         """
@@ -171,9 +190,11 @@ class Softmax(Layer):
         This implementation assumes that the Softmax function is used
         in combination with a cross-entropy loss, where the gradient is simplified
 
+        --------------------------------------------------
         Parameters:
             previous_grad: Gradient of the loss with respect to the output.
 
+        --------------------------------------------------
         Returns:
             np.ndarray: Gradient of the loss with respect to the input.
         """

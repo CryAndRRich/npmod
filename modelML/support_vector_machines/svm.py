@@ -21,13 +21,14 @@ class SVMModule(nn.Module):
         """
         Initializes the SVM module by defining the kernel function and the weight layer.
 
+        --------------------------------------------------
         Parameters:
-        features: The input feature data for training 
-        kernel: The kernel function to use ('linear', 'rbf', 'poly', 'sigmoid')
-        gamma: A kernel-specific parameter 
-        train_gamma: Boolean flag to allow updating gamma during training 
-        degree: Degree of the polynomial kernel 
-        b: Constant used in polynomial and sigmoid kernels 
+            features: The input feature data for training 
+            kernel: The kernel function to use ('linear', 'rbf', 'poly', 'sigmoid')
+            gamma: A kernel-specific parameter 
+            train_gamma: Boolean flag to allow updating gamma during training 
+            degree: Degree of the polynomial kernel 
+            b: Constant used in polynomial and sigmoid kernels 
         """
         super().__init__()
         self.train_data = features
@@ -58,11 +59,13 @@ class SVMModule(nn.Module):
         """
         Radial Basis Function (RBF) kernel computation.
 
+        --------------------------------------------------
         Parameters:
-        x: Input features
+            x: Input features
 
+        --------------------------------------------------
         Returns:
-        torch.Tensor: Computed RBF kernel matrix
+            torch.Tensor: Computed RBF kernel matrix
         """
         y = self.train_data.repeat(x.size(0), 1, 1)
         return torch.exp(-self.gamma * ((x[:, None] - y) ** 2).sum(dim=2))
@@ -71,11 +74,13 @@ class SVMModule(nn.Module):
         """
         Linear kernel computation (identity function)
 
+        --------------------------------------------------
         Parameters:
-        x: Input features
+            x: Input features
 
+        --------------------------------------------------
         Returns:
-        torch.Tensor: Computed linear kernel
+            torch.Tensor: Computed linear kernel
         """
         return x
     
@@ -83,11 +88,13 @@ class SVMModule(nn.Module):
         """
         Polynomial kernel computation
 
+        --------------------------------------------------
         Parameters:
-        x: Input features
+            x: Input features
 
+        --------------------------------------------------
         Returns:
-        torch.Tensor: Computed polynomial kernel matrix
+            torch.Tensor: Computed polynomial kernel matrix
         """
         y = self.train_data.repeat(x.size(0), 1, 1)
         return (self.gamma * torch.bmm(x.unsqueeze(1), y.transpose(1, 2)) + self.b).pow(self.degree).squeeze(1)
@@ -96,11 +103,13 @@ class SVMModule(nn.Module):
         """
         Sigmoid kernel computation
 
+        --------------------------------------------------
         Parameters:
-        x: Input features
+            x: Input features
 
+        --------------------------------------------------
         Returns:
-        torch.Tensor: Computed sigmoid kernel matrix
+            torch.Tensor: Computed sigmoid kernel matrix
         """
         y = self.train_data.repeat(x.size(0), 1, 1)
         return torch.tanh(self.gamma * torch.bmm(x.unsqueeze(1), y.transpose(1, 2)) + self.b).squeeze(1)
@@ -111,12 +120,14 @@ class SVMModule(nn.Module):
         """
         Hinge loss function for SVM
 
+        --------------------------------------------------
         Parameters:
-        x: Predictions
-        y: Ground truth labels
+            x: Predictions
+            y: Ground truth labels
 
+        --------------------------------------------------
         Returns:
-        torch.Tensor: The hinge loss value
+            torch.Tensor: The hinge loss value
         """
         return torch.max(torch.zeros_like(y), 1 - y * x).mean()
     
@@ -124,11 +135,13 @@ class SVMModule(nn.Module):
         """
         Forward pass through the kernel and weight layers
 
+        --------------------------------------------------
         Parameters:
-        x: Input features
+            x: Input features
 
+        --------------------------------------------------
         Returns:
-        torch.Tensor: The final output after kernel transformation and linear weight application
+            torch.Tensor: The final output after kernel transformation and linear weight application
         """
         y = self.kernel(x)  # Apply the kernel function
         y = self.weight(y)  # Apply the learned weights
@@ -143,11 +156,12 @@ class SVMModel(ModelML):
         """
         Initializes the SVM model with learning rate, epochs, and kernel choice
 
+        --------------------------------------------------
         Parameters:
-        learn_rate: The learning rate for the optimizer
-        number_of_epochs: The number of training epochs
-        kernel: The kernel function to use for the SVM model ('linear', 'rbf', 'poly', 'sigmoid')
-        gamma: The kernel parameter 
+            learn_rate: The learning rate for the optimizer
+            number_of_epochs: The number of training epochs
+            kernel: The kernel function to use for the SVM model ('linear', 'rbf', 'poly', 'sigmoid')
+            gamma: The kernel parameter 
         """
         self.learn_rate = learn_rate
         self.number_of_epochs = number_of_epochs
@@ -160,9 +174,10 @@ class SVMModel(ModelML):
         """
         Trains the SVM model on the input features and labels
 
+        --------------------------------------------------
         Parameters:
-        features: The input features for training
-        labels: The target labels corresponding to the input features
+            features: The input features for training
+            labels: The target labels corresponding to the input features
         """
         labels = labels.unsqueeze(1)
         self.model = SVMModule(features, self.kernel, self.gamma)
@@ -180,13 +195,20 @@ class SVMModel(ModelML):
     
     def predict(self, 
                 test_features: torch.Tensor, 
-                test_labels: torch.Tensor) -> None:
+                test_labels: torch.Tensor,
+                get_accuracy: bool = True) -> torch.Tensor:
         """
         Makes predictions on the test set and evaluates the model
 
+        --------------------------------------------------
         Parameters:
-        test_features: The input features for testing
-        test_labels: The true target labels corresponding to the test features
+            test_features: The input features for testing
+            test_labels: The true target labels corresponding to the test features
+            get_accuracy: If True, calculates and prints the accuracy of predictions
+
+        --------------------------------------------------
+        Returns:
+            predictions: The prediction labels
         """
         test_labels = test_labels.unsqueeze(1)
         with torch.no_grad():
@@ -194,9 +216,12 @@ class SVMModel(ModelML):
             predictions = (predictions > predictions.mean())  # Binarize predictions
             test_labels = test_labels.detach().numpy()
 
-            accuracy, f1 = self.evaluate(predictions, test_labels)
-            print("Epoch: {}/{} Accuracy: {:.5f} F1-score: {:.5f}".format(
-                   self.number_of_epochs, self.number_of_epochs, accuracy, f1))
+            if get_accuracy:
+                accuracy, f1 = self.evaluate(predictions, test_labels)
+                print("Epoch: {}/{} Accuracy: {:.5f} F1-score: {:.5f}".format(
+                    self.number_of_epochs, self.number_of_epochs, accuracy, f1))
+        
+        return predictions
     
     def __str__(self):
         """

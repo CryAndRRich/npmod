@@ -6,8 +6,9 @@ class CategoricalNaiveBayes(ModelML):
         """
         Initializes the Categorical Naive Bayes model
 
+        --------------------------------------------------
         Parameters:
-        alpha: Smoothing parameter for Laplace smoothing 
+            alpha: Smoothing parameter for Laplace smoothing 
         """
         self.alpha = alpha
 
@@ -17,9 +18,10 @@ class CategoricalNaiveBayes(ModelML):
         """
         Fits the model to the training data by calculating class priors and conditional probabilities
 
+        --------------------------------------------------
         Parameters:
-        features: Input features for training
-        labels: Corresponding target labels for the input features
+            features: Input features for training
+            labels: Corresponding target labels for the input features
         """
         self.features = features
         self.labels = labels
@@ -57,13 +59,14 @@ class CategoricalNaiveBayes(ModelML):
         """
         Computes the log probability of the data given a class using the categorical distribution
 
+        --------------------------------------------------
         Parameters:
-        data: Input feature values
-        class_idx: The class index for which to calculate the log-probability
+            data: Input feature values
+            class_idx: The class index for which to calculate the log-probability
 
         --------------------------------------------------
         Returns:
-        log_prob: The log probability of the input data for the given class
+            log_prob: The log probability of the input data for the given class
         """
         # Start with the class prior (log form)
         log_prob = np.log(self.class_priors[class_idx])
@@ -82,13 +85,22 @@ class CategoricalNaiveBayes(ModelML):
 
         return log_prob
 
-    def predict(self, test_features: np.ndarray, test_labels: np.ndarray) -> None:
+    def predict(self, 
+                test_features: np.ndarray, 
+                test_labels: np.ndarray,
+                get_accuracy: bool = True) -> np.ndarray:
         """
-        Predicts the class labels for test data using the trained Categorical Naive Bayes model
+        Makes predictions on the test set and evaluates the model
 
+        --------------------------------------------------
         Parameters:
-        test_features: Input features for testing
-        test_labels: Corresponding target labels for the test features
+            test_features: The input features for testing
+            test_labels: The true target labels corresponding to the test features
+            get_accuracy: If True, calculates and prints the accuracy of predictions
+
+        --------------------------------------------------
+        Returns:
+            predictions: The prediction labels
         """
         num_samples, _ = test_features.shape
 
@@ -103,9 +115,12 @@ class CategoricalNaiveBayes(ModelML):
             # Choose the class with the highest posterior probability
             predictions[ind] = self.unique_labels[np.argmax(posteriors)]
 
-        # Evaluate accuracy and F1-score
-        accuracy, f1 = self.evaluate(predictions, test_labels)
-        print("Alpha: {} Accuracy: {:.5f} F1-score: {:.5f}".format(self.alpha, accuracy, f1))
+        if get_accuracy:
+            # Evaluate accuracy and F1-score
+            accuracy, f1 = self.evaluate(predictions, test_labels)
+            print("Alpha: {} Accuracy: {:.5f} F1-score: {:.5f}".format(self.alpha, accuracy, f1))
+
+        return predictions
 
     def __str__(self) -> str:
         """

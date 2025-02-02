@@ -9,9 +9,10 @@ class C50DecisionTree(Tree):
         """
         Initializes the C5.0 decision tree with boosting
 
+        --------------------------------------------------
         Parameters:
-        n_estimators: Number of boosting iterations
-        min_samples: Minimum number of samples required to split a node
+            n_estimators: Number of boosting iterations
+            min_samples: Minimum number of samples required to split a node
         """
         self.n_estimators = n_estimators
         self.min_samples = min_samples
@@ -49,14 +50,15 @@ class C50DecisionTree(Tree):
         """
         Builds a single decision tree using weighted data
 
+        --------------------------------------------------
         Parameters:
-        features: Feature matrix of the training data
-        labels: Array of labels corresponding to the training data
-        weights: Weights for each sample in the training data
+            features: Feature matrix of the training data
+            labels: Array of labels corresponding to the training data
+            weights: Weights for each sample in the training data
 
         --------------------------------------------------
         Returns:
-        TreeNode: Root node of the constructed decision tree
+            TreeNode: Root node of the constructed decision tree
         """
         best_gain_ratio = 0
         best_criteria = None
@@ -88,7 +90,7 @@ class C50DecisionTree(Tree):
 
     def predict(self, 
                 test_features: np.ndarray, 
-                test_labels: np.ndarray) -> None:
+                test_labels: np.ndarray) -> np.ndarray:
         
         num_samples, _ = test_features.shape
 
@@ -99,6 +101,8 @@ class C50DecisionTree(Tree):
         final_predictions = np.sign(predictions)
         accuracy, f1 = self.evaluate(final_predictions, test_labels)
         print("Accuracy: {:.5f} F1-score: {:.5f}".format(accuracy, f1))
+
+        return final_predictions
     
     def __str__(self):
         return "Decision Trees: C5.0/See5 Algorithm"

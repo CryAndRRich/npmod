@@ -9,13 +9,14 @@ def cost_function(predictions: np.ndarray,
     """
     Computes the difference (error) between predictions and true labels
 
+    --------------------------------------------------
     Parameters:
-    predictions: Predicted labels from the perceptron model
-    labels: True target labels 
+        predictions: Predicted labels from the perceptron model
+        labels: True target labels 
 
     --------------------------------------------------
     Returns:
-    cost: The error between predictions and labels
+        cost: The error between predictions and labels
     """
     cost = predictions - labels
     return cost
@@ -26,14 +27,15 @@ def heaviside_step(x_train: np.ndarray,
     """
     Applies the Heaviside step function to make a binary decision based on the weighted sum of inputs
 
+    --------------------------------------------------
     Parameters:
-    x_train: The input feature values 
-    weights: The current weight values 
-    bias: The current bias value 
+        x_train: The input feature values 
+        weights: The current weight values 
+        bias: The current bias value 
 
     --------------------------------------------------
     Returns:
-    int|List[int]: A binary decision (0 or 1) after applying the step function
+        int|List[int]: A binary decision (0 or 1) after applying the step function
     """
     weighted_sum = x_train @ weights.T + bias
     
@@ -49,9 +51,10 @@ class PerceptronLearningNumpy(ModelML):
         """
         Initializes the Perceptron Learning model using the Perceptron Learning Algorithm
 
+        --------------------------------------------------
         Parameters:
-        learn_rate: The learning rate for the model update
-        number_of_epochs: The number of training iterations
+            learn_rate: The learning rate for the model update
+            number_of_epochs: The number of training iterations
         """
         self.learn_rate = learn_rate
         self.number_of_epochs = number_of_epochs
@@ -62,9 +65,10 @@ class PerceptronLearningNumpy(ModelML):
         """
         Trains the Perceptron model using the training data
 
+        --------------------------------------------------
         Parameters:
-        features: Input feature matrix for training
-        labels: True target labels corresponding to the input features
+            features: Input feature matrix for training
+            labels: True target labels corresponding to the input features
         """
         _, n = features.shape
 
@@ -89,21 +93,31 @@ class PerceptronLearningNumpy(ModelML):
             
     def predict(self, 
                 test_features: np.ndarray, 
-                test_labels: np.ndarray) -> None:
+                test_labels: np.ndarray,
+                get_accuracy: bool = True) -> np.ndarray:
         """
-        Predicts the labels for the test data using the trained Perceptron model
+        Makes predictions on the test set and evaluates the model
 
+        --------------------------------------------------
         Parameters:
-        test_features: The input features for testing
-        test_labels: The true labels corresponding to the test features
+            test_features: The input features for testing
+            test_labels: The true target labels corresponding to the test features
+            get_accuracy: If True, calculates and prints the accuracy of predictions
+
+        --------------------------------------------------
+        Returns:
+            predictions: The prediction labels
         """
         # Make predictions by applying the Heaviside step function
         predictions = 1 - np.array(heaviside_step(test_features, self.weights, self.bias))
 
-        # Evaluate the predictions using accuracy and F1 score
-        accuracy, f1 = self.evaluate(predictions, test_labels)
-        print("Epoch: {}/{} Accuracy: {:.5f} F1-score: {:.5f}".format(
-               self.number_of_epochs, self.number_of_epochs, accuracy, f1))
+        if get_accuracy:
+            # Evaluate the predictions using accuracy and F1 score
+            accuracy, f1 = self.evaluate(predictions, test_labels)
+            print("Epoch: {}/{} Accuracy: {:.5f} F1-score: {:.5f}".format(
+                self.number_of_epochs, self.number_of_epochs, accuracy, f1))
+        
+        return predictions
     
     def __str__(self) -> str:
         """

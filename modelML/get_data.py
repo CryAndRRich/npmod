@@ -18,9 +18,10 @@ class getData():
         """
         Initializes the data processing object by loading the dataset and preparing features and labels
 
+        --------------------------------------------------
         Parameters:
-        data_path: Path to the CSV dataset file
-        data_type: The type of data to process ('number' for numerical data, 'text' for text data)
+            data_path: Path to the CSV dataset file
+            data_type: The type of data to process ('number' for numerical data, 'text' for text data)
         """
         self.data = pd.read_csv(data_path, lineterminator='\n')
         self.features, self.labels = self.data.iloc[:, :-1], self.data.iloc[:, -1]
@@ -67,15 +68,17 @@ class getData():
         """
         Retrieves processed training and testing datasets in the specified format
 
+        --------------------------------------------------
         Parameters:
-        type_of_data: The format of data to return ('numpy' for NumPy arrays, 'tensor' for PyTorch tensors)
-
+            type_of_data: The format of data to return ('numpy' for NumPy arrays, 'tensor' for PyTorch tensors)
+        
+        --------------------------------------------------
         Returns:
-        Tuple: The processed datasets in the specified format:
-            - Training features
-            - Testing features
-            - Training labels
-            - Testing labels
+            Tuple: The processed datasets in the specified format:\n
+                        - Training features
+                        - Testing features
+                        - Training labels
+                        - Testing labels
         """
         if type_of_data == "numpy":
             return (self.numpy_train_features,

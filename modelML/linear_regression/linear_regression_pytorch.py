@@ -21,12 +21,13 @@ class LinearRegressionModule(nn.Module):
         """
         Forward pass through the linear layer
 
+        --------------------------------------------------
         Parameters:
-        x: Input features
+            x: Input features
 
         --------------------------------------------------
         Returns:
-        Tensor: Output of the linear layer after applying the weights and bias
+            Tensor: Output of the linear layer after applying the weights and bias
         """
         return self.linear(x)
     
@@ -37,9 +38,10 @@ class LinearRegressionPytorch(ModelML):
         """
         Initializes the Linear Regression model with the learning rate and number of epochs
 
+        --------------------------------------------------
         Parameters:
-        learn_rate: The learning rate for the optimizer
-        number_of_epochs: The number of training iterations to run
+            learn_rate: The learning rate for the optimizer
+            number_of_epochs: The number of training iterations to run
         """
         self.learn_rate = learn_rate
         self.number_of_epochs = number_of_epochs
@@ -50,9 +52,10 @@ class LinearRegressionPytorch(ModelML):
         """
         Trains the linear regression model on the input data
 
+        --------------------------------------------------
         Parameters:
-        features: The input features for training
-        labels: The target labels corresponding to the input features
+            features: The input features for training
+            labels: The target labels corresponding to the input features
         """
         labels = labels.unsqueeze(1).to(dtype=torch.float)
         self.model = LinearRegressionModule()

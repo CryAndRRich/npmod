@@ -11,9 +11,10 @@ class NaiveBayes:
         """
         Initializes the Naive Bayes model by selecting the appropriate distribution type
 
+        --------------------------------------------------
         Parameters:
-        distribution: Type of Naive Bayes distribution ("gaussian", "multinomial", "bernoulli", "categorical")
-        alpha: Smoothing parameter for models that require Laplace smoothing
+            distribution: Type of Naive Bayes distribution ("gaussian", "multinomial", "bernoulli", "categorical")
+            alpha: Smoothing parameter for models that require Laplace smoothing
         """
         # Set the appropriate model based on the distribution type
         if distribution == "gaussian":
@@ -35,9 +36,11 @@ class NaiveBayes:
 
     def predict(self, 
                 test_features: np.ndarray, 
-                test_labels: np.ndarray) -> None:
+                test_labels: np.ndarray,
+                get_accuracy: bool = True) -> np.ndarray:
         
-        self.inherit.predict(test_features, test_labels)
+        predictions = self.inherit.predict(test_features, test_labels, get_accuracy)
+        return predictions
 
     def __str__(self) -> str:
         return self.inherit.__str__()

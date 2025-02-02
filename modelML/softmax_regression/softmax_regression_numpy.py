@@ -8,12 +8,13 @@ def softmax_function(z: np.ndarray) -> np.ndarray:
     """
     Computes the softmax function for the given input scores
 
+    --------------------------------------------------
     Parameters:
-    z: The input score matrix (before softmax)
+        z: The input score matrix (before softmax)
 
     --------------------------------------------------
     Returns:
-    np.ndarray: The output probability distribution after applying softmax
+        np.ndarray: The output probability distribution after applying softmax
     """
     exp_z = np.exp(z - np.max(z))  # Numerical stability by subtracting max(z)
     return exp_z / np.sum(exp_z, axis=1, keepdims=True)
@@ -24,14 +25,15 @@ def cross_entropy(labels: np.ndarray,
     """
     Computes the cross-entropy loss between the true labels and predicted probabilities
 
+    --------------------------------------------------
     Parameters:
-    labels: One-hot encoded true labels
-    probs: Predicted probabilities from the softmax function
-    number_of_samples: The number of training samples
+        labels: One-hot encoded true labels
+        probs: Predicted probabilities from the softmax function
+        number_of_samples: The number of training samples
 
     --------------------------------------------------
     Returns:
-    cost: The cross-entropy loss
+        cost: The cross-entropy loss
     """
     cost = - np.sum(labels * np.log(probs)) / number_of_samples
     return cost
@@ -42,14 +44,15 @@ def one_hot_encode(labels: np.ndarray,
     """
     Converts labels into a one-hot encoded format
 
+    --------------------------------------------------
     Parameters:
-    labels: The original integer labels
-    number_of_samples: The total number of samples
-    number_of_classes: The number of unique classes in the dataset
+        labels: The original integer labels
+        number_of_samples: The total number of samples
+        number_of_classes: The number of unique classes in the dataset
 
     --------------------------------------------------
     Returns:
-    one_hot: The one-hot encoded labels
+        one_hot: The one-hot encoded labels
     """
     one_hot = np.zeros((number_of_samples, number_of_classes))
     one_hot[np.arange(number_of_samples), labels.T] = 1
@@ -64,18 +67,19 @@ def gradient_descent(features: np.ndarray,
     """
     Performs one step of gradient descent to update the model's weights and bias
 
+    --------------------------------------------------
     Parameters:
-    features: The input features matrix
-    labels: One-hot encoded true labels
-    probs: Predicted probabilities from the softmax function
-    weights: The current weight matrix
-    bias: The current bias values
-    learn_rate: The learning rate for gradient descent
+        features: The input features matrix
+        labels: One-hot encoded true labels
+        probs: Predicted probabilities from the softmax function
+        weights: The current weight matrix
+        bias: The current bias values
+        learn_rate: The learning rate for gradient descent
 
     --------------------------------------------------
     Returns:
-    weights: The updated weight matrix
-    bias: The updated bias values
+        weights: The updated weight matrix
+        bias: The updated bias values
     """
     m = features.shape[0]
 
@@ -97,10 +101,11 @@ class SoftmaxRegressionNumpy(ModelML):
         """
         Initializes the Softmax Regression model using gradient descent
 
+        --------------------------------------------------
         Parameters:
-        learn_rate: The learning rate for gradient descent
-        number_of_epochs: The number of training iterations (epochs)
-        number_of_classes: The number of unique classes in the classification problem
+            learn_rate: The learning rate for gradient descent
+            number_of_epochs: The number of training iterations (epochs)
+            number_of_classes: The number of unique classes in the classification problem
         """
         self.learn_rate = learn_rate
         self.number_of_epochs = number_of_epochs
@@ -112,9 +117,10 @@ class SoftmaxRegressionNumpy(ModelML):
         """
         Trains the Softmax Regression model on the input data
 
+        --------------------------------------------------
         Parameters:
-        features: Input feature matrix for training
-        labels: True target labels corresponding to the input features
+            features: Input feature matrix for training
+            labels: True target labels corresponding to the input features
         """
         m, n = features.shape
 
@@ -139,13 +145,20 @@ class SoftmaxRegressionNumpy(ModelML):
     
     def predict(self, 
                 test_features: np.ndarray, 
-                test_labels: np.ndarray) -> None:
+                test_labels: np.ndarray,
+                get_accuracy: bool = True) -> np.ndarray:
         """
         Predicts the labels for the test data using the trained Softmax Regression model
 
+        --------------------------------------------------
         Parameters:
-        test_features: The input features for testing
-        test_labels: The true labels corresponding to the test features
+            test_features: The input features for testing
+            test_labels: The true labels corresponding to the test features
+            get_accuracy: If True, calculates and prints the accuracy of predictions
+
+        --------------------------------------------------
+        Returns:
+            predictions: The prediction labels
         """
         # Compute scores (logits) and predicted probabilities using softmax
         scores = np.dot(test_features, self.weights.T) + self.bias
@@ -154,10 +167,13 @@ class SoftmaxRegressionNumpy(ModelML):
         # Predict the class label with the highest probability
         predictions = np.argmax(probs, axis=1)[:, np.newaxis]
 
-        # Evaluate the predictions using accuracy and F1 score
-        accuracy, f1 = self.evaluate(predictions, test_labels)
-        print("Epoch: {}/{} Accuracy: {:.5f} F1-score: {:.5f}".format(
-               self.number_of_epochs, self.number_of_epochs, accuracy, f1))
+        if get_accuracy:
+            # Evaluate the predictions using accuracy and F1 score
+            accuracy, f1 = self.evaluate(predictions, test_labels)
+            print("Epoch: {}/{} Accuracy: {:.5f} F1-score: {:.5f}".format(
+                self.number_of_epochs, self.number_of_epochs, accuracy, f1))
+        
+        return predictions
     
     def __str__(self) -> str:
         """

@@ -6,8 +6,9 @@ class BernoulliNaiveBayes(ModelML):
         """
         Initializes the Bernoulli Naive Bayes model
 
+        --------------------------------------------------
         Parameters:
-        alpha: Smoothing parameter for Laplace smoothing
+            alpha: Smoothing parameter for Laplace smoothing
         """
         self.alpha = alpha
 
@@ -17,9 +18,10 @@ class BernoulliNaiveBayes(ModelML):
         """
         Fits the model to the training data by calculating class priors and likelihoods
 
+        --------------------------------------------------
         Parameters:
-        features: Input features for training
-        labels: Corresponding target labels for the input features
+            features: Input features for training
+            labels: Corresponding target labels for the input features
         """
         self.features = features
         self.labels = labels
@@ -32,12 +34,13 @@ class BernoulliNaiveBayes(ModelML):
         """
         Computes the Bernoulli distribution for the feature set
 
+        --------------------------------------------------
         Parameters:
-        data: Input feature data for calculating probabilities
+            data: Input feature data for calculating probabilities
 
         --------------------------------------------------
         Returns:
-        mu: Bernoulli probabilities for each feature
+            mu: Bernoulli probabilities for each feature
         """
         numerator = data.sum(axis=0) + self.alpha
         denominator = data.shape[0] + 2 * self.alpha
@@ -47,13 +50,20 @@ class BernoulliNaiveBayes(ModelML):
     
     def predict(self, 
                 test_features: np.ndarray, 
-                test_labels: np.ndarray) -> None:
+                test_labels: np.ndarray,
+                get_accuracy: bool = True) -> np.ndarray:
         """
-        Predicts the class labels for test data using the trained Bernoulli Naive Bayes model
+        Makes predictions on the test set and evaluates the model
 
+        --------------------------------------------------
         Parameters:
-        test_features: Input features for testing
-        test_labels: Corresponding target labels for the test features
+            test_features: The input features for testing
+            test_labels: The true target labels corresponding to the test features
+            get_accuracy: If True, calculates and prints the accuracy of predictions
+
+        --------------------------------------------------
+        Returns:
+            predictions: The prediction labels
         """
         num_samples, _ = test_features.shape
 
@@ -71,8 +81,11 @@ class BernoulliNaiveBayes(ModelML):
             
             predictions[ind] = self.unique_labels[np.argmax(posteriors)]
 
-        accuracy, f1 = self.evaluate(predictions, test_labels)
-        print("Alpha: {} Accuracy: {:.5f} F1-score: {:.5f}".format(self.alpha, accuracy, f1))
+        if get_accuracy:
+            accuracy, f1 = self.evaluate(predictions, test_labels)
+            print("Alpha: {} Accuracy: {:.5f} F1-score: {:.5f}".format(self.alpha, accuracy, f1))
+        
+        return predictions
     
     def __str__(self) -> str:
         """

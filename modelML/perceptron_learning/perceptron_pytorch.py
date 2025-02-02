@@ -8,26 +8,28 @@ class PerceptionModule(nn.Module):
     """
     Perceptron model using PyTorch's nn.Module for binary classification
     """
-    def __init__(self, n: int):
+    def __init__(self, n_features: int):
         """
         Initializes the perceptron model by defining a single linear layer
 
+        --------------------------------------------------
         Parameters:
-        n: The number of input features
+            n_features: The number of input features
         """
         super().__init__()
-        self.linear = nn.Linear(in_features=n, out_features=1)
+        self.linear = nn.Linear(in_features=n_features, out_features=1)
 
     def heaviside_step(self, weighted_sum: torch.Tensor) -> torch.Tensor:
         """
         Applies the Heaviside step function to make binary predictions
 
+        --------------------------------------------------
         Parameters:
-        weighted_sum: The weighted sum from the linear layer
+            weighted_sum: The weighted sum from the linear layer
 
         --------------------------------------------------
         Returns:
-        torch.Tensor: Binary predictions (0 or 1) after applying the step function
+            torch.Tensor: Binary predictions (0 or 1) after applying the step function
         """
         # Convert weighted_sum into binary values (0 or 1)
         weighted_sum = [int(weight >= 0) for weight in weighted_sum]
@@ -37,12 +39,13 @@ class PerceptionModule(nn.Module):
         """
         Forward pass through the perceptron model
 
+        --------------------------------------------------
         Parameters:
-        x: Input features
+            x: Input features
 
         --------------------------------------------------
         Returns:
-        torch.Tensor: Binary predictions from the perceptron model
+            torch.Tensor: Binary predictions from the perceptron model
         """
         weighted_sum = self.linear(x)  # Compute the weighted sum
         return self.heaviside_step(weighted_sum)  # Apply the Heaviside step function
@@ -57,9 +60,10 @@ class PerceptronLearningPytorch(ModelML):
         """
         Initializes the perceptron learning model with a given learning rate and number of epochs.
 
+        --------------------------------------------------
         Parameters:
-        learn_rate: The learning rate for updating weights
-        number_of_epochs: The number of training iterations
+            learn_rate: The learning rate for updating weights
+            number_of_epochs: The number of training iterations
         """
         self.learn_rate = learn_rate
         self.number_of_epochs = number_of_epochs
@@ -70,12 +74,13 @@ class PerceptronLearningPytorch(ModelML):
         """
         Trains the perceptron model on the input features and labels.
 
+        --------------------------------------------------
         Parameters:
-        features: The input features for training
-        labels: The true target labels corresponding to the input features
+            features: The input features for training
+            labels: The true target labels corresponding to the input features
         """
-        _, n = features.shape  # Get the number of features
-        self.model = PerceptionModule(n)  # Initialize the Perceptron module
+        _, n_features = features.shape  # Get the number of features
+        self.model = PerceptionModule(n_features)  # Initialize the Perceptron module
 
         # Set the model to training mode
         self.model.train()
@@ -108,13 +113,20 @@ class PerceptronLearningPytorch(ModelML):
     
     def predict(self, 
                 test_features: torch.Tensor, 
-                test_labels: torch.Tensor) -> None:
+                test_labels: torch.Tensor,
+                get_accuracy: bool = True) -> torch.Tensor:
         """
-        Predicts the labels for the test data using the trained perceptron model.
+        Makes predictions on the test set and evaluates the model
 
+        --------------------------------------------------
         Parameters:
-        test_features: The input features for testing
-        test_labels: The true target labels corresponding to the test features
+            test_features: The input features for testing
+            test_labels: The true target labels corresponding to the test features
+            get_accuracy: If True, calculates and prints the accuracy of predictions
+
+        --------------------------------------------------
+        Returns:
+            predictions: The prediction labels
         """
         with torch.no_grad():
             # Forward pass: Get predictions from the model
@@ -122,10 +134,13 @@ class PerceptronLearningPytorch(ModelML):
             predictions = predictions.detach().numpy()  # Convert predictions to numpy array
             test_labels = test_labels.detach().numpy()  # Convert labels to numpy array
 
-            # Evaluate the model using accuracy and F1-score
-            accuracy, f1 = self.evaluate(predictions, test_labels)
-            print("Epoch: {}/{} Accuracy: {:.5f} F1-score: {:.5f}".format(
-                   self.number_of_epochs, self.number_of_epochs, accuracy, f1))
+            if get_accuracy:
+                # Evaluate the model using accuracy and F1-score
+                accuracy, f1 = self.evaluate(predictions, test_labels)
+                print("Epoch: {}/{} Accuracy: {:.5f} F1-score: {:.5f}".format(
+                    self.number_of_epochs, self.number_of_epochs, accuracy, f1))
+        
+        return predictions
     
     def __str__(self) -> str:
         """

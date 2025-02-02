@@ -9,9 +9,10 @@ class CITsDecisionTree(Tree):
         """
         Initializes the CITs decision tree
 
+        --------------------------------------------------
         Parameters:
-        min_samples_split: Minimum number of samples required to split a node
-        p_value_threshold: Threshold for the p-value to determine significant splits
+            min_samples_split: Minimum number of samples required to split a node
+            p_value_threshold: Threshold for the p-value to determine significant splits
         """
         self.min_samples_split = min_samples_split
         self.p_value_threshold = p_value_threshold

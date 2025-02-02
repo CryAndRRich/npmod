@@ -1,3 +1,4 @@
+import random
 import numpy as np
 from .ID3_algorithm import ID3DecisionTree
 from .C45_algorithm import C45DecisionTree
@@ -6,23 +7,29 @@ from .CART_algorithm import CARTDecisionTree
 from .CHAID_algorithm import CHAIDDecisionTree
 from .CITs_algorithm import CITsDecisionTree
 
+random.seed(42)
+
 class DecisionTree():
     """
     A unified interface for decision tree algorithms. This class acts as a wrapper
     for different decision tree implementations, allowing users to specify the algorithm type
     """
 
-    def __init__(self, algorithm: str = "ID3"):
+    def __init__(self, algorithm: str = None):
         """
         Initializes the DecisionTree class and selects the appropriate algorithm
 
+        --------------------------------------------------
         Parameters:
-        algorithm: The type of decision tree algorithm to use
-        Supported values are: 'ID3', 'C4.5', 'C5.0/See5', 'CART', 'CHAID', and 'CITs'
-        
-        Raises:
-        ValueError: If the specified algorithm is not supported
+            algorithm: The type of decision tree algorithm to use
+            Supported values are: 'ID3', 'C4.5', 'C5.0/See5', 'CART', 'CHAID', and 'CITs'
         """
+
+        self.algorithms = ["ID3", "C4.5", "C5.0", "CART", "CHAID", "CITs"]
+        if algorithm is None:
+            tree_type = random.randint(0, len(self.algorithms) - 1)
+            algorithm=self.algorithms[tree_type]
+
         if algorithm == "ID3":
             self.inherit = ID3DecisionTree()
         elif algorithm == "C4.5":
@@ -49,9 +56,11 @@ class DecisionTree():
 
     def predict(self, 
                 test_features: np.ndarray, 
-                test_labels: np.ndarray) -> None:
+                test_labels: np.ndarray,
+                get_accuracy: bool = True) -> np.ndarray:
         
-        self.inherit.predict(test_features, test_labels)
+        predictions = self.inherit.predict(test_features, test_labels, get_accuracy)
+        return predictions
     
     def __str__(self) -> str:
         return self.inherit.__str__()

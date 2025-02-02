@@ -6,12 +6,13 @@ def sigmoid_function(x: np.ndarray) -> np.ndarray:
     """
     Computes the sigmoid function for input values
 
+    --------------------------------------------------
     Parameters:
-    x: The input feature values 
+        x: The input feature values 
 
     --------------------------------------------------
     Returns:
-    np.ndarray: The sigmoid output for the input values
+        np.ndarray: The sigmoid output for the input values
     """
     return 1 / (1 + np.exp(-x))
 
@@ -20,13 +21,14 @@ def log_loss(x: np.ndarray,
     """
     Computes the logistic loss (binary cross-entropy) for a given prediction and true label
 
+    --------------------------------------------------
     Parameters:
-    x: The true labels 
-    y: The predicted probabilities 
+        x: The true labels 
+        y: The predicted probabilities 
 
     --------------------------------------------------
     Returns:
-    np.ndarray: The binary cross-entropy loss for the prediction and label
+        np.ndarray: The binary cross-entropy loss for the prediction and label
     """
     return -(x * np.log(y)) - ((1 - x) * np.log(1 - y))
 
@@ -37,15 +39,16 @@ def cost_function(features: np.ndarray,
     """
     Computes the logistic regression cost function using mean binary cross-entropy
 
+    --------------------------------------------------
     Parameters:
-    features: The input features 
-    labels: The target labels 
-    weight: The current weight values 
-    bias: The current bias value 
+        features: The input features 
+        labels: The target labels 
+        weight: The current weight values 
+        bias: The current bias value 
 
     --------------------------------------------------
     Returns:
-    cost: The mean binary cross-entropy loss
+        cost: The mean binary cross-entropy loss
     """
     m, n = features.shape
     prob = np.zeros(m)
@@ -69,17 +72,18 @@ def gradient_descent(features: np.ndarray,
     """
     Performs one step of gradient descent to update the model's weight and bias
 
+    --------------------------------------------------
     Parameters:
-    features: The input features 
-    labels: The target labels 
-    weight: The current weight values 
-    bias: The current bias value 
-    learn_rate: The learning rate for gradient descent 
+        features: The input features 
+        labels: The target labels 
+        weight: The current weight values 
+        bias: The current bias value 
+        learn_rate: The learning rate for gradient descent 
 
     --------------------------------------------------
     Returns:
-    weight: The updated weight values after one step of gradient descent
-    bias: The updated bias value after one step of gradient descent
+        weight: The updated weight values after one step of gradient descent
+        bias: The updated bias value after one step of gradient descent
     """
     m, n = features.shape
 
@@ -114,9 +118,10 @@ class LogisticRegressionNumpy(ModelML):
         """
         Initializes the Logistic Regression model using gradient descent
 
+        --------------------------------------------------
         Parameters:
-        learn_rate: The learning rate for the gradient descent
-        number_of_epochs: The number of training iterations to run
+            learn_rate: The learning rate for the gradient descent
+            number_of_epochs: The number of training iterations to run
         """
         self.learn_rate = learn_rate
         self.number_of_epochs = number_of_epochs
@@ -127,9 +132,10 @@ class LogisticRegressionNumpy(ModelML):
         """
         Trains the logistic regression model on the input data using gradient descent
 
+        --------------------------------------------------
         Parameters:
-        features: The input features for training 
-        labels: The target labels corresponding to the input features 
+            features: The input features for training 
+            labels: The target labels corresponding to the input features 
         """
         _, n = features.shape
 
@@ -143,20 +149,30 @@ class LogisticRegressionNumpy(ModelML):
 
     def predict(self, 
                 test_features: np.ndarray, 
-                test_labels: np.ndarray) -> None:
+                test_labels: np.ndarray,
+                get_accuracy: bool = True) -> np.ndarray:
         """
-        Predicts the labels for the test data using the trained Logistic Regression model
+        Makes predictions on the test set and evaluates the model
 
+        --------------------------------------------------
         Parameters:
-        test_features: The input features for testing 
-        test_labels: The target labels corresponding to the test features 
+            test_features: The input features for testing
+            test_labels: The true target labels corresponding to the test features
+            get_accuracy: If True, calculates and prints the accuracy of predictions
+
+        --------------------------------------------------
+        Returns:
+            predictions: The prediction labels
         """
         prob = sigmoid_function(np.dot(test_features, self.weight)) + self.bias
         predictions = (prob >= 0.5).astype(int)
 
-        accuracy, f1 = self.evaluate(predictions, test_labels)
-        print("Epoch: {}/{} Accuracy: {:.5f} F1-score: {:.5f}".format(
-               self.number_of_epochs, self.number_of_epochs, accuracy, f1))
+        if get_accuracy:
+            accuracy, f1 = self.evaluate(predictions, test_labels)
+            print("Epoch: {}/{} Accuracy: {:.5f} F1-score: {:.5f}".format(
+                self.number_of_epochs, self.number_of_epochs, accuracy, f1))
+    
+        return predictions
     
     def __str__(self) -> str:
         return "Logistic Regression (Numpy)"

@@ -9,9 +9,10 @@ class GaussianNaiveBayes(ModelML):
         Fits the Gaussian Naive Bayes model by calculating the mean and variance 
         for each feature in each class.
 
+        --------------------------------------------------
         Parameters:
-        features: Input features for training
-        labels: Corresponding target labels for the input features
+            features: Input features for training
+            labels: Corresponding target labels for the input features
         """
         self.features = features
         self.labels = labels
@@ -31,14 +32,15 @@ class GaussianNaiveBayes(ModelML):
         """
         Computes the Gaussian distribution for the input data using the given mean (mu) and variance (sigma).
 
+        --------------------------------------------------
         Parameters:
-        data: Input feature values
-        sigma: Variance of the Gaussian distribution
-        mu: Mean of the Gaussian distribution
+            data: Input feature values
+            sigma: Variance of the Gaussian distribution
+            mu: Mean of the Gaussian distribution
 
         --------------------------------------------------
         Returns:
-        prob: Gaussian probability values for the input data
+            prob: Gaussian probability values for the input data
         """
         eps = 1e-15  # Small value to avoid division by zero
 
@@ -52,13 +54,20 @@ class GaussianNaiveBayes(ModelML):
 
     def predict(self, 
                 test_features: np.ndarray, 
-                test_labels: np.ndarray) -> None:
+                test_labels: np.ndarray,
+                get_accuracy: bool = True) -> np.ndarray:
         """
-        Predicts the class labels for test data using the trained Gaussian Naive Bayes model
+        Makes predictions on the test set and evaluates the model
 
+        --------------------------------------------------
         Parameters:
-        test_features: Input features for testing
-        test_labels: Corresponding target labels for the test features
+            test_features: The input features for testing
+            test_labels: The true target labels corresponding to the test features
+            get_accuracy: If True, calculates and prints the accuracy of predictions
+
+        --------------------------------------------------
+        Returns:
+            predictions: The prediction labels
         """
         num_samples, _ = test_features.shape
 
@@ -79,9 +88,12 @@ class GaussianNaiveBayes(ModelML):
             # Choose the class with the highest posterior probability
             predictions[ind] = self.unique_labels[np.argmax(posteriors)]
 
-        # Evaluate accuracy and F1-score
-        accuracy, f1 = self.evaluate(predictions, test_labels)
-        print("Accuracy: {:.5f} F1-score: {:.5f}".format(accuracy, f1))
+        if get_accuracy:
+            # Evaluate accuracy and F1-score
+            accuracy, f1 = self.evaluate(predictions, test_labels)
+            print("Accuracy: {:.5f} F1-score: {:.5f}".format(accuracy, f1))
+        
+        return predictions
 
     def __str__(self) -> str:
         """
