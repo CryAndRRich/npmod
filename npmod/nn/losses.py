@@ -35,6 +35,12 @@ class Loss:
         """
         pass
 
+    def __call__(self,
+                input: np.ndarray, 
+                target: np.ndarray) -> float:
+        
+        return self.forward(input, target)
+
     def __str__(self):
         pass
 
@@ -184,13 +190,16 @@ class CE(Loss):
     def forward(self, input, target):
         super().forward(input, target)
         eps = 1e-9 # Epsilon to avoid log(0)
-        entropy = -target * np.log(input + eps)
+        input = np.where(input + eps <= 0, eps, input)
+        entropy = -target * np.log(input)
         loss = np.mean(entropy)
         return loss
     
     def backward(self):
         ones_for_targets = np.zeros_like(self.input)
         ones_for_targets[np.arange(len(self.input)), self.target] = 1
+
+        self.input -= np.min(self.input)
         softmax = np.exp(self.input) / np.exp(self.input).sum(axis=-1, keepdims=True)
 
         self.gradient = (-ones_for_targets + softmax) / self.input.shape[0]

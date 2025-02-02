@@ -1,5 +1,6 @@
 from typing import List
 from .layers import Layer
+from .losses import Loss
 
 class Container:
     """
@@ -15,6 +16,15 @@ class Container:
         """
         self.eval = eval
         self.layers = layers
+
+    def forward(self, inputs):
+        """
+        Forward pass of Sequential
+
+        Parameters:
+            inputs: Inputs to the Layer
+        """
+        pass
 
     def __call__(self, inputs):
         """
@@ -36,17 +46,15 @@ class Sequential(Container):
     def __init__(self, 
                  eval: bool = False,
                  layers: List[Layer] = None):
-        super.__init__(eval, layers)
+        super().__init__(eval, layers)
     
     def forward(self, inputs):
-        """
-        Forward pass of Sequential
-
-        Parameters:
-            inputs: Inputs to the Layer
-        """
-
         for layer in self.layers:
             output = layer(inputs)
             inputs = output
         return output
+    
+    def backward(self, loss: Loss):
+        grad = loss.backward()
+        for layer in reversed(self.layers):
+            grad = layer.backward(grad)
