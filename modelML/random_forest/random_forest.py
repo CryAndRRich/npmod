@@ -1,6 +1,9 @@
 import numpy as np
+import random
 from ..decision_tree import *
 from ..base_model import ModelML
+
+random.seed(42)
 
 class RandomForest(ModelML):
     def __init__(self, n_tree: int = 10) -> None:
@@ -15,10 +18,24 @@ class RandomForest(ModelML):
         self.trees = []
         self.tree_names = []
 
+        self.algorithms = ["ID3", "C4.5", "C5.0", "CART", "CHAID", "CITs", "OC1", "QUEST", "TAO"]
+        # Initialize a counter for each algorithm
+        algo_counter = {algo: 0 for algo in self.algorithms}
+        # Determine the maximum threshold for each algorithm:
+        # If n_tree > 1, each algorithm is allowed to appear at most n_tree // 2 times
+        # If n_tree == 1, there is only one tree, so no restriction is needed
+        threshold = n_tree if n_tree == 1 else n_tree // 2
+        
         for _ in range(self.n_tree):
-            tree = DecisionTree()
+            # Get the list of algorithms that have not yet reached the maximum threshold
+            available_algos = [algo for algo in self.algorithms if algo_counter[algo] < threshold]
+            
+            chosen_algo = random.choice(available_algos)
+            algo_counter[chosen_algo] += 1
+            
+            tree = DecisionTree(algorithm=chosen_algo)
             self.trees.append(tree)
-            self.tree_names.append(tree.__str__())
+            self.tree_names.append(str(tree))
     
     def fit(self, 
             features: np.ndarray, 
