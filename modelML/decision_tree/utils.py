@@ -1,5 +1,5 @@
-import math
 from typing import Tuple
+import math
 import numpy as np
 
 def split_data(features: np.ndarray, 
@@ -189,10 +189,9 @@ def chi_square(true_labels: np.ndarray,
 
     return chi_square_stat
 
-def chi_square_p_value(chi_square_stat: float, 
-                       df: int) -> float:
+def chi_square_p_value(chi_square_stat: float, df: int) -> float:
     """
-    Calculates the p-value for a given chi-square statistic and degrees of freedom
+    Calculates the p-value for a given chi-square statistic and degrees of freedom.
 
     --------------------------------------------------
     Parameters:
@@ -203,12 +202,20 @@ def chi_square_p_value(chi_square_stat: float,
     Returns:
         float: p-value for the chi-square statistic
     """
-    def upper_incomplete_gamma(s, x):
-        eps = 10e-4
-        return np.exp(-x + eps) * np.sum([x ** k / math.factorial(k) for k in range(int(s))])
+    
+    def lower_incomplete_gamma(s, x):
+        """Computes the lower incomplete gamma function P(s, x)"""
+        result = 0
+        eps = 1e-9
+        term = 1 / (s + eps) # First term of the series expansion
+        for k in range(1, 100):  # Iterate for convergence (adjust max iterations if needed)
+            term *= x / (s + k)
+            result += term
+            if term < 1e-10:  # Convergence threshold
+                break
+        return (math.exp(-x) * (x ** s) / math.gamma(s + eps)) * (1 + result)
 
-    def regularized_gamma(s, x):
-        complete_gamma = math.gamma(s)
-        return upper_incomplete_gamma(s, x) / complete_gamma
-
-    return regularized_gamma(df / 2, chi_square_stat / 2)
+    # Compute the upper tail probability (survival function)
+    p_value = 1 - lower_incomplete_gamma(df / 2, chi_square_stat / 2)
+    
+    return max(min(p_value, 1.0), 0.0)  # Ensure p-value is in [0, 1]
