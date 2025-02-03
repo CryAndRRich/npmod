@@ -45,4 +45,6 @@ Every model is built using NumPy or PyTorch or both
   * CART Algorithm
   * CHAID Algorithm
   * CITs Algorithm
+  * OC1 Algorithm
+  * QUEST, TAO Algorithm
 * Support Vector Machines (PyTorch): linear, rbf, polynomial, sigmoid kernel
