@@ -1,12 +1,17 @@
 import torch
 import torch.nn as nn
 import torch.optim as optim
-from torch.utils.data import TensorDataset, DataLoader
 from ..base_model import ModelML
 
+class Reshape(nn.Module):
+    def forward(self, x):
+        return x.view(-1, 1, 28, 28)
+
+# Since CNNs primarily operate with 224x224 images (ImageNet dataset), 
+# the model architectures in this CNN folder will be modified 
+# to suit 28x28 images for convenient training
 class ConvNet(ModelML):
     def __init__(self,
-                 batch_size: int,
                  learn_rate: float, 
                  number_of_epochs: int) -> None:
         """
@@ -14,11 +19,9 @@ class ConvNet(ModelML):
 
         --------------------------------------------------
         Parameters:
-            batch_size: Size of a training mini-batch
             learn_rate: The learning rate for the network update
             number_of_epochs: The number of training iterations
         """
-        self.batch_size = batch_size
         self.learn_rate = learn_rate
         self.number_of_epochs = number_of_epochs
     
@@ -46,17 +49,13 @@ class ConvNet(ModelML):
         """
         self.init_network()
 
-        dataset = TensorDataset(features, labels)
-        dataloader = DataLoader(dataset, batch_size=self.batch_size, shuffle=True)
-        
         self.network.train()
         for _ in range(self.number_of_epochs):
-            for batch_features, batch_labels in dataloader:
-                self.optimizer.zero_grad()
-                outputs = self.network(batch_features)
-                loss = self.criterion(outputs, batch_labels)
-                loss.backward()
-                self.optimizer.step()
+            self.optimizer.zero_grad()
+            outputs = self.network(features)
+            loss = self.criterion(outputs, labels)
+            loss.backward()
+            self.optimizer.step()
     
     def predict(self, 
                 test_features: torch.Tensor, 

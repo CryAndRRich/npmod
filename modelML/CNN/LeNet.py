@@ -1,10 +1,6 @@
 import torch.nn as nn
 import torch.optim as optim
-from ..CNN import ConvNet
-
-class Reshape(nn.Module):
-    def forward(self, x):
-        return x.view(-1, 1, 28, 28)
+from ..CNN import Reshape, ConvNet
 
 class LeNet(ConvNet):
     def init_network(self):
@@ -37,4 +33,4 @@ class LeNet(ConvNet):
         self.criterion = nn.CrossEntropyLoss()
     
     def __str__(self):
-        return "Convolutional Neural Networks: LeNet5"
+        return "Convolutional Neural Networks: LeNet-5"
