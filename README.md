@@ -29,6 +29,8 @@ This repository consists of **two main parts**: a simple **deep learning framewo
 
 ## modelML:
 Every model is built using NumPy or PyTorch or both
+
+### Machine Learning:
 * Linear Regression (NumPy and PyTorch)
 * Logistic Regression (NumPy and PyTorch)
 * Perceptron Learning (NumPy and PyTorch)
@@ -47,4 +49,14 @@ Every model is built using NumPy or PyTorch or both
   * CITs Algorithm
   * OC1 Algorithm
   * QUEST, TAO Algorithm
+* Random Forest (NumPy)
 * Support Vector Machines (PyTorch): linear, rbf, polynomial, sigmoid kernel
+
+### CNN: (PyTorch)
+* LeNet
+* AlexNet
+* NiN
+* VGG
+* GoogLeNet, Xception, NASNet
+* ResNet34, ResNet152, ResNeXt, WideResNet
+* DenseNet
