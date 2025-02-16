@@ -36,6 +36,9 @@ class ConvNet(ModelML):
         """Initialize the model parameters using the Xavier initializer"""
         if type(m) == nn.Linear or type(m) == nn.Conv2d:
             torch.nn.init.xavier_uniform_(m.weight)
+        elif isinstance(m, nn.BatchNorm2d):
+            nn.init.constant_(m.weight, 1)
+            nn.init.constant_(m.bias, 0)
     
     def fit(self, 
             features: torch.Tensor, 

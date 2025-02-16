@@ -69,6 +69,7 @@ class Inception(nn.Module):
         Parameters:
             x: Input tensor
             
+        --------------------------------------------------
         Returns:
             torch.Tensor: Concatenated output from all paths
         """
@@ -142,4 +143,4 @@ class GoogLeNet(ConvNet):
         self.criterion = nn.CrossEntropyLoss()
     
     def __str__(self) -> str:
-        return "Convolutional Neural Networks: GoogLeNet"
+        return "Convolutional Neural Networks: GoogLeNet (Inception)"
