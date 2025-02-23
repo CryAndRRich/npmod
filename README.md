@@ -1,7 +1,9 @@
 # Machine Learning/Deep Learning
-This repository consists of **two main parts**: a simple **deep learning framework** ([npmod](https://github.com/CryAndRRich/npmod/tree/main/npmod)) and some basic **machine learning models** ([modelML](https://github.com/CryAndRRich/npmod/tree/main/modelML)). Since this is for learning purposes, everything is built **from scratch** using NumPy and PyTorch (mostly NumPy)
+This repository consists of **two main parts**: a simple **deep learning framework** ([npmod](https://github.com/CryAndRRich/npmod/tree/main/npmod)) and some basic **machine learning/deep learning models** ([models](https://github.com/CryAndRRich/npmod/tree/main/models)). Since this is for learning purposes, everything is built **from scratch** using NumPy and PyTorch (mostly NumPy)
 
 ## npmod: NumPy module
+A simple **deep learning framework** built using **pure NumPy**
+
 * Activations:
   * ReLU, leaky ReLU
   * Sigmoid
@@ -11,11 +13,12 @@ This repository consists of **two main parts**: a simple **deep learning framewo
   * Linear
   * Dropout
   * Flatten
+  * BatchNorm
+  * Conv2D, Conv3D
+  * MaxPool2D, MaxPool3D
 * Sequential
 * Losses:
-  * MAE
-  * MSE
-  * MALE
+  * MAE, MSE, MALE
   * RSquared
   * MAPE, wMAPE
   * SmoothL1
@@ -27,8 +30,8 @@ This repository consists of **two main parts**: a simple **deep learning framewo
   * RMSprop
   * ADAM
 
-## modelML:
-Every model is built using NumPy or PyTorch or both
+## models:
+Every model is built using NumPy or PyTorch (or both)
 
 ### Machine Learning:
 * Linear Regression (NumPy and PyTorch)

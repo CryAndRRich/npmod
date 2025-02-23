@@ -4,8 +4,8 @@ import torchvision.datasets as dsets
 import torchvision.transforms as transforms
 import os
 
-from modelML import *
-from npmod import *
+from models import *
+import npmod.nn as nn
 
 def test_npmod():
     training_epochs = 2
@@ -27,12 +27,12 @@ def test_npmod():
                                             drop_last=True)
 
     net = nn.Sequential(layers = [nn.Linear(28 * 28, 128),
-                                nn.ReLU(),
-                                nn.Linear(128, 64),
-                                nn.Sigmoid(),
-                                nn.ReLU(),
-                                nn.Flatten(),
-                                nn.Linear(64, 10)])
+                                  nn.ReLU(),
+                                  nn.Linear(128, 64),
+                                  nn.Sigmoid(),
+                                  nn.ReLU(),
+                                  nn.Flatten(),
+                                  nn.Linear(64, 10)])
 
     criterion = nn.CE()
     optim = nn.SGD(net.get_layers(), learn_rate=0.001)
@@ -59,9 +59,9 @@ def test_npmod():
     accuracy = (predictions == test_labels).mean()
     print(accuracy)
 
-def test_modelML():
+def test_model():
     path = os.path.join('datasets', 'svm_data.csv')
-    data = getData(data_path=path)
+    data = Data(data_path=path)
 
     features, test_features, labels, test_labels = data.get_processed_data()
 
@@ -70,7 +70,7 @@ def test_modelML():
     model.fit(features, labels)
     model.predict(test_features, test_labels)
 
-test_modelML()
+test_model()
 #Random Forest:
 #- Decision Trees: C4.5 Algorithm
 #- Decision Trees: ID3 Algorithm
