@@ -3,7 +3,7 @@ import torch
 import torch.nn as nn
 import torch.optim as optim
 from torch.utils.data import TensorDataset, DataLoader
-from ..base import Model
+from ...base import Model
 
 class MLPModule(nn.Module):
     def __init__(self, 
@@ -40,11 +40,9 @@ class MLPModule(nn.Module):
         """
         Forward pass of the network
 
-        --------------------------------------------------
         Parameters:
             x: Input tensor
 
-        --------------------------------------------------
         Returns:
             torch.Tensor: Logits (output before softmax)
         """
@@ -60,7 +58,6 @@ class MLPPytorch(Model):
         """
         Initializes the Multilayer Perceptron model
 
-        --------------------------------------------------
         Parameters:
             batch_size: Size of a training mini-batch
             learn_rate: The learning rate for the model update
@@ -110,13 +107,11 @@ class MLPPytorch(Model):
         """
         Makes predictions on the test set and evaluates the model
 
-        --------------------------------------------------
         Parameters:
             test_features: The input features for testing
             test_labels: The true target labels corresponding to the test features
             get_accuracy: If True, calculates and prints the accuracy of predictions
 
-        --------------------------------------------------
         Returns:
             predictions: The prediction labels
         """
@@ -133,5 +128,5 @@ class MLPPytorch(Model):
         
         return predictions 
     
-    def __str__(self):
+    def __str__(self) -> str:
         return "Multilayer Perceptron (Pytorch)"

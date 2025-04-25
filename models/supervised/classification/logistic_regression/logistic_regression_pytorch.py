@@ -1,7 +1,7 @@
 import torch
 import torch.nn as nn
 import torch.optim as optim
-from ..base import Model
+from ....base import Model
 
 torch.manual_seed(42)
 
@@ -9,12 +9,11 @@ class LogisticRegressionModule(nn.Module):
     """
     Logistic regression model using PyTorch's nn.Module
     """
-    def __init__(self, n: int):
+    def __init__(self, n: int) -> None:
         """
         Initializes the logistic regression model by defining a single linear layer
         and a sigmoid activation function
 
-        --------------------------------------------------
         Parameters:
             n: Number of input features
         """
@@ -26,11 +25,9 @@ class LogisticRegressionModule(nn.Module):
         """
         Forward pass through the linear layer and sigmoid activation
 
-        --------------------------------------------------
         Parameters:
             x: Input features
 
-        --------------------------------------------------
         Returns:
             Tensor: Output of the sigmoid-activated linear layer
         """
@@ -39,11 +36,10 @@ class LogisticRegressionModule(nn.Module):
 class LogisticRegressionPytorch(Model):
     def __init__(self, 
                  learn_rate: float, 
-                 number_of_epochs: int):
+                 number_of_epochs: int) -> None:
         """
         Initializes the Logistic Regression model with the learning rate and number of epochs
 
-        --------------------------------------------------
         Parameters:
             learn_rate: The learning rate for the optimizer
             number_of_epochs: The number of training iterations to run
@@ -57,7 +53,6 @@ class LogisticRegressionPytorch(Model):
         """
         Trains the logistic regression model on the input data
 
-        --------------------------------------------------
         Parameters:
             features: The input features for training 
             labels: The target labels corresponding to the input features 
@@ -88,13 +83,11 @@ class LogisticRegressionPytorch(Model):
         """
         Makes predictions on the test set and evaluates the model
 
-        --------------------------------------------------
         Parameters:
             test_features: The input features for testing
             test_labels: The true target labels corresponding to the test features
             get_accuracy: If True, calculates and prints the accuracy of predictions
 
-        --------------------------------------------------
         Returns:
             predictions: The prediction labels
         """

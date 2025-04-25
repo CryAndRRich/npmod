@@ -1,7 +1,7 @@
 import torch
 import torch.nn as nn
 import torch.optim as optim
-from ..base import Model
+from ....base import Model
 
 torch.manual_seed(42)
 
@@ -17,11 +17,10 @@ class SVMModule(nn.Module):
                  gamma: float = 0.1, 
                  train_gamma: bool = True, 
                  degree: int = 3, 
-                 b: float = 1.0):
+                 b: float = 1.0) -> None:
         """
         Initializes the SVM module by defining the kernel function and the weight layer.
 
-        --------------------------------------------------
         Parameters:
             features: The input feature data for training 
             kernel: The kernel function to use ('linear', 'rbf', 'poly', 'sigmoid')
@@ -59,11 +58,9 @@ class SVMModule(nn.Module):
         """
         Radial Basis Function (RBF) kernel computation.
 
-        --------------------------------------------------
         Parameters:
             x: Input features
 
-        --------------------------------------------------
         Returns:
             torch.Tensor: Computed RBF kernel matrix
         """
@@ -74,11 +71,9 @@ class SVMModule(nn.Module):
         """
         Linear kernel computation (identity function)
 
-        --------------------------------------------------
         Parameters:
             x: Input features
 
-        --------------------------------------------------
         Returns:
             torch.Tensor: Computed linear kernel
         """
@@ -88,11 +83,9 @@ class SVMModule(nn.Module):
         """
         Polynomial kernel computation
 
-        --------------------------------------------------
         Parameters:
             x: Input features
 
-        --------------------------------------------------
         Returns:
             torch.Tensor: Computed polynomial kernel matrix
         """
@@ -103,11 +96,9 @@ class SVMModule(nn.Module):
         """
         Sigmoid kernel computation
 
-        --------------------------------------------------
         Parameters:
             x: Input features
 
-        --------------------------------------------------
         Returns:
             torch.Tensor: Computed sigmoid kernel matrix
         """
@@ -120,12 +111,10 @@ class SVMModule(nn.Module):
         """
         Hinge loss function for SVM
 
-        --------------------------------------------------
         Parameters:
             x: Predictions
             y: Ground truth labels
 
-        --------------------------------------------------
         Returns:
             torch.Tensor: The hinge loss value
         """
@@ -135,11 +124,9 @@ class SVMModule(nn.Module):
         """
         Forward pass through the kernel and weight layers
 
-        --------------------------------------------------
         Parameters:
             x: Input features
 
-        --------------------------------------------------
         Returns:
             torch.Tensor: The final output after kernel transformation and linear weight application
         """
@@ -152,11 +139,10 @@ class SVMModel(Model):
                  learn_rate: float, 
                  number_of_epochs: int, 
                  kernel: str = "linear", 
-                 gamma: float = 0.1):
+                 gamma: float = 0.1) -> None:
         """
         Initializes the SVM model with learning rate, epochs, and kernel choice
 
-        --------------------------------------------------
         Parameters:
             learn_rate: The learning rate for the optimizer
             number_of_epochs: The number of training epochs
@@ -174,7 +160,6 @@ class SVMModel(Model):
         """
         Trains the SVM model on the input features and labels
 
-        --------------------------------------------------
         Parameters:
             features: The input features for training
             labels: The target labels corresponding to the input features
@@ -200,13 +185,11 @@ class SVMModel(Model):
         """
         Makes predictions on the test set and evaluates the model
 
-        --------------------------------------------------
         Parameters:
             test_features: The input features for testing
             test_labels: The true target labels corresponding to the test features
             get_accuracy: If True, calculates and prints the accuracy of predictions
 
-        --------------------------------------------------
         Returns:
             predictions: The prediction labels
         """
@@ -223,7 +206,7 @@ class SVMModel(Model):
         
         return predictions
     
-    def __str__(self):
+    def __str__(self) -> str:
         """
         Returns a string representation of the SVM model, including the chosen kernel
         """

@@ -2,7 +2,7 @@ from typing import Tuple
 import torch
 import torch.nn as nn
 import torch.optim as optim
-from ..CNN import Reshape, ConvNet
+from ..cnn import Reshape, ConvNet
 
 class Bottleneck(nn.Module):
     """
@@ -21,7 +21,7 @@ class Bottleneck(nn.Module):
                  channels: int, 
                  stride: int = 1, 
                  downsample: nn.Module = None, 
-                 **kwargs):
+                 **kwargs) -> None:
         """
         Parameters:
             input_channels: Number of input channels
@@ -144,5 +144,5 @@ class ResNet152(ConvNet):
         self.optimizer = optim.SGD(self.network.parameters(), lr=self.learn_rate)
         self.criterion = nn.CrossEntropyLoss()
 
-    def __str__(self):
+    def __str__(self) -> str:
         return "Convolutional Neural Networks: ResNet-152"

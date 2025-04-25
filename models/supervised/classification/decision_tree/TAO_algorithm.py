@@ -1,4 +1,4 @@
-from typing import Tuple
+from typing import Any, Tuple
 import numpy as np
 from .tree import *
 from .utils import entropy, information_gain, split_data
@@ -6,11 +6,10 @@ from .utils import entropy, information_gain, split_data
 class TAODecisionTree(Tree):
     def __init__(self, 
                  max_iterations: int = 10, 
-                 threshold: float = 1e-4):
+                 threshold: float = 1e-4) -> str:
         """
         Initializes the TAO decision tree
 
-        --------------------------------------------------
         Parameters:
             max_iterations: Maximum number of optimization iterations
             threshold: Threshold for improvement to continue optimization
@@ -25,12 +24,10 @@ class TAODecisionTree(Tree):
         """
         Builds the decision tree using an initial split and optimizes using TAO
 
-        --------------------------------------------------
         Parameters:
             features: Feature matrix
             labels: Array of labels corresponding to the features
 
-        --------------------------------------------------
         Returns:
             TreeNode: The root node of the constructed and optimized decision tree
         """
@@ -43,7 +40,6 @@ class TAODecisionTree(Tree):
         """
         Builds an initial decision tree using entropy-based splitting
 
-        --------------------------------------------------
         Returns:
             TreeNode: The root node of the initial decision tree
         """
@@ -79,13 +75,11 @@ class TAODecisionTree(Tree):
         """
         Optimizes the decision tree using the TAO algorithm
 
-        --------------------------------------------------
         Parameters:
             tree: The initial decision tree
             features: Feature matrix
             labels: Array of labels corresponding to the features
 
-        --------------------------------------------------
         Returns:
             TreeNode: The optimized decision tree
         """
@@ -116,15 +110,13 @@ class TAODecisionTree(Tree):
                 break
         return tree
 
-    def iterate_nodes(self, tree: TreeNode):
+    def iterate_nodes(self, tree: TreeNode) -> Any:
         """
         Generator function to iterate over all nodes in the tree
 
-        --------------------------------------------------
         Parameters:
             tree: The root node of the decision tree
 
-        --------------------------------------------------
         Yields:
             TreeNode: Each node in the decision tree
         """
@@ -140,13 +132,11 @@ class TAODecisionTree(Tree):
         """
         Retrieves feature and label subsets for a given tree node
 
-        --------------------------------------------------
         Parameters:
             features: Feature matrix
             labels: Array of labels corresponding to the features
             node: TreeNode for which data is retrieved
 
-        --------------------------------------------------
         Returns:
             Tuple[np.ndarray, np.ndarray]: Feature subset and corresponding labels for the node
         """

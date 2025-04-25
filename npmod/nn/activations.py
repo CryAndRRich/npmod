@@ -2,36 +2,32 @@ import numpy as np
 from .layers import Layer
 
 class ReLU(Layer):
-    def __init__(self):
+    def __init__(self) -> None:
         super().__init__()
         self.outputs = None
 
-    def forward(self, x):
+    def forward(self, x: np.ndarray) -> np.ndarray:
         """
         Forward pass for the ReLU activation function.
         Computes the element-wise maximum of 0 and the input
 
-        --------------------------------------------------
         Parameters:
             x: Input data
 
-        --------------------------------------------------
         Returns:
             np.ndarray: Output after applying ReLU activation
         """
         self.outputs = x.copy()
         return np.maximum(0.0, self.outputs)
 
-    def backward(self, previous_grad):
+    def backward(self, previous_grad: np.ndarray) -> np.ndarray:
         """
         Backward pass for the ReLU activation function.
         Computes the gradient of the loss with respect to the input
 
-        --------------------------------------------------
         Parameters:
             previous_grad: Gradient of the loss with respect to the output.
 
-        --------------------------------------------------
         Returns:
             np.ndarray: Gradient of the loss with respect to the input.
         """
@@ -40,11 +36,10 @@ class ReLU(Layer):
 
 
 class LeakyReLU(Layer):
-    def __init__(self, alpha: float = 0.01):
+    def __init__(self, alpha: float = 0.01) -> None:
         """
         Initializes the LeakyReLU activation function
 
-        --------------------------------------------------
         Parameters:
             alpha: Slope for the negative input values (Leaky value)
         """
@@ -52,32 +47,28 @@ class LeakyReLU(Layer):
         self.alpha = alpha
         self.outputs = None
 
-    def forward(self, x):
+    def forward(self, x: np.ndarray) -> np.ndarray:
         """
         Forward pass for the LeakyReLU activation function.
         Computes the element-wise activation where negative inputs are scaled by alpha.
 
-        --------------------------------------------------
         Parameters:
             x: Input data
 
-        --------------------------------------------------
         Returns:
             np.ndarray: Output after applying LeakyReLU activation
         """
         self.outputs = x.copy()
         return np.where(x > 0, x, self.alpha * x)
 
-    def backward(self, previous_grad):
+    def backward(self, previous_grad: np.ndarray) -> np.ndarray:
         """
         Backward pass for the LeakyReLU activation function.
         Computes the gradient of the loss with respect to the input
 
-        --------------------------------------------------
         Parameters:
             previous_grad: Gradient of the loss with respect to the output
 
-        --------------------------------------------------
         Returns:
             np.ndarray: Gradient of the loss with respect to the input
         """
@@ -85,20 +76,18 @@ class LeakyReLU(Layer):
         return previous_grad * grad_input
 
 class Sigmoid(Layer):
-    def __init__(self):
+    def __init__(self) -> None:
         super().__init__()
         self.outputs = None
 
-    def forward(self, x):
+    def forward(self, x: np.ndarray) -> np.ndarray:
         """
         Forward pass for the Sigmoid activation function.
         Computes the element-wise sigmoid of the input
 
-        --------------------------------------------------
         Parameters:
             x: Input data
 
-        --------------------------------------------------
         Returns:
             np.ndarray: Output after applying Sigmoid activation
         """
@@ -106,16 +95,14 @@ class Sigmoid(Layer):
         self.outputs = np.divide(1, 1 + exp_neg_x)
         return self.outputs
 
-    def backward(self, previous_grad):
+    def backward(self, previous_grad: np.ndarray) -> np.ndarray:
         """
         Backward pass for the Sigmoid activation function.
         Computes the gradient of the loss with respect to the input
 
-        --------------------------------------------------
         Parameters:
             previous_grad: Gradient of the loss with respect to the output
 
-        --------------------------------------------------
         Returns:
             np.ndarray: Gradient of the loss with respect to the input
         """
@@ -123,36 +110,32 @@ class Sigmoid(Layer):
         return previous_grad * grad_input
 
 class Tanh(Layer):
-    def __init__(self):
+    def __init__(self) -> None:
         super().__init__()
         self.outputs = None
 
-    def forward(self, x):
+    def forward(self, x: np.ndarray) -> np.ndarray:
         """
         Forward pass for the Tanh activation function.
         Computes the hyperbolic tangent of the input
 
-        --------------------------------------------------
         Parameters:
             x: Input data.
 
-        --------------------------------------------------
         Returns:
             np.ndarray: Output after applying Tanh activation
         """
         self.outputs = np.tanh(x)
         return self.outputs
 
-    def backward(self, previous_grad):
+    def backward(self, previous_grad: np.ndarray) -> np.ndarray:
         """
         Backward pass for the Tanh activation function.
         Computes the gradient of the loss with respect to the input
 
-        --------------------------------------------------
         Parameters:
             previous_grad: Gradient of the loss with respect to the output
 
-        --------------------------------------------------
         Returns:
             np.ndarray: Gradient of the loss with respect to the input
         """
@@ -160,20 +143,18 @@ class Tanh(Layer):
         return previous_grad * grad_input
 
 class Softmax(Layer):
-    def __init__(self):
+    def __init__(self) -> None:
         super().__init__()
         self.outputs = None
 
-    def forward(self, x):
+    def forward(self, x: np.ndarray) -> np.ndarray:
         """
         Forward pass for the Softmax activation function.
         Computes the softmax of the input array along the last axis
 
-        --------------------------------------------------
         Parameters:
             x: Input data
 
-        --------------------------------------------------
         Returns:
             np.ndarray: Output after applying Softmax activation
         """
@@ -183,18 +164,16 @@ class Softmax(Layer):
         self.outputs = exp_x / np.sum(exp_x, axis=-1, keepdims=True)
         return self.outputs
 
-    def backward(self, previous_grad):
+    def backward(self, previous_grad: np.ndarray) -> np.ndarray:
         """
         Backward pass for the Softmax activation function.
         Computes the gradient of the loss with respect to the input.
         This implementation assumes that the Softmax function is used
         in combination with a cross-entropy loss, where the gradient is simplified
 
-        --------------------------------------------------
         Parameters:
             previous_grad: Gradient of the loss with respect to the output.
 
-        --------------------------------------------------
         Returns:
             np.ndarray: Gradient of the loss with respect to the input.
         """

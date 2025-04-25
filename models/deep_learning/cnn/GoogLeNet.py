@@ -1,8 +1,8 @@
+from typing import Tuple
 import torch
 import torch.nn as nn
 import torch.optim as optim
-from ..CNN import Reshape, ConvNet
-from typing import Tuple
+from ..cnn import Reshape, ConvNet
 
 class Inception(nn.Module):
     """
@@ -16,7 +16,7 @@ class Inception(nn.Module):
                  c2: Tuple[int, int],
                  c3: Tuple[int, int],
                  c4: int,
-                 **kwargs):
+                 **kwargs) -> None:
         """
         Parameters:
             in_channels: Number of input channels
@@ -69,7 +69,6 @@ class Inception(nn.Module):
         Parameters:
             x: Input tensor
             
-        --------------------------------------------------
         Returns:
             torch.Tensor: Concatenated output from all paths
         """

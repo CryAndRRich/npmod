@@ -7,7 +7,7 @@ class BatchNorm(Layer):
     """
     def __init__(self, num_channels: int, 
                  momentum: float = 0.9, 
-                 eps: float = 1e-6):
+                 eps: float = 1e-6) -> None:
         """
         Parameters:
             num_channels: Number of channels (features) in the input

@@ -2,7 +2,7 @@ import torch
 import torch.nn as nn
 import torch.nn.functional as func
 import torch.optim as optim
-from ..base import Model
+from ....base import Model
 
 torch.manual_seed(42)
 
@@ -12,11 +12,10 @@ class SoftmaxRegressionModule(nn.Module):
     """
     def __init__(self, 
                  number_of_features: int, 
-                 number_of_classes: int):
+                 number_of_classes: int) -> None:
         """
         Initializes the softmax regression model by defining a linear layer
 
-        --------------------------------------------------
         Parameters:
             number_of_features: The number of input features for each data point
             number_of_classes: The number of classes for the output predictions
@@ -28,11 +27,9 @@ class SoftmaxRegressionModule(nn.Module):
         """
         Forward pass through the softmax regression model
 
-        --------------------------------------------------
         Parameters:
             x: The input features
 
-        --------------------------------------------------
         Returns:
             torch.Tensor: Output of the softmax regression model (logits)
         """
@@ -50,7 +47,6 @@ class SoftmaxRegressionPytorch(Model):
         Initializes the softmax regression model with the specified learning rate, 
         number of epochs, and number of output classes
 
-        --------------------------------------------------
         Parameters:
             learn_rate: The learning rate for the optimizer
             number_of_epochs: The number of training iterations
@@ -66,7 +62,6 @@ class SoftmaxRegressionPytorch(Model):
         """
         Trains the softmax regression model on the input data
 
-        --------------------------------------------------
         Parameters:
             features: The input features for training
             labels: The true target labels corresponding to the input features
@@ -101,13 +96,11 @@ class SoftmaxRegressionPytorch(Model):
         """
         Makes predictions on the test set and evaluates the model
 
-        --------------------------------------------------
         Parameters:
             test_features: The input features for testing
             test_labels: The true target labels corresponding to the test features
             get_accuracy: If True, calculates and prints the accuracy of predictions
 
-        --------------------------------------------------
         Returns:
             predictions: The prediction labels
         """

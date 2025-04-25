@@ -3,7 +3,7 @@ import torch
 from .logistic_regression_numpy import LogisticRegressionNumpy
 from .logistic_regression_pytorch import LogisticRegressionPytorch
 
-class LogisticRegression():
+class LogisticRegression:
     def __init__(self, 
                  learn_rate: float, 
                  number_of_epochs: int, 
@@ -11,7 +11,6 @@ class LogisticRegression():
         """
         Initializes the Logistic Regression model by selecting the appropriate implementation type
 
-        --------------------------------------------------
         Parameters:
             learn_rate: Learning rate for gradient descent optimization
             number_of_epochs: Number of iterations (epochs) for training

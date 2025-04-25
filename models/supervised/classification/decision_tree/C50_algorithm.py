@@ -5,11 +5,10 @@ from .utils import entropy, information_gain, split_data
 class C50DecisionTree(Tree):
     def __init__(self, 
                  n_estimators: int = 10, 
-                 min_samples: int = 1):
+                 min_samples: int = 1) -> None:
         """
         Initializes the C5.0 decision tree with boosting
 
-        --------------------------------------------------
         Parameters:
             n_estimators: Number of boosting iterations
             min_samples: Minimum number of samples required to split a node
@@ -50,13 +49,11 @@ class C50DecisionTree(Tree):
         """
         Builds a single decision tree using weighted data
 
-        --------------------------------------------------
         Parameters:
             features: Feature matrix of the training data
             labels: Array of labels corresponding to the training data
             weights: Weights for each sample in the training data
 
-        --------------------------------------------------
         Returns:
             TreeNode: Root node of the constructed decision tree
         """
@@ -107,5 +104,5 @@ class C50DecisionTree(Tree):
 
         return final_predictions
     
-    def __str__(self):
+    def __str__(self) -> str:
         return "Decision Trees: C5.0/See5 Algorithm"

@@ -1,7 +1,7 @@
 import numpy as np
 import random
-from ..decision_tree import *
-from ..base import Model
+from ....classification import DecisionTree
+from .....base import Model
 
 random.seed(42)
 
@@ -10,7 +10,6 @@ class RandomForest(Model):
         """
         Initialize a Random Forest with multiple decision trees
         
-        --------------------------------------------------
         Parameters:
             n_tree: Number of trees in the forest
         """
@@ -43,7 +42,6 @@ class RandomForest(Model):
         """
         Train the Random Forest by creating multiple decision trees
         
-        --------------------------------------------------
         Parameters:
             features: Feature matrix of the training data
             labels: Array of labels corresponding to the training data
@@ -67,13 +65,11 @@ class RandomForest(Model):
         """
         Makes predictions on the test set and evaluates the model
 
-        --------------------------------------------------
         Parameters:
             test_features: The input features for testing
             test_labels: The true target labels corresponding to the test features
             get_accuracy: If True, calculates and prints the accuracy of predictions
 
-        --------------------------------------------------
         Returns:
             predictions: The prediction labels
         """

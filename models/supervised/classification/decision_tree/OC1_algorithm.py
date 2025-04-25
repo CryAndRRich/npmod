@@ -12,18 +12,7 @@ class OC1DecisionTree(Tree):
     def build_tree(self, 
                    features: np.ndarray, 
                    labels: np.ndarray) -> TreeNode:
-        """
-        Recursively builds the oblique decision tree using the OC1 algorithm
         
-        --------------------------------------------------
-        Parameters:
-            features: The feature matrix of the training data with shape (n_samples, n_features)
-            labels: The array of labels corresponding to the training data, shape (n_samples,)
-        
-        --------------------------------------------------
-        Returns:
-            TreeNode: The root node of the constructed decision tree
-        """
         # If all labels are the same, return a leaf node with that label
         if len(np.unique(labels)) == 1:
             return TreeNode(results=labels[0])
@@ -89,12 +78,10 @@ class OC1DecisionTree(Tree):
         """
         Traverses the decision tree to predict the label for a single data sample
         
-        --------------------------------------------------
         Parameters:
             tree: The current node in the decision tree.
             sample: The feature vector of the sample to predict
         
-        --------------------------------------------------
         Returns:
             int: The predicted label for the sample.
         """

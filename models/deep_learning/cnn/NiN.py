@@ -1,6 +1,6 @@
 import torch.nn as nn
 import torch.optim as optim
-from ..CNN import Reshape, ConvNet
+from ..cnn import Reshape, ConvNet
 
 def nin_block(in_channels: int,
               out_channels: int,
@@ -14,7 +14,6 @@ def nin_block(in_channels: int,
     
     Each convolution is followed by a ReLU activation
     
-    --------------------------------------------------
     Parameters:
         in_channels: Number of input channels
         out_channels: Number of output channels
@@ -22,7 +21,6 @@ def nin_block(in_channels: int,
         stride: Stride for the main convolution
         padding: Padding for the main convolution
     
-    --------------------------------------------------
     Returns:
         nn.Sequential: The constructed NiN block.
     """
@@ -90,5 +88,5 @@ class NiN(ConvNet):
         self.optimizer = optim.SGD(self.network.parameters(), lr=self.learn_rate)
         self.criterion = nn.CrossEntropyLoss()
 
-    def __str__(self):
+    def __str__(self) -> str:
         return "Convolutional Neural Networks: NiN"

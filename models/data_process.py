@@ -14,11 +14,10 @@ class Data():
     """
     def __init__(self, 
                  data_path: str, 
-                 data_type: str = "number"):
+                 data_type: str = "number") -> None:
         """
         Initializes the data processing object by loading the dataset and preparing features and labels
 
-        --------------------------------------------------
         Parameters:
             data_path: Path to the CSV dataset file
             data_type: The type of data to process ('number' for numerical data, 'text' for text data)
@@ -68,11 +67,9 @@ class Data():
         """
         Retrieves processed training and testing datasets in the specified format
 
-        --------------------------------------------------
         Parameters:
             type_of_data: The format of data to return ('numpy' for NumPy arrays, 'tensor' for PyTorch tensors)
         
-        --------------------------------------------------
         Returns:
             Tuple: The processed datasets in the specified format:\n
                         - Training features

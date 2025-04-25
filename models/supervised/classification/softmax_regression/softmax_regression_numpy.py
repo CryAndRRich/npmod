@@ -1,6 +1,6 @@
 from typing import Tuple
 import numpy as np
-from ..base import Model
+from ....base import Model
 
 np.random.seed(42)
 
@@ -8,11 +8,9 @@ def softmax_function(z: np.ndarray) -> np.ndarray:
     """
     Computes the softmax function for the given input scores
 
-    --------------------------------------------------
     Parameters:
         z: The input score matrix (before softmax)
 
-    --------------------------------------------------
     Returns:
         np.ndarray: The output probability distribution after applying softmax
     """
@@ -25,13 +23,11 @@ def cross_entropy(labels: np.ndarray,
     """
     Computes the cross-entropy loss between the true labels and predicted probabilities
 
-    --------------------------------------------------
     Parameters:
         labels: One-hot encoded true labels
         probs: Predicted probabilities from the softmax function
         number_of_samples: The number of training samples
 
-    --------------------------------------------------
     Returns:
         cost: The cross-entropy loss
     """
@@ -44,13 +40,11 @@ def one_hot_encode(labels: np.ndarray,
     """
     Converts labels into a one-hot encoded format
 
-    --------------------------------------------------
     Parameters:
         labels: The original integer labels
         number_of_samples: The total number of samples
         number_of_classes: The number of unique classes in the dataset
 
-    --------------------------------------------------
     Returns:
         one_hot: The one-hot encoded labels
     """
@@ -67,7 +61,6 @@ def gradient_descent(features: np.ndarray,
     """
     Performs one step of gradient descent to update the model's weights and bias
 
-    --------------------------------------------------
     Parameters:
         features: The input features matrix
         labels: One-hot encoded true labels
@@ -76,7 +69,6 @@ def gradient_descent(features: np.ndarray,
         bias: The current bias values
         learn_rate: The learning rate for gradient descent
 
-    --------------------------------------------------
     Returns:
         weights: The updated weight matrix
         bias: The updated bias values
@@ -101,7 +93,6 @@ class SoftmaxRegressionNumpy(Model):
         """
         Initializes the Softmax Regression model using gradient descent
 
-        --------------------------------------------------
         Parameters:
             learn_rate: The learning rate for gradient descent
             number_of_epochs: The number of training iterations (epochs)
@@ -117,7 +108,6 @@ class SoftmaxRegressionNumpy(Model):
         """
         Trains the Softmax Regression model on the input data
 
-        --------------------------------------------------
         Parameters:
             features: Input feature matrix for training
             labels: True target labels corresponding to the input features
@@ -138,7 +128,7 @@ class SoftmaxRegressionNumpy(Model):
             probs = softmax_function(scores)
 
             # Compute the cross-entropy loss
-            cost = cross_entropy(y_one_hot, probs, m)
+            # cost = cross_entropy(y_one_hot, probs, m)
 
             # Update weights and bias using gradient descent
             self.weights, self.bias = gradient_descent(features, y_one_hot, probs, self.weights, self.bias, self.learn_rate)
@@ -150,13 +140,11 @@ class SoftmaxRegressionNumpy(Model):
         """
         Predicts the labels for the test data using the trained Softmax Regression model
 
-        --------------------------------------------------
         Parameters:
             test_features: The input features for testing
             test_labels: The true labels corresponding to the test features
             get_accuracy: If True, calculates and prints the accuracy of predictions
 
-        --------------------------------------------------
         Returns:
             predictions: The prediction labels
         """

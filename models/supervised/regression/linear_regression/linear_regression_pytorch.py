@@ -2,7 +2,7 @@ import torch
 import torch.nn as nn
 import torch.nn.functional as func
 import torch.optim as optim
-from ..base import Model
+from ....base import Model
 
 torch.manual_seed(42)
 
@@ -10,7 +10,7 @@ class LinearRegressionModule(nn.Module):
     """
     Linear regression model using PyTorch's nn.Module
     """
-    def __init__(self):
+    def __init__(self) -> None:
         """
         Initializes the linear regression model by defining a single linear layer
         """
@@ -21,11 +21,9 @@ class LinearRegressionModule(nn.Module):
         """
         Forward pass through the linear layer
 
-        --------------------------------------------------
         Parameters:
             x: Input features
 
-        --------------------------------------------------
         Returns:
             Tensor: Output of the linear layer after applying the weights and bias
         """
@@ -34,11 +32,10 @@ class LinearRegressionModule(nn.Module):
 class LinearRegressionPytorch(Model):
     def __init__(self, 
                  learn_rate: float, 
-                 number_of_epochs: int):
+                 number_of_epochs: int) -> None:
         """
         Initializes the Linear Regression model with the learning rate and number of epochs
 
-        --------------------------------------------------
         Parameters:
             learn_rate: The learning rate for the optimizer
             number_of_epochs: The number of training iterations to run
@@ -52,7 +49,6 @@ class LinearRegressionPytorch(Model):
         """
         Trains the linear regression model on the input data
 
-        --------------------------------------------------
         Parameters:
             features: The input features for training
             labels: The target labels corresponding to the input features

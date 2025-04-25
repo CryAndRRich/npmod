@@ -1,6 +1,6 @@
 from typing import List
 import numpy as np
-from ..base import Model
+from ...base import Model
 
 np.random.seed(42)
 
@@ -8,11 +8,9 @@ def sigmoid_function(x: np.ndarray) -> np.ndarray:
     """
     Computes the sigmoid function for input values
 
-    --------------------------------------------------
     Parameters:
         x: The input feature values 
 
-    --------------------------------------------------
     Returns:
         np.ndarray: The sigmoid output for the input values
     """
@@ -22,11 +20,9 @@ def sigmoid_backward(x: np.ndarray) -> np.ndarray:
     """
     Calculate derivative of sigmoid activation based on sigmoid output
 
-    --------------------------------------------------
     Parameters
         x: Output values processed by a sigmoid function.
     
-    --------------------------------------------------
     Returns
         np.ndarray: Derivative of sigmoid, based on value of sigmoid.
     """
@@ -36,11 +32,9 @@ def softmax_function(z: np.ndarray) -> np.ndarray:
     """
     Computes the softmax function for the given input scores
 
-    --------------------------------------------------
     Parameters:
         z: The input score matrix (before softmax)
 
-    --------------------------------------------------
     Returns:
         np.ndarray: The output probability distribution after applying softmax
     """
@@ -52,12 +46,10 @@ def cost_function(predictions: np.ndarray,
     """
     Computes the loss between predictions and true labels
 
-    --------------------------------------------------
     Parameters:
         predictions: Predicted labels
         labels: True target labels 
 
-    --------------------------------------------------
     Returns:
         float: The loss between predictions and labels
     """
@@ -74,7 +66,6 @@ class MLPNumpy(Model):
         """
         Initializes the Multilayer Perceptron model
 
-        --------------------------------------------------
         Parameters:
             batch_size: Size of a training mini-batch
             learn_rate: The learning rate for the model update
@@ -114,7 +105,6 @@ class MLPNumpy(Model):
         """
         Perform a forward pass of 'batch' samples (n_samples x n_features)
         
-        --------------------------------------------------
         Parameters:
             batch : Matrix of inputs
         """
@@ -131,7 +121,6 @@ class MLPNumpy(Model):
         """
         Calculate derivative of sigmoid activation based on sigmoid output
         
-        --------------------------------------------------
         Parameters:
             batch : True labels for the samples in the batch
         """
@@ -147,7 +136,6 @@ class MLPNumpy(Model):
         """
         Trains the MLP model using the training data
 
-        --------------------------------------------------
         Parameters:
             features: Input feature matrix for training
             labels: True target labels corresponding to the input features
@@ -178,13 +166,11 @@ class MLPNumpy(Model):
         """
         Makes predictions on the test set and evaluates the model
 
-        --------------------------------------------------
         Parameters:
             test_features: The input features for testing
             test_labels: The true target labels corresponding to the test features
             get_accuracy: If True, calculates and prints the accuracy of predictions
 
-        --------------------------------------------------
         Returns:
             predictions: The prediction labels
         """
@@ -203,5 +189,5 @@ class MLPNumpy(Model):
         
         return predictions
     
-    def __str__(self):
+    def __str__(self) -> str:
         return "Multilayer Perceptron (Numpy)"

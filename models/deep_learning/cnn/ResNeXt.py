@@ -2,7 +2,7 @@ from typing import Tuple
 import torch
 import torch.nn as nn
 import torch.optim as optim
-from ..CNN import Reshape, ConvNet
+from ..cnn import Reshape, ConvNet
 
 class ResNeXtBottleneck(nn.Module):
     """
@@ -23,7 +23,7 @@ class ResNeXtBottleneck(nn.Module):
                  cardinality: int = 32, 
                  base_width: int = 4, 
                  downsample: nn.Module = None, 
-                 **kwargs):
+                 **kwargs) -> None:
         """
         Parameters:
             in_channels: Number of input channels
@@ -90,7 +90,6 @@ def resnext_block(input_channels: int,
     """
     Creates a block with multiple ResNeXt bottleneck blocks
 
-    --------------------------------------------------
     Parameters:
         input_channels: Number of input channels for the block
         channels: Number of intermediate channels for the blocks in the block
@@ -99,7 +98,6 @@ def resnext_block(input_channels: int,
         cardinality: Number of groups for the grouped convolution
         base_width: Base width for each group
     
-    --------------------------------------------------
     Returns:
         A tuple consisting of:
          - An nn.Sequential containing the blocks
@@ -179,5 +177,5 @@ class ResNeXt(ConvNet):
         self.optimizer = optim.SGD(self.network.parameters(), lr=self.learn_rate)
         self.criterion = nn.CrossEntropyLoss()
 
-    def __str__(self):
+    def __str__(self) -> str:
         return "Convolutional Neural Networks: ResNeXt-50 (32x4d)"

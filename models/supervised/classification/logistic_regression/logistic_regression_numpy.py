@@ -1,16 +1,14 @@
 from typing import Tuple
 import numpy as np
-from ..base import Model
+from ....base import Model
 
 def sigmoid_function(x: np.ndarray) -> np.ndarray:
     """
     Computes the sigmoid function for input values
 
-    --------------------------------------------------
     Parameters:
         x: The input feature values 
 
-    --------------------------------------------------
     Returns:
         np.ndarray: The sigmoid output for the input values
     """
@@ -21,12 +19,10 @@ def log_loss(x: np.ndarray,
     """
     Computes the logistic loss (binary cross-entropy) for a given prediction and true label
 
-    --------------------------------------------------
     Parameters:
         x: The true labels 
         y: The predicted probabilities 
 
-    --------------------------------------------------
     Returns:
         np.ndarray: The binary cross-entropy loss for the prediction and label
     """
@@ -39,14 +35,12 @@ def cost_function(features: np.ndarray,
     """
     Computes the logistic regression cost function using mean binary cross-entropy
 
-    --------------------------------------------------
     Parameters:
         features: The input features 
         labels: The target labels 
         weight: The current weight values 
         bias: The current bias value 
 
-    --------------------------------------------------
     Returns:
         cost: The mean binary cross-entropy loss
     """
@@ -72,7 +66,6 @@ def gradient_descent(features: np.ndarray,
     """
     Performs one step of gradient descent to update the model's weight and bias
 
-    --------------------------------------------------
     Parameters:
         features: The input features 
         labels: The target labels 
@@ -80,7 +73,6 @@ def gradient_descent(features: np.ndarray,
         bias: The current bias value 
         learn_rate: The learning rate for gradient descent 
 
-    --------------------------------------------------
     Returns:
         weight: The updated weight values after one step of gradient descent
         bias: The updated bias value after one step of gradient descent
@@ -114,11 +106,10 @@ def gradient_descent(features: np.ndarray,
 class LogisticRegressionNumpy(Model):
     def __init__(self, 
                  learn_rate: float, 
-                 number_of_epochs: int):
+                 number_of_epochs: int) -> None:
         """
         Initializes the Logistic Regression model using gradient descent
 
-        --------------------------------------------------
         Parameters:
             learn_rate: The learning rate for the gradient descent
             number_of_epochs: The number of training iterations to run
@@ -132,7 +123,6 @@ class LogisticRegressionNumpy(Model):
         """
         Trains the logistic regression model on the input data using gradient descent
 
-        --------------------------------------------------
         Parameters:
             features: The input features for training 
             labels: The target labels corresponding to the input features 
@@ -144,7 +134,7 @@ class LogisticRegressionNumpy(Model):
 
         # Perform gradient descent over the specified number of epochs
         for _ in range(self.number_of_epochs):
-            cost = cost_function(features, labels, self.weight, self.bias)
+            # cost = cost_function(features, labels, self.weight, self.bias)
             self.weight, self.bias = gradient_descent(features, labels, self.weight, self.bias, self.learn_rate)
 
     def predict(self, 
@@ -154,13 +144,11 @@ class LogisticRegressionNumpy(Model):
         """
         Makes predictions on the test set and evaluates the model
 
-        --------------------------------------------------
         Parameters:
             test_features: The input features for testing
             test_labels: The true target labels corresponding to the test features
             get_accuracy: If True, calculates and prints the accuracy of predictions
 
-        --------------------------------------------------
         Returns:
             predictions: The prediction labels
         """

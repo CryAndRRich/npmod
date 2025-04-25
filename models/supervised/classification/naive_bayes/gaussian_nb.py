@@ -1,5 +1,5 @@
 import numpy as np
-from ..base import Model
+from ....base import Model
 
 class GaussianNaiveBayes(Model):
     def fit(self, 
@@ -9,7 +9,6 @@ class GaussianNaiveBayes(Model):
         Fits the Gaussian Naive Bayes model by calculating the mean and variance 
         for each feature in each class.
 
-        --------------------------------------------------
         Parameters:
             features: Input features for training
             labels: Corresponding target labels for the input features
@@ -32,13 +31,11 @@ class GaussianNaiveBayes(Model):
         """
         Computes the Gaussian distribution for the input data using the given mean (mu) and variance (sigma).
 
-        --------------------------------------------------
         Parameters:
             data: Input feature values
             sigma: Variance of the Gaussian distribution
             mu: Mean of the Gaussian distribution
 
-        --------------------------------------------------
         Returns:
             prob: Gaussian probability values for the input data
         """
@@ -59,13 +56,11 @@ class GaussianNaiveBayes(Model):
         """
         Makes predictions on the test set and evaluates the model
 
-        --------------------------------------------------
         Parameters:
             test_features: The input features for testing
             test_labels: The true target labels corresponding to the test features
             get_accuracy: If True, calculates and prints the accuracy of predictions
 
-        --------------------------------------------------
         Returns:
             predictions: The prediction labels
         """
@@ -96,7 +91,4 @@ class GaussianNaiveBayes(Model):
         return predictions
 
     def __str__(self) -> str:
-        """
-        Returns a string representation of the Gaussian Naive Bayes model
-        """
         return "Gaussian Naive Bayes"

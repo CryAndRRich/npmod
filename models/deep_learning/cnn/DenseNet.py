@@ -1,18 +1,17 @@
 import torch
 import torch.nn as nn
 import torch.optim as optim
-from ..CNN import Reshape, ConvNet
+from ..cnn import Reshape, ConvNet
 
-def conv_block(in_channels: int, num_channels: int) -> nn.Sequential:
+def conv_block(in_channels: int, 
+               num_channels: int) -> nn.Sequential:
     """
     Constructs a convolutional block
-    
-    --------------------------------------------------
+
     Parameters:
         in_channels: Number of input channels
         num_channels: Number of output channels
-        
-    --------------------------------------------------
+    
     Returns:
         block: The convolutional block
     """
@@ -38,7 +37,7 @@ class DenseBlock(nn.Module):
                  num_convs: int, 
                  input_channels: int, 
                  num_channels: int, 
-                 **kwargs):
+                 **kwargs) -> None:
         """
         Parameters:
             num_convs: Number of convolution layers in the dense block
@@ -52,7 +51,7 @@ class DenseBlock(nn.Module):
             layers.append(conv_block(input_channels + num_channels * i, num_channels))
         self.net = nn.Sequential(*layers)
         
-    def forward(self, x):
+    def forward(self, x: torch.Tensor) -> torch.Tensor:
         """
         Forward pass for the Dense Block
         
@@ -69,19 +68,18 @@ class DenseBlock(nn.Module):
             x = torch.cat((x, y), dim=1)
         return x
 
-def transition_block(input_channels: int, num_channels: int) -> nn.Sequential:
+def transition_block(input_channels: int, 
+                     num_channels: int) -> nn.Sequential:
     """
     Transition Block for DenseNet
 
     This block applies Batch Normalization, ReLU, a 1x1 convolution to reduce the number of channels,
     and then average pooling to reduce the spatial dimensions
-    
-    --------------------------------------------------
+
     Parameters:
         input_channels: Number of input channels
         num_channels: Number of output channels after the 1x1 convolution
-        
-    --------------------------------------------------
+    
     Returns:
         block: The transition block
     """
@@ -144,5 +142,5 @@ class DenseNet(ConvNet):
         self.optimizer = optim.SGD(self.network.parameters(), lr=self.learn_rate)
         self.criterion = nn.CrossEntropyLoss()
     
-    def __str__(self):
+    def __str__(self) -> str:
         return "Convolutional Neural Networks: DenseNet-121"

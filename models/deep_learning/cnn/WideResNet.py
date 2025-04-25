@@ -2,7 +2,7 @@ from typing import Tuple
 import torch
 import torch.nn as nn
 import torch.optim as optim
-from ..CNN import Reshape, ConvNet
+from ..cnn import Reshape, ConvNet
 
 class WRNBlock(nn.Module):
     """
@@ -20,7 +20,7 @@ class WRNBlock(nn.Module):
                  out_channels: int, 
                  stride: int = 1, 
                  dropout_rate: float = 0.3, 
-                 **kwargs):
+                 **kwargs) -> None:
         """
         Parameters:
             in_channels: Number of input channels
@@ -78,7 +78,6 @@ def wrn_block(input_channels: int,
     """
     Creates a stage with multiple WRNBlock blocks
 
-    --------------------------------------------------
     Parameters:
         input_channels: Number of input channels for the stage
         out_channels: Number of output channels for the blocks in the stage
@@ -86,7 +85,6 @@ def wrn_block(input_channels: int,
         stride: Stride for the first block in the stage (for downsampling)
         dropout_rate: Dropout rate used in the blocks
     
-    --------------------------------------------------
     Returns:
         A tuple consisting of:
          - An nn.Sequential containing the blocks of the stage
@@ -146,5 +144,7 @@ class WideResNet(ConvNet):
         self.optimizer = optim.Adam(self.network.parameters(), lr=self.learn_rate)
         self.criterion = nn.CrossEntropyLoss()
 
-    def __str__(self):
+    def __str__(self) -> str:
         return "Convolutional Neural Networks: WRN-28-10"
+
+        

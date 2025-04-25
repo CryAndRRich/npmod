@@ -1,7 +1,7 @@
 import torch
 import torch.nn as nn
 import torch.optim as optim
-from ..base import Model
+from ...base import Model
 
 class Reshape(nn.Module):
     def forward(self, x):
@@ -17,7 +17,6 @@ class ConvNet(Model):
         """
         Initializes the Convolutional Neural Networks
 
-        --------------------------------------------------
         Parameters:
             learn_rate: The learning rate for the network update
             number_of_epochs: The number of training iterations
@@ -25,14 +24,14 @@ class ConvNet(Model):
         self.learn_rate = learn_rate
         self.number_of_epochs = number_of_epochs
     
-    def init_network(self):
+    def init_network(self) -> None:
         """Initialize the network, optimizer and loss function"""
         self.network = nn.Sequential()
-        self.network.apply(self.init_weights)
+        self.network.apply(self.__init_weights)
         self.optimizer = optim.SGD(self.network.parameters(), lr=self.learn_rate)
         self.criterion = nn.CrossEntropyLoss()
 
-    def init_weights(self, m):
+    def __init_weights(self, m) -> None:
         """Initialize the model parameters using the Xavier initializer"""
         if type(m) == nn.Linear or type(m) == nn.Conv2d:
             torch.nn.init.xavier_uniform_(m.weight)
@@ -67,13 +66,11 @@ class ConvNet(Model):
         """
         Makes predictions on the test set and evaluates the network
 
-        --------------------------------------------------
         Parameters:
             test_features: The input features for testing
             test_labels: The true target labels corresponding to the test features
             get_accuracy: If True, calculates and prints the accuracy of predictions
 
-        --------------------------------------------------
         Returns:
             predictions: The prediction labels
         """

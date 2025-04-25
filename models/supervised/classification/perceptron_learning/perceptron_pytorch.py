@@ -1,6 +1,6 @@
 import torch
 import torch.nn as nn
-from ..base import Model
+from ....base import Model
 
 torch.manual_seed(42)
 
@@ -8,11 +8,10 @@ class PerceptionModule(nn.Module):
     """
     Perceptron model using PyTorch's nn.Module for binary classification
     """
-    def __init__(self, n_features: int):
+    def __init__(self, n_features: int) -> None:
         """
         Initializes the perceptron model by defining a single linear layer
 
-        --------------------------------------------------
         Parameters:
             n_features: The number of input features
         """
@@ -23,11 +22,9 @@ class PerceptionModule(nn.Module):
         """
         Applies the Heaviside step function to make binary predictions
 
-        --------------------------------------------------
         Parameters:
             weighted_sum: The weighted sum from the linear layer
 
-        --------------------------------------------------
         Returns:
             torch.Tensor: Binary predictions (0 or 1) after applying the step function
         """
@@ -39,11 +36,9 @@ class PerceptionModule(nn.Module):
         """
         Forward pass through the perceptron model
 
-        --------------------------------------------------
         Parameters:
             x: Input features
 
-        --------------------------------------------------
         Returns:
             torch.Tensor: Binary predictions from the perceptron model
         """
@@ -60,7 +55,6 @@ class PerceptronLearningPytorch(Model):
         """
         Initializes the perceptron learning model with a given learning rate and number of epochs.
 
-        --------------------------------------------------
         Parameters:
             learn_rate: The learning rate for updating weights
             number_of_epochs: The number of training iterations
@@ -74,7 +68,6 @@ class PerceptronLearningPytorch(Model):
         """
         Trains the perceptron model on the input features and labels.
 
-        --------------------------------------------------
         Parameters:
             features: The input features for training
             labels: The true target labels corresponding to the input features
@@ -118,13 +111,11 @@ class PerceptronLearningPytorch(Model):
         """
         Makes predictions on the test set and evaluates the model
 
-        --------------------------------------------------
         Parameters:
             test_features: The input features for testing
             test_labels: The true target labels corresponding to the test features
             get_accuracy: If True, calculates and prints the accuracy of predictions
 
-        --------------------------------------------------
         Returns:
             predictions: The prediction labels
         """

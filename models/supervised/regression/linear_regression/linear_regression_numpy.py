@@ -1,6 +1,6 @@
 from typing import Tuple
 import numpy as np
-from ..base import Model
+from ....base import Model
 
 def cost_function(features: np.ndarray, 
                   labels: np.ndarray, 
@@ -9,14 +9,12 @@ def cost_function(features: np.ndarray,
     """
     Computes the mean squared error cost for linear regression
 
-    --------------------------------------------------
     Parameters:
         features: The input feature values 
         labels: The target labels corresponding to the input features 
         weight: The current weight value of the model
         bias: The current bias value of the model
 
-    --------------------------------------------------
     Returns:
         avg_cost: The average cost (mean squared error) for the current weight and bias
     """
@@ -41,7 +39,6 @@ def gradient_descent(features: np.ndarray,
     """
     Performs one step of gradient descent to update the model's weight and bias
 
-    --------------------------------------------------
     Parameters:
         features: The input feature values 
         labels: The target labels corresponding to the input features 
@@ -49,7 +46,6 @@ def gradient_descent(features: np.ndarray,
         bias: The current bias value of the model
         learn_rate: The learning rate for gradient descent
 
-    --------------------------------------------------
     Returns:
         weight: The updated weight value after one step of gradient descent
         bias: The updated bias value after one step of gradient descent
@@ -76,11 +72,10 @@ def gradient_descent(features: np.ndarray,
 class LinearRegressionNumpy(Model):
     def __init__(self, 
                  learn_rate: float, 
-                 number_of_epochs: int):
+                 number_of_epochs: int) -> None:
         """
         Initializes the Linear Regression model using manual gradient descent
 
-        --------------------------------------------------
         Parameters:
             learn_rate: The learning rate for the gradient descent
             number_of_epochs: The number of training iterations to run
@@ -94,7 +89,6 @@ class LinearRegressionNumpy(Model):
         """
         Trains the linear regression model on the input data using gradient descent
 
-        --------------------------------------------------
         Parameters:
             features: The input features for training 
             labels: The target labels corresponding to the input features 

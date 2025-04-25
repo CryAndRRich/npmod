@@ -4,7 +4,7 @@ class Loss:
     """
     Base class for loss functions
     """
-    def __init__(self):
+    def __init__(self) -> None:
         self.input = None
         self.target = None
 
@@ -14,12 +14,10 @@ class Loss:
         """
         Forward pass of the loss function
 
-        --------------------------------------------------
         Parameters:
             input: Predictions of Layer/Model
             target: Targets to be evaluated against
 
-        --------------------------------------------------
         Returns:
             float: A measure of prediction accuracy
         """
@@ -36,46 +34,49 @@ class Loss:
         """
         pass
 
-    def __call__(self,
-                input: np.ndarray, 
-                target: np.ndarray) -> float:
-        
+    def __call__(self, input, target) -> float:
         return self.forward(input, target)
 
-    def __str__(self):
+    def __str__(self) -> str:
         pass
 
 
 class MAE(Loss):
-    def forward(self, input, target):
+    def forward(self, 
+                input: np.ndarray, 
+                target: np.ndarray) -> np.ndarray:
         super().forward(input, target)
         loss = np.mean(np.abs(self.input - self.target))
         return loss
 
-    def backward(self):
+    def backward(self) -> np.ndarray:
         self.gradient = np.sign(self.input - self.target) / self.input.shape[0]
         return self.gradient
 
-    def __str__(self):
+    def __str__(self) -> str:
         return "Mean Absolute Error (MAE)"
 
 
 class MSE(Loss):
-    def forward(self, input, target):
+    def forward(self, 
+                input: np.ndarray, 
+                target: np.ndarray) -> np.ndarray:
         super().forward(input, target)
         loss = np.mean((self.input - self.target) ** 2)
         return loss
 
-    def backward(self):
+    def backward(self) -> np.ndarray:
         self.gradient = 2 * (self.input - self.target) / self.input.shape[0]
         return self.gradient
 
-    def __str__(self):
+    def __str__(self) -> str:
         return "Mean Squared Error (MSE)"
 
 
 class MALE(Loss):
-    def forward(self, input, target):
+    def forward(self, 
+                input: np.ndarray, 
+                target: np.ndarray) -> np.ndarray:
         assert np.any(input > 0) and np.any(target > 0), \
             "Input and target must be greater than 0 for log transformation"
         
@@ -83,19 +84,21 @@ class MALE(Loss):
         loss = np.mean((np.log(self.input) - np.log(self.target)) ** 2)
         return loss
 
-    def backward(self):
+    def backward(self) -> np.ndarray:
         assert np.any(self.input > 0) and np.any(self.target > 0), \
             "Input and target must be greater than 0 for log transformation"
         
         self.gradient = 2 * (np.log(self.input) - np.log(self.target)) / (self.input * self.input.shape[0])
         return self.gradient
 
-    def __str__(self):
+    def __str__(self) -> str:
         return "Mean Absolute Log Error (MALE)"
 
 
 class RSquared(Loss):
-    def forward(self, input, target):
+    def forward(self, 
+                input: np.ndarray, 
+                target: np.ndarray) -> np.ndarray:
         super().forward(input, target)
         mean = np.mean(self.input)
         numerator = np.sum((self.target - self.input) ** 2)
@@ -106,7 +109,7 @@ class RSquared(Loss):
         loss = numerator / dominator
         return loss
 
-    def backward(self):
+    def backward(self) -> np.ndarray:
         mean = np.mean(self.input)
         dominator = np.sum((self.target - mean) ** 2)
         if dominator == 0:
@@ -114,24 +117,26 @@ class RSquared(Loss):
         self.gradient = -2 * (self.target - self.input) / dominator
         return self.gradient
 
-    def __str__(self):
+    def __str__(self) -> str:
         return "R Squared (R2)"
 
 
 class MAPE(Loss):
-    def forward(self, input, target):
+    def forward(self, 
+                input: np.ndarray, 
+                target: np.ndarray) -> np.ndarray:
         eps = 1e-9
         super().forward(input, target)
         ratio = np.abs(1 - self.input / (self.target + eps))
         loss = np.mean(ratio)
         return loss
 
-    def backward(self):
+    def backward(self) -> np.ndarray:
         eps = 1e-9
         self.gradient = -1 / (self.target + eps) / self.input.shape[0]
         return self.gradient
 
-    def __str__(self):
+    def __str__(self) -> str:
         return "Mean Absolute Percentage Error (MAPE)"
 
 
@@ -158,12 +163,12 @@ class wMAPE(Loss):
         loss = numerator / dominator
         return loss
 
-    def backward(self):
+    def backward(self) -> np.ndarray:
         eps = 1e-9 # Epsilon to avoid divided by zero
         self.gradient = -self.weights / (np.sum(np.abs(self.target) * self.weights) + eps)
         return self.gradient
 
-    def __str__(self):
+    def __str__(self) -> str:
         return "Weighted Mean Absolute Percentage Error (wMAPE)"
 
 
@@ -178,17 +183,19 @@ class SmoothL1(Loss):
         loss = np.mean(np.where(ln < self.beta, 0.5 * (ln ** 2) / self.beta, ln - 0.5 * self.beta))
         return loss
     
-    def backward(self):
+    def backward(self) -> np.ndarray:
         ln = self.input - self.target
         self.gradient = np.where(np.abs(ln) < self.beta, ln, np.sign(ln))
         return self.gradient
 
-    def __str__(self):
+    def __str__(self) -> str:
         return "Smooth L1 Loss (SmoothL1)"
 
 
 class CE(Loss):
-    def forward(self, input, target):
+    def forward(self, 
+                input: np.ndarray, 
+                target: np.ndarray) -> np.ndarray:
         super().forward(input, target)
         eps = 1e-9 # Epsilon to avoid log(0)
         input = np.where(input + eps <= 0, eps, input)
@@ -196,7 +203,7 @@ class CE(Loss):
         loss = np.mean(entropy)
         return loss
     
-    def backward(self):
+    def backward(self) -> np.ndarray:
         ones_for_targets = np.zeros_like(self.input)
         ones_for_targets[np.arange(len(self.input)), self.target] = 1
 
@@ -206,7 +213,7 @@ class CE(Loss):
         self.gradient = (-ones_for_targets + softmax) / self.input.shape[0]
         return self.gradient
     
-    def __str__(self):
+    def __str__(self) -> str:
         return "Cross Entropy Loss (CE)"
 
 
@@ -232,25 +239,27 @@ class BCE(Loss):
         loss = np.mean(entropy)
         return loss
     
-    def backward(self):
+    def backward(self) -> np.ndarray:
         eps = 1e-9 # Epsilon to avoid divided by zero
         self.gradient = self.weights * ((self.input - self.target) / ((self.input * (1 - self.input)) + eps))
         return self.gradient
     
-    def __str__(self):
+    def __str__(self) -> str:
         return "Binary Cross Entropy (BCE)"
 
 
 class KLDiv(Loss):
-    def forward(self, input, target):
+    def forward(self, 
+                input: np.ndarray, 
+                target: np.ndarray) -> np.ndarray:
         super().forward(input, target)
         eps = 1e-9
         loss = np.mean(target * (np.log(target + eps) - input))
         return loss
     
-    def backward(self):
+    def backward(self) -> np.ndarray:
         self.gradient = -self.target / self.target.shape[0]
         return self.gradient
     
-    def __str__(self):
+    def __str__(self) -> str:
         return "Kullback-Leibler Divergence Loss (KLDiv)"

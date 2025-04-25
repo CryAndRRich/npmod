@@ -12,7 +12,6 @@ class SoftmaxRegression():
         """
         Initializes the Softmax Regression model by selecting the desired implementation 
 
-        --------------------------------------------------
         Parameters:
             learn_rate: The learning rate for the optimizer (controls the rate of weight updates)
             number_of_epochs: The number of training iterations (epochs)
@@ -40,5 +39,5 @@ class SoftmaxRegression():
         predictions = self.inherit.predict(test_features, test_labels, get_accuracy)
         return predictions
     
-    def __str__(self):
+    def __str__(self) -> str:
         return self.inherit.__str__()

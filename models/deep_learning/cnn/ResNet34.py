@@ -1,7 +1,7 @@
 import torch
 import torch.nn as nn
 import torch.optim as optim
-from ..CNN import Reshape, ConvNet
+from ..cnn import Reshape, ConvNet
 
 class Residual(nn.Module):
     """
@@ -15,7 +15,7 @@ class Residual(nn.Module):
                  num_channels: int, 
                  use_1x1_conv: bool = False, 
                  strides: int = 1, 
-                 **kwargs):
+                 **kwargs) -> None:
         """
         Parameters:
             input_channels: Number of input channels
@@ -70,14 +70,12 @@ def resnet_block(input_channels: int,
     """
     Creates a ResNet block consisting of multiple residual units
 
-    --------------------------------------------------
     Parameters:
         input_channels : Number of input channels to the first residual block
         num_channels : Number of output channels for all residual blocks in this stage
         num_residuals : Number of residual blocks in this ResNet block
         first_block: Indicates whether this is the first ResNet block in the network. If True, the first residual block does not apply a 1x1 convolution or downsampling
 
-    --------------------------------------------------
     Returns:
         block:  A list of residual blocks forming a complete ResNet stage
     """
@@ -126,5 +124,5 @@ class ResNet34(ConvNet):
         self.optimizer = optim.SGD(self.network.parameters(), lr=self.learn_rate)
         self.criterion = nn.CrossEntropyLoss()
     
-    def __str__(self):
+    def __str__(self) -> str:
         return "Convolutional Neural Networks: ResNet-34"

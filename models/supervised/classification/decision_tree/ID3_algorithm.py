@@ -38,5 +38,5 @@ class ID3DecisionTree(Tree):
         # If no further split is possible, return a leaf node
         return TreeNode(results=labels[0])
 
-    def __str__(self):
+    def __str__(self) -> str:
         return "Decision Trees: ID3 Algorithm"

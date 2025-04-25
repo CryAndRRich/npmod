@@ -8,11 +8,10 @@ class Optimizer():
     """
     def __init__(self, 
                  network: List[Layer],
-                 learn_rate: float = 0.01):
+                 learn_rate: float = 0.01) -> None:
         """
         Initializes the optimizer with the given network and learning rate
 
-        --------------------------------------------------
         Parameters:
             network: The neural network layers to be optimized
             learn_rate: The learning rate for parameter updates
@@ -24,13 +23,12 @@ class Optimizer():
         """
         Initializes buffers (e.g., velocities, moments) for each layer's parameters
 
-        --------------------------------------------------
         Returns:
             List[List[np.ndarray]]: A list of buffers initialized to zero, with the same shape as the network parameters
         """
         return [[np.zeros_like(param) for param in layer.parameters()] for layer in self.net]
 
-    def step(self):
+    def step(self) -> None:
         """
         Performs a single optimization step. To be implemented by subclasses
         """
@@ -42,18 +40,17 @@ class GD(Optimizer):
     """
     def __init__(self, 
                  network: List[Layer],
-                 learn_rate: float = 0.01):
+                 learn_rate: float = 0.01) -> None:
         """
         Initializes the Gradient Descent optimizer
 
-        --------------------------------------------------
         Parameters:
             network: The neural network layers to be optimized
             learn_rate: The learning rate for parameter updates
         """
         super().__init__(network, learn_rate)
     
-    def step(self):
+    def step(self) -> None:
         """
         Performs a single optimization step using gradient descent
         Updates parameters by subtracting the gradient scaled by the learning rate
@@ -69,11 +66,10 @@ class SGD(Optimizer):
     def __init__(self, 
                  network: List[Layer],
                  learn_rate: float = 0.01,
-                 momentum: float = 0.01):
+                 momentum: float = 0.01) -> None:
         """
         Initializes the SGD optimizer with momentum
 
-        --------------------------------------------------
         Parameters:
             network: The neural network layers to be optimized
             learn_rate: The learning rate for parameter updates
@@ -83,7 +79,7 @@ class SGD(Optimizer):
         self.momentum = momentum
         self.velocities = self._initialize_buffers()
     
-    def step(self):
+    def step(self) -> None:
         """
         Performs a single optimization step using SGD with momentum
         Updates parameters using a combination of gradient and momentum
@@ -101,11 +97,10 @@ class AdaGrad(Optimizer):
     def __init__(self, 
                  network: List[Layer], 
                  learn_rate: float = 0.01, 
-                 epsilon: float = 1e-8):
+                 epsilon: float = 1e-8) -> None:
         """
         Initializes the AdaGrad optimizer
 
-        --------------------------------------------------
         Parameters:
             network: The neural network layers to be optimized
             learn_rate: The learning rate for parameter updates
@@ -115,7 +110,7 @@ class AdaGrad(Optimizer):
         self.epsilon = epsilon
         self.velocities = self._initialize_buffers()
     
-    def step(self):
+    def step(self) -> None:
         """
         Performs a single optimization step using AdaGrad
         Adapts the learning rate for each parameter based on historical gradients
@@ -135,11 +130,10 @@ class RMSprop(Optimizer):
                  network: List[Layer], 
                  learn_rate: float = 0.01,
                  beta: float = 0.9, 
-                 epsilon: float = 1e-8):
+                 epsilon: float = 1e-8) -> None:
         """
         Initializes the RMSprop optimizer
 
-        --------------------------------------------------
         Parameters:
             network: The neural network layers to be optimized
             learn_rate: The learning rate for parameter updates
@@ -151,7 +145,7 @@ class RMSprop(Optimizer):
         self.beta = beta
         self.velocities = self._initialize_buffers()
     
-    def step(self):
+    def step(self) -> None:
         """
         Performs a single optimization step using RMSprop
         Uses a moving average of squared gradients to scale the learning rate
@@ -170,11 +164,10 @@ class Adam(Optimizer):
                  learn_rate: float = 0.001, 
                  beta1: float = 0.9, 
                  beta2: float = 0.999, 
-                 epsilon: float = 1e-8):
+                 epsilon: float = 1e-8) -> None:
         """
         Initializes the Adam optimizer
 
-        --------------------------------------------------
         Parameters:
             network: The neural network layers to be optimized
             learn_rate: The learning rate for parameter updates
@@ -190,7 +183,7 @@ class Adam(Optimizer):
         self.moments = self._initialize_buffers()
         self.velocities = self._initialize_buffers()
     
-    def step(self):
+    def step(self) -> None:
         """
         Performs a single optimization step using Adam
         Combines the benefits of momentum and RMSprop for parameter updates

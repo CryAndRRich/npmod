@@ -33,5 +33,5 @@ class CHAIDDecisionTree(Tree):
         # If no further split is possible, return a leaf node with the most common label
         return TreeNode(results=np.argmax(np.bincount(labels)))
 
-    def __str__(self):
+    def __str__(self) -> str:
         return "Decision Trees: CHAID Algorithm"

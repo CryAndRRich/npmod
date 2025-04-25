@@ -1,6 +1,6 @@
 import torch.nn as nn
 import torch.optim as optim
-from ..CNN import Reshape, ConvNet
+from ..cnn import Reshape, ConvNet
     
 def vgg_block(num_convs: int, 
               in_channels: int, 
@@ -10,14 +10,12 @@ def vgg_block(num_convs: int,
     Implementation of one VGG block consists of a sequence of convolutional layers, 
     followed by a max pooling layer for spatial downsampling
 
-    --------------------------------------------------
     Parameters:
         num_convs: Number of convolutional layers
         in_channels: Number of input channels
         out_channels: Number of output channels
         use_adaptive_pool: If True, the pooling layer is replaced with AdaptiveMaxPool2d
     
-    --------------------------------------------------
     Returns:
         block: One VGG block
     """
@@ -78,5 +76,5 @@ class VGG(ConvNet):
         self.optimizer = optim.SGD(self.network.parameters(), lr=self.learn_rate)
         self.criterion = nn.CrossEntropyLoss()
     
-    def __str__(self):
+    def __str__(self) -> str:
         return "Convolutional Neural Networks: VGG-11"

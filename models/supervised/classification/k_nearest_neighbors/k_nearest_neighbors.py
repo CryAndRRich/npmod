@@ -1,5 +1,5 @@
 import torch
-from ..base import Model
+from ....base import Model
 
 def minkowski_dist(features: torch.Tensor, 
                    test_features: torch.Tensor, 
@@ -7,14 +7,12 @@ def minkowski_dist(features: torch.Tensor,
     """
     Computes the Minkowski distance between the feature vectors and the test features
 
-    --------------------------------------------------
     Parameters:
         features: The input data features
         test_features: The feature vector for the test sample
         p: The power parameter for the Minkowski distance 
         (default is 2, which corresponds to the Euclidean distance)
 
-    --------------------------------------------------
     Returns:
         dist: The computed distance between the feature vectors and the test features
     """
@@ -28,14 +26,12 @@ def get_knn(features: torch.Tensor,
     """
     Performs K-Nearest Neighbors classification for a given test sample
 
-    --------------------------------------------------
     Parameters:
         features: The input data features
         labels: The labels corresponding to the input features
         test_features: The feature vector for the test sample
         k: The number of nearest neighbors to consider
 
-    --------------------------------------------------
     Returns:
         prediction: The predicted label for the test sample
     """
@@ -52,11 +48,10 @@ def get_knn(features: torch.Tensor,
     return prediction
 
 class KNearestNeighbors(Model):
-    def __init__(self, neighbors: int):
+    def __init__(self, neighbors: int) -> None:
         """
         Initializes the K-Nearest Neighbors model
 
-        --------------------------------------------------
         Parameters:
             neighbors: The number of nearest neighbors to consider
         """
@@ -68,7 +63,6 @@ class KNearestNeighbors(Model):
         """
         Fits the K-Nearest Neighbors model to the input data
 
-        --------------------------------------------------
         Parameters:
             features: Feature matrix of the training data
             labels: Array of labels corresponding to the training data
@@ -83,13 +77,11 @@ class KNearestNeighbors(Model):
         """
         Makes predictions on the test set and evaluates the model
 
-        --------------------------------------------------
         Parameters:
             test_features: The input features for testing
             test_labels: The true target labels corresponding to the test features
             get_accuracy: If True, calculates and prints the accuracy of predictions
 
-        --------------------------------------------------
         Returns:
             predictions: The prediction labels
         """

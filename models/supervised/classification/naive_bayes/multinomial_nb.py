@@ -1,12 +1,11 @@
 import numpy as np
-from ..base import Model
+from ....base import Model
 
 class MultinomialNaiveBayes(Model):
     def __init__(self, alpha: int = 1) -> None:
         """
         Initializes the Multinomial Naive Bayes model.
 
-        --------------------------------------------------
         Parameters:
             alpha: Smoothing parameter for Laplace smoothing 
         """
@@ -18,7 +17,6 @@ class MultinomialNaiveBayes(Model):
         """
         Fits the Multinomial Naive Bayes model by calculating feature counts and total counts for each class.
 
-        --------------------------------------------------
         Parameters:
             features: Input features for training
             labels: Corresponding target labels for the input features
@@ -51,12 +49,10 @@ class MultinomialNaiveBayes(Model):
         """
         Computes the probability of the input data using the multinomial distribution for a given class.
 
-        --------------------------------------------------
         Parameters:
             data: Input feature values
             class_idx: The class index for which to calculate the multinomial probability
 
-        --------------------------------------------------
         Returns:
             prob: The probability of the input data for the given class
         """
@@ -81,13 +77,11 @@ class MultinomialNaiveBayes(Model):
         """
         Makes predictions on the test set and evaluates the model
 
-        --------------------------------------------------
         Parameters:
             test_features: The input features for testing
             test_labels: The true target labels corresponding to the test features
             get_accuracy: If True, calculates and prints the accuracy of predictions
 
-        --------------------------------------------------
         Returns:
             predictions: The prediction labels
         """
@@ -120,7 +114,4 @@ class MultinomialNaiveBayes(Model):
         return predictions
 
     def __str__(self) -> str:
-        """
-        Returns a string representation of the Multinomial Naive Bayes model.
-        """
         return "Multinomial Naive Bayes"

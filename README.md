@@ -4,62 +4,79 @@ This repository consists of **two main parts**: a simple **deep learning framewo
 ## npmod: NumPy module
 A simple **deep learning framework** built using **pure NumPy**
 
-* Activations:
-  * ReLU, leaky ReLU
-  * Sigmoid
-  * Tanh
-  * Softmax
-* Layers:
-  * Linear
-  * Dropout
-  * Flatten
-  * BatchNorm
-  * Conv2D, Conv3D
-  * MaxPool2D, MaxPool3D
-* Sequential
-* Losses:
-  * MAE, MSE, MALE
-  * RSquared
-  * MAPE, wMAPE
-  * SmoothL1
-  * CE, BCE
-  * KLDiv
-* Optimizers:
-  * GD, SGD
-  * AdaGrad
-  * RMSprop
-  * ADAM
-
+```
+npmod/nn/
+├── layers/
+│   ├── __init__/
+│   │   ├── linear/
+│   │   ├── dropout/
+│   │   └── flatten/
+│   ├── batchnorm/
+│   └── conv/
+│       ├── conv2d/
+│       ├── conv3d/
+│       ├── maxpool2d/
+│       └── maxpool3d/
+├── activations/
+│   ├── relu, leaky relu/
+│   ├── sigmoid/
+│   ├── tanh/
+│   └── softmax/
+├── container/
+|   └── sequential/
+├── losses/
+|   ├── mae, mse, male/
+|   ├── rsquared/
+|   ├── mape, wmape/
+|   ├── smoothl1/
+|   ├── ce, bce/
+|   ├── kldiv/
+└── optimizer/
+    ├── gd, sgd/
+    ├── adagrad/
+    ├── rmsprop/
+    └── adam/
+```
 ## models:
 Every model is built using NumPy or PyTorch (or both)
 
-### Machine Learning:
-* Linear Regression (NumPy and PyTorch)
-* Logistic Regression (NumPy and PyTorch)
-* Perceptron Learning (NumPy and PyTorch)
-* K-Nearest Neighbors (PyTorch)
-* Naive Bayes (NumPy):
-  * Gaussian Naive Bayes
-  * Multinomial Naive Bayes
-  * Bernoulli Naive Bayes
-  * Categorical Naive Bayes
-* Softmax Regression (NumPy and PyTorch)
-* K-Means Clustering (PyTorch)
-* Decision Tree (NumPy):
-  * ID3, C4.5, C5.0/See5 Algorithm
-  * CART Algorithm
-  * CHAID Algorithm
-  * CITs Algorithm
-  * OC1 Algorithm
-  * QUEST, TAO Algorithm
-* Random Forest (NumPy)
-* Support Vector Machines (PyTorch): linear, rbf, polynomial, sigmoid kernel
-
-### CNN: (PyTorch)
-* LeNet
-* AlexNet
-* NiN
-* VGG
-* GoogLeNet, Xception, NASNet
-* ResNet34, ResNet152, ResNeXt, WideResNet
-* DenseNet
+```
+models/
+├── supervised/
+│   ├── classification/
+│   │   ├── decision_tree/
+│   │   │   ├── id3, c4.5, c5.0/see5 algorithm/
+│   │   │   ├── cart algorithm/
+│   │   │   ├── chaid algorithm/
+│   │   │   ├── cits algorithm/
+│   │   │   ├── oc1 algorithm/
+│   │   │   └── quest, tao algorithm/
+│   │   ├── k_nearest_neighbors/
+│   │   ├── logistic_regression/
+│   │   ├── naive_bayes/
+│   │   │   ├── gaussian_nb/
+│   │   │   ├── multinomial_nb/
+│   │   │   ├── bernoulli_nb/
+│   │   │   └── categorical_nb/
+│   │   ├── perceptron_learning/
+│   │   ├── softmax_regression/
+│   │   └── support_vector_machines/
+│   ├── regression/
+│   │   └── linear_regression/
+│   └── ensemble/
+│       └── bagging/
+│           └── random_forest/
+├── unsupervised/
+│   └── clustering/
+│       └── kmeans/
+└── deep_learning/
+    ├── cnn/
+    │   ├── lenet/
+    │   ├── alexnet/
+    │   ├── nin/
+    │   ├── vgg/
+    │   ├── googlenet, xception, nasnet/
+    │   ├── resnet34, resnet152, resnext, wideresnet/
+    │   └── densenet/
+    └── mlp/
+```

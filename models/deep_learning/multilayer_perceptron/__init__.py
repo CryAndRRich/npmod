@@ -15,7 +15,6 @@ class MultilayerPerceptron():
         """
         Initializes the MLP model by selecting the appropriate implementation type
 
-        --------------------------------------------------
         Parameters:
             batch_size: Size of a training mini-batch
             learn_rate: Learning rate for gradient descent optimization

@@ -22,7 +22,6 @@ class DecisionTree():
         """
         Initializes the DecisionTree class and selects the appropriate algorithm
 
-        --------------------------------------------------
         Parameters:
             algorithm: The type of decision tree algorithm to use
             Supported values are: 'ID3', 'C4.5', 'C5.0/See5', 'CART', 'CHAID', 'CITs', 'OC1', 'QUEST' and 'TAO'

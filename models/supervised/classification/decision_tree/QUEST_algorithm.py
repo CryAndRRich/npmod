@@ -6,18 +6,6 @@ class QUESTDecisionTree(Tree):
     def build_tree(self, 
                    features: np.ndarray, 
                    labels: np.ndarray) -> TreeNode:
-        """
-        Builds the QUEST decision tree using chi-square tests to determine the best split
-
-        --------------------------------------------------
-        Parameters:
-            features: Feature matrix
-            labels: Array of labels corresponding to the features
-
-        --------------------------------------------------
-        Returns:
-            TreeNode: The root node of the constructed decision tree
-        """
 
         best_p_value = 1.0
         best_criteria = None
@@ -54,5 +42,5 @@ class QUESTDecisionTree(Tree):
         # If no further split is possible, return a leaf node with the most common label
         return TreeNode(results=np.argmax(np.bincount(labels)))
 
-    def __str__(self):
+    def __str__(self) -> str:
         return "Decision Trees: QUEST Algorithm"

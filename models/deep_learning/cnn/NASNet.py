@@ -1,7 +1,7 @@
 import torch
 import torch.nn as nn
 import torch.optim as optim
-from ..CNN import Reshape, ConvNet
+from ..cnn import Reshape, ConvNet
 
 class SeparableConv2d(nn.Module):
     """
@@ -15,7 +15,7 @@ class SeparableConv2d(nn.Module):
                  out_channels: int, 
                  kernel_size: int, 
                  stride: int = 1, 
-                 padding: int = 0):
+                 padding: int = 0) -> None:
         """
         Parameters:
             in_channels: Number of input channels
@@ -43,11 +43,9 @@ class SeparableConv2d(nn.Module):
         """
         Forward pass for depthwise separable convolution
         
-        --------------------------------------------------
         Parameters:
             x: Input tensor
             
-        --------------------------------------------------
         Returns:
             torch.Tensor: Output tensor after applying separable convolution
         """
@@ -65,7 +63,7 @@ class NormalCell(nn.Module):
     """
     def __init__(self, 
                  in_channels: int, 
-                 out_channels: int):
+                 out_channels: int) -> None:
         """
         Parameters:
             in_channels: Number of input channels
@@ -95,11 +93,9 @@ class NormalCell(nn.Module):
         """
         Forward pass for the Normal Cell
         
-        --------------------------------------------------
         Parameters:
             x: Input tensor
             
-        --------------------------------------------------
         Returns:
             torch.Tensor: Output tensor after processing through the Normal Cell
         """
@@ -115,7 +111,7 @@ class ReductionCell(nn.Module):
     """
     def __init__(self, 
                  in_channels: int, 
-                 out_channels: int):
+                 out_channels: int) -> None:
         """
         Parameters:
             in_channels: Number of input channels
@@ -149,11 +145,9 @@ class ReductionCell(nn.Module):
         """
         Forward pass for the Reduction Cell
         
-        --------------------------------------------------
         Parameters:
             x: Input tensor
             
-        --------------------------------------------------
         Returns:
             torch.Tensor: Output tensor with reduced spatial dimensions
         """

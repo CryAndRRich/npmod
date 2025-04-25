@@ -11,7 +11,6 @@ class NaiveBayes():
         """
         Initializes the Naive Bayes model by selecting the appropriate distribution type
 
-        --------------------------------------------------
         Parameters:
             distribution: Type of Naive Bayes distribution ("gaussian", "multinomial", "bernoulli", "categorical")
             alpha: Smoothing parameter for models that require Laplace smoothing

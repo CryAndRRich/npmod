@@ -6,11 +6,10 @@ class CITsDecisionTree(Tree):
     def __init__(self, 
                  min_samples_split: int = 2, 
                  p_value_threshold: float = 0.05,
-                 num_permutations: int = 100):
+                 num_permutations: int = 100) -> None:
         """
         Initializes the CITs decision tree
 
-        --------------------------------------------------
         Parameters:
             min_samples_split: Minimum number of samples required to split a node
             p_value_threshold: Threshold for the p-value to determine significant splits
@@ -28,12 +27,10 @@ class CITsDecisionTree(Tree):
         Recursively builds the CITs decision tree with permutation tests and 
         Bonferroni correction for multiple testing
 
-        --------------------------------------------------
         Parameters:
             features: Feature matrix of the training data
             labels: Array of labels corresponding to the training data
 
-        --------------------------------------------------
         Returns:
             TreeNode: The root node of the constructed decision tree
         """
@@ -112,5 +109,5 @@ class CITsDecisionTree(Tree):
 
         return TreeNode(results=np.argmax(np.bincount(labels)))
 
-    def __str__(self):
+    def __str__(self) -> str:
         return "Decision Trees: CITs Algorithm"

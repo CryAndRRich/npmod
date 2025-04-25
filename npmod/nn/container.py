@@ -8,9 +8,8 @@ class Container:
     """
     def __init__(self, 
                  eval: bool = False,
-                 layers: List[Layer] = None):
+                 layers: List[Layer] = None) -> None:
         """
-        --------------------------------------------------
         Parameters:
             eval: Whether the Container is in eval mode
             layers: Layer to be included in the container
@@ -22,20 +21,12 @@ class Container:
         """
         Forward pass of Sequential
 
-        --------------------------------------------------
         Parameters:
             inputs: Inputs to the Layer
         """
         pass
 
     def __call__(self, inputs):
-        """
-        Calls the forward method
-
-        --------------------------------------------------
-        Parameters:
-            inputs: Inputs to the container
-        """
         return self.forward(inputs)
 
     def get_layers(self) -> List[Layer]:
@@ -48,7 +39,7 @@ class Sequential(Container):
     """
     def __init__(self, 
                  eval: bool = False,
-                 layers: List[Layer] = None):
+                 layers: List[Layer] = None) -> None:
         super().__init__(eval, layers)
     
     def forward(self, inputs):
@@ -57,7 +48,7 @@ class Sequential(Container):
             inputs = output
         return output
     
-    def backward(self, loss: Loss):
+    def backward(self, loss: Loss) -> None:
         grad = loss.backward()
         for layer in reversed(self.layers):
             grad = layer.backward(grad)

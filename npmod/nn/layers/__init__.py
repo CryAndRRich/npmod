@@ -4,7 +4,7 @@ class Layer:
     """
     Fundamental building block of the model
     """
-    def __init__(self):
+    def __init__(self) -> None:
         self.training = True
 
     def parameters(self):
@@ -40,7 +40,9 @@ class Linear(Layer):
     """
     Fully connected linear layer
     """
-    def __init__(self, in_features: int, out_features: int):
+    def __init__(self, 
+                 in_features: int, 
+                 out_features: int) ->None:
         """
         Parameters:
             in_features: Number of inputs to the Layer
@@ -106,7 +108,7 @@ class Dropout(Layer):
     """
     Dropout layer for regularization
     """
-    def __init__(self, prob: float):
+    def __init__(self, prob: float) ->None:
         """
         Parameters:
             prob: Probability with which to keep the inputs
@@ -130,7 +132,7 @@ class Flatten(Layer):
     """
     Flatten layer to reshape input tensors
     """
-    def __init__(self, keep_channels: bool = False):
+    def __init__(self, keep_channels: bool = False) ->None:
         """
         Parameters:
             keep_channels: If True, retains the channel dimension during flattening.\

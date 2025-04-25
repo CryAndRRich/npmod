@@ -11,7 +11,6 @@ class PerceptronLearning():
         """
         Initializes the Perceptron Learning by selecting the appropriate implementation type
 
-        --------------------------------------------------
         Parameters:
             learn_rate: Learning rate for gradient descent optimization
             number_of_epochs: Number of iterations (epochs) for training
@@ -38,5 +37,5 @@ class PerceptronLearning():
         predictions = self.inherit.predict(test_features, test_labels, get_accuracy)
         return predictions
     
-    def __str__(self):
+    def __str__(self) -> str:
         return self.inherit.__str__()

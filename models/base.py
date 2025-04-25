@@ -18,7 +18,6 @@ class Model():
         """
         Fits the model to the training data
 
-        --------------------------------------------------
         Parameters:
             features: The input features for training the model
             labels: The corresponding target labels for the training data
@@ -32,13 +31,11 @@ class Model():
         """
         Makes predictions on the test set and evaluates the model
 
-        --------------------------------------------------
         Parameters:
             test_features: The input features for testing
             test_labels: The true target labels corresponding to the test features
             get_accuracy: If True, calculates and prints the accuracy of predictions
 
-        --------------------------------------------------
         Returns:
             predictions: The prediction labels
         """
@@ -50,12 +47,10 @@ class Model():
         """
         Evaluates the performance of the model using accuracy and F1-score
 
-        --------------------------------------------------
         Parameters:
             predictions: The predicted labels by the model
             test_labels: The true labels for the test set
 
-        --------------------------------------------------
         Returns:
             accuracy, f1: The accuracy and F1-score of the model
         """
@@ -64,7 +59,7 @@ class Model():
 
         return (accuracy, f1)
     
-    def __str__(self):
+    def __str__(self) -> str:
         """
         Provides a string representation of the model
         """

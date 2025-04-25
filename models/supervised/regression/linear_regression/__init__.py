@@ -11,7 +11,6 @@ class LinearRegression():
         """
         Initializes the Linear Regression model by selecting the appropriate implementation type
 
-        --------------------------------------------------
         Parameters:
             learn_rate: Learning rate for gradient descent optimization
             number_of_epochs: Number of iterations (epochs) for training

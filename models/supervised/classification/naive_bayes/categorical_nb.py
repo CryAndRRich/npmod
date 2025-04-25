@@ -1,12 +1,11 @@
 import numpy as np
-from ..base import Model
+from ....base import Model
 
 class CategoricalNaiveBayes(Model):
-    def __init__(self, alpha: int = 1):
+    def __init__(self, alpha: int = 1) -> None:
         """
         Initializes the Categorical Naive Bayes model
 
-        --------------------------------------------------
         Parameters:
             alpha: Smoothing parameter for Laplace smoothing 
         """
@@ -18,7 +17,6 @@ class CategoricalNaiveBayes(Model):
         """
         Fits the model to the training data by calculating class priors and conditional probabilities
 
-        --------------------------------------------------
         Parameters:
             features: Input features for training
             labels: Corresponding target labels for the input features
@@ -59,12 +57,10 @@ class CategoricalNaiveBayes(Model):
         """
         Computes the log probability of the data given a class using the categorical distribution
 
-        --------------------------------------------------
         Parameters:
             data: Input feature values
             class_idx: The class index for which to calculate the log-probability
 
-        --------------------------------------------------
         Returns:
             log_prob: The log probability of the input data for the given class
         """
@@ -92,13 +88,11 @@ class CategoricalNaiveBayes(Model):
         """
         Makes predictions on the test set and evaluates the model
 
-        --------------------------------------------------
         Parameters:
             test_features: The input features for testing
             test_labels: The true target labels corresponding to the test features
             get_accuracy: If True, calculates and prints the accuracy of predictions
 
-        --------------------------------------------------
         Returns:
             predictions: The prediction labels
         """
@@ -123,7 +117,4 @@ class CategoricalNaiveBayes(Model):
         return predictions
 
     def __str__(self) -> str:
-        """
-        Returns a string representation of the Categorical Naive Bayes model
-        """
         return "Categorical Naive Bayes"

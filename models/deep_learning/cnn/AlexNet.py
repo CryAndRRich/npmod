@@ -1,6 +1,6 @@
 import torch.nn as nn
 import torch.optim as optim
-from ..CNN import Reshape, ConvNet
+from ..cnn import Reshape, ConvNet
     
 class AlexNet(ConvNet):
     def init_network(self):
@@ -47,5 +47,5 @@ class AlexNet(ConvNet):
         self.optimizer = optim.Adam(self.network.parameters(), lr=self.learn_rate)
         self.criterion = nn.CrossEntropyLoss()
     
-    def __str__(self):
+    def __str__(self) -> str:
         return "Convolutional Neural Networks: AlexNet"

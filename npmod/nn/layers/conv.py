@@ -1,7 +1,8 @@
 import numpy as np
 from ..layers import Layer
 
-def _padding(x: np.ndarray, padding: int = 0) -> np.ndarray:
+def _padding(x: np.ndarray, 
+             padding: int = 0) -> np.ndarray:
     if padding > 0:
         x = np.pad(x, pad_width=padding, mode='constant', constant_values=0)
     return x
@@ -13,7 +14,7 @@ class Conv2D(Layer):
     def __init__(self, 
                  kernel: np.ndarray, 
                  stride: int = 1, 
-                 padding: int = 0):
+                 padding: int = 0) -> None:
         """
         Parameters:
             kernel: The 2D kernel matrix used for convolution
@@ -115,7 +116,7 @@ class Conv3D(Layer):
     def __init__(self, 
                  kernel: np.ndarray, 
                  stride: int = 1, 
-                 padding: int = 0):
+                 padding: int = 0) -> None:
         """
         Parameters:
             kernel: The 3D kernel used for convolution
@@ -217,7 +218,7 @@ class MaxPool2D(Layer):
     def __init__(self, 
                  kernel_size: int, 
                  stride: int = None, 
-                 padding: int = 0):
+                 padding: int = 0) -> None:
         """
         Parameters:
             kernel_size: The size of the pooling window
@@ -305,7 +306,7 @@ class MaxPool3D(Layer):
     def __init__(self, 
                  kernel_size: int, 
                  stride: int = None, 
-                 padding: int = 0):
+                 padding: int = 0) -> None:
         """
         Parameters:
             kernel_size: The size of the pooling window

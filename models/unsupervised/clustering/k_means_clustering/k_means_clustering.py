@@ -1,6 +1,6 @@
 from typing import List, Tuple
 import torch
-from ..base import Model
+from ....base import Model
 
 torch.manual_seed(42)
 
@@ -12,14 +12,12 @@ def expectation_step(features: torch.Tensor,
     Computes the distance from each feature to each centroid and 
     assigns each feature to the closest centroid
 
-    --------------------------------------------------
     Parameters:
         features: The input data features
         centroids: The current centroids of the clusters
         dists: Preallocated tensor to store distances from each sample to each centroid
         number_of_clusters: The number of clusters
 
-    --------------------------------------------------
     Returns:
         dists_min: The minimum distance of each sample to the centroids
         labels: The label of the closest centroid for each sample
@@ -38,14 +36,12 @@ def maximization_step(features: torch.Tensor,
     """
     Updates the centroids by computing the mean of all samples assigned to each cluster
 
-    --------------------------------------------------
     Parameters:
         features: The input data features
         centroids: The current centroids of the clusters
         labels: The labels indicating the cluster assignment of each sample
         number_of_clusters: The number of clusters
 
-    --------------------------------------------------
     Returns:
         centroids: The updated centroids
     """
@@ -63,12 +59,10 @@ def arrange(centroids: torch.Tensor,
     """
     Arranges centroids and reassigns cluster labels for consistency
 
-    --------------------------------------------------
     Parameters:
         centroids: The centroids of the clusters
         predictions: The cluster labels for each sample
 
-    --------------------------------------------------
     Returns:
         labeled_centroids: List of centroids with their labels sorted
         predictions: The reassigned cluster labels
@@ -93,11 +87,10 @@ def arrange(centroids: torch.Tensor,
 class KMeansClustering(Model):
     def __init__(self, 
                  number_of_clusters: int = 1, 
-                 max_number_of_epochs: int = 20):
+                 max_number_of_epochs: int = 20) -> None:
         """
         K-Means Clustering model for unsupervised learning
 
-        --------------------------------------------------
         Parameters:
             number_of_clusters: The number of clusters to form
             max_number_of_epochs: The maximum number of iterations to run the algorithm
@@ -111,7 +104,6 @@ class KMeansClustering(Model):
         """
         Fits the K-Means model to the input data
 
-        --------------------------------------------------
         Parameters:
             features: Feature matrix of the training data
             labels: Array of labels corresponding to the training data
@@ -149,5 +141,5 @@ class KMeansClustering(Model):
         accuracy, f1 = self.evaluate(predictions, labels)
         print("Number of clusters: {} Accuracy: {:.5f} F1-score: {:.5f}".format(self.k, accuracy, f1))
     
-    def __str__(self):
+    def __str__(self) -> str:
         return "K Means Clustering"

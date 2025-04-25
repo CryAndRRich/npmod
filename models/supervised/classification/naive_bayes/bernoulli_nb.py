@@ -1,12 +1,11 @@
 import numpy as np
-from ..base import Model
+from ....base import Model
 
 class BernoulliNaiveBayes(Model):
-    def __init__(self, alpha: int = 1):
+    def __init__(self, alpha: int = 1) -> None:
         """
         Initializes the Bernoulli Naive Bayes model
 
-        --------------------------------------------------
         Parameters:
             alpha: Smoothing parameter for Laplace smoothing
         """
@@ -18,7 +17,6 @@ class BernoulliNaiveBayes(Model):
         """
         Fits the model to the training data by calculating class priors and likelihoods
 
-        --------------------------------------------------
         Parameters:
             features: Input features for training
             labels: Corresponding target labels for the input features
@@ -34,11 +32,9 @@ class BernoulliNaiveBayes(Model):
         """
         Computes the Bernoulli distribution for the feature set
 
-        --------------------------------------------------
         Parameters:
             data: Input feature data for calculating probabilities
 
-        --------------------------------------------------
         Returns:
             mu: Bernoulli probabilities for each feature
         """
@@ -55,13 +51,11 @@ class BernoulliNaiveBayes(Model):
         """
         Makes predictions on the test set and evaluates the model
 
-        --------------------------------------------------
         Parameters:
             test_features: The input features for testing
             test_labels: The true target labels corresponding to the test features
             get_accuracy: If True, calculates and prints the accuracy of predictions
 
-        --------------------------------------------------
         Returns:
             predictions: The prediction labels
         """
@@ -88,7 +82,4 @@ class BernoulliNaiveBayes(Model):
         return predictions
     
     def __str__(self) -> str:
-        """
-        Returns a string representation of the Bernoulli Naive Bayes model
-        """
         return "Bernoulli Naive Bayes"

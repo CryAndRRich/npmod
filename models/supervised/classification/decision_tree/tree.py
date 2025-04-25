@@ -1,5 +1,5 @@
 import numpy as np
-from ..base import Model
+from ....base import Model
 
 class TreeNode():
     def __init__(self, 
@@ -9,9 +9,8 @@ class TreeNode():
                  true_branch = None, 
                  false_branch = None, 
                  samples: int = None, 
-                 chi_square: float = None):
+                 chi_square: float = None) -> None:
         """
-        --------------------------------------------------
         Parameters:
             feature: Index of the feature used for splitting
             value: Threshold value of the feature to split on
@@ -36,7 +35,6 @@ class Tree(Model):
         """
         Builds the decision tree using the provided training data
 
-        --------------------------------------------------
         Parameters:
             features: Feature matrix of the training data
             labels: Array of labels corresponding to the training data
@@ -49,12 +47,10 @@ class Tree(Model):
         """
         Recursively builds the decision tree
 
-        --------------------------------------------------
         Parameters:
             features: Feature matrix
             labels: Array of labels corresponding to the features
 
-        --------------------------------------------------
         Returns:
             TreeNode: The root node of the constructed decision tree
         """
@@ -67,13 +63,11 @@ class Tree(Model):
         """
         Makes predictions on the test set and evaluates the model
 
-        --------------------------------------------------
         Parameters:
             test_features: The input features for testing
             test_labels: The true target labels corresponding to the test features
             get_accuracy: If True, calculates and prints the accuracy of predictions
 
-        --------------------------------------------------
         Returns:
             predictions: The prediction labels
         """
@@ -95,12 +89,10 @@ class Tree(Model):
         """
         Traverses the decision tree to make a prediction for a single sample
 
-        --------------------------------------------------
         Parameters:
             tree: The current node in the decision tree
             sample: Single feature vector to predict
 
-        --------------------------------------------------
         Returns:
             int: Predicted class label
         """
@@ -112,7 +104,7 @@ class Tree(Model):
                 branch = tree.true_branch
             return self.predict_node(branch, sample)
     
-    def __str__(self):
+    def __str__(self) -> str:
         """
         Returns the string representation of the decision tree
         """

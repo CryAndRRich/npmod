@@ -10,7 +10,6 @@ def split_data(features: np.ndarray,
     """
     Splits the dataset based on a specified feature and its value
 
-    --------------------------------------------------
     Parameters:
         features: Feature matrix of the data
         labels: Array of labels corresponding to the features
@@ -18,7 +17,6 @@ def split_data(features: np.ndarray,
         value: Threshold value for the feature to split on
         weights: Array of weights corresponding to each sample
 
-    --------------------------------------------------
     Returns:
         true_features, true_labels, false_features, false_labels: 
             Subsets of features and labels for the two branches
@@ -45,12 +43,10 @@ def entropy(labels: np.ndarray,
     """
     Computes the entropy of a label distribution
 
-    --------------------------------------------------
     Parameters:
         labels: Array of labels
         weights: Array of weights corresponding to each label
 
-    --------------------------------------------------
     Returns:
         float: Entropy of the label distribution
     """
@@ -70,7 +66,6 @@ def information_gain(true_labels: np.ndarray,
     """
     Calculates the information gain from a split
 
-    --------------------------------------------------
     Parameters:
         true_labels: Labels of the left branch
         false_labels: Labels of the right branch
@@ -79,7 +74,6 @@ def information_gain(true_labels: np.ndarray,
         false_weights: Weights of samples in the right branch
         get_ratio: Whether to return the gain ratio
 
-    --------------------------------------------------
     Returns:
         float: Information gain (or gain ratio if `get_ratio=True`)
     """
@@ -105,12 +99,10 @@ def gini_impurity(labels: np.ndarray,
     """
     Computes the Gini impurity of a label distribution
 
-    --------------------------------------------------
     Parameters:
         labels: Array of labels
         weights: Array of weights corresponding to each label
 
-    --------------------------------------------------
     Returns:
         float: Gini impurity of the label distribution
     """
@@ -129,7 +121,6 @@ def gini_index(true_labels: np.ndarray,
     """
     Calculates the Gini index for a split
 
-    --------------------------------------------------
     Parameters:
         true_labels: Labels of the left branch
         false_labels: Labels of the right branch
@@ -137,7 +128,6 @@ def gini_index(true_labels: np.ndarray,
         true_weights: Weights of samples in the left branch
         false_weights: Weights of samples in the right branch
 
-    --------------------------------------------------
     Returns:
         float: Reduction in Gini impurity from the split
     """
@@ -161,7 +151,6 @@ def chi_square(true_labels: np.ndarray,
     """
     Computes the chi-square statistic for a split
 
-    --------------------------------------------------
     Parameters:
         true_labels: Labels of the left branch
         false_labels: Labels of the right branch
@@ -169,7 +158,6 @@ def chi_square(true_labels: np.ndarray,
         true_weights: Weights of samples in the left branch
         false_weights: Weights of samples in the right branch
 
-    --------------------------------------------------
     Returns:
         chi_square_stat: Chi-square statistic
     """
@@ -189,16 +177,15 @@ def chi_square(true_labels: np.ndarray,
 
     return chi_square_stat
 
-def chi_square_p_value(chi_square_stat: float, df: int) -> float:
+def chi_square_p_value(chi_square_stat: float, 
+                       df: int) -> float:
     """
-    Calculates the p-value for a given chi-square statistic and degrees of freedom.
+    Calculates the p-value for a given chi-square statistic and degrees of freedom
 
-    --------------------------------------------------
     Parameters:
         chi_square_stat: Chi-square statistic
         df: Degrees of freedom
 
-    --------------------------------------------------
     Returns:
         float: p-value for the chi-square statistic
     """
