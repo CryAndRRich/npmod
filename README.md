@@ -62,10 +62,17 @@ models/
 │   │   ├── softmax_regression/
 │   │   └── support_vector_machines/
 │   ├── regression/
+|   |   ├── decision_tree/
 │   │   └── linear_regression/
 │   └── ensemble/
-│       └── bagging/
-│           └── random_forest/
+│       ├── bagging/
+│       |   └── random_forest/
+|       └── boosting/
+│           ├── gradient_boosting/
+│           ├── adaboost/
+│           ├── lightgbm/
+│           ├── xgboost/
+│           └── catboost/
 ├── unsupervised/
 │   └── clustering/
 │       └── kmeans/

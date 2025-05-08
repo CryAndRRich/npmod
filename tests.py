@@ -37,7 +37,7 @@ def test_npmod():
     criterion = nn.CE()
     optim = nn.SGD(net.get_layers(), learn_rate=0.001)
 
-    for epoch in range(training_epochs):
+    for _ in range(training_epochs):
         for features, labels in data_loader:
             # Reshape input image into [batch_size by 784]
             # Label is not one-hot encoded
@@ -48,7 +48,7 @@ def test_npmod():
             labels = np.expand_dims(labels, axis=1)
             
             predictions = net(features)
-            loss = criterion(predictions, labels)
+            # loss = criterion(predictions, labels)
             net.backward(criterion)
             optim.step()
 
