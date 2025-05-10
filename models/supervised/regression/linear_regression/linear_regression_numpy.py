@@ -3,7 +3,7 @@ import numpy as np
 from ....base import Model
 
 def cost_function(features: np.ndarray, 
-                  labels: np.ndarray, 
+                  targets: np.ndarray, 
                   weight: float, 
                   bias: float) -> float:
     """
@@ -11,7 +11,7 @@ def cost_function(features: np.ndarray,
 
     Parameters:
         features: The input feature values 
-        labels: The target labels corresponding to the input features 
+        targets: The target targets corresponding to the input features 
         weight: The current weight value of the model
         bias: The current bias value of the model
 
@@ -24,7 +24,7 @@ def cost_function(features: np.ndarray,
     # Compute the total squared error
     for i in range(m):
         x = features[i]
-        y = labels[i]
+        y = targets[i]
         total_cost += (y - (weight * x + bias)) ** 2
     
     # Average cost over all data points
@@ -32,7 +32,7 @@ def cost_function(features: np.ndarray,
     return avg_cost
 
 def gradient_descent(features: np.ndarray, 
-                     labels: np.ndarray, 
+                     targets: np.ndarray, 
                      weight: float, 
                      bias: float, 
                      learn_rate: float) -> Tuple[float, float]:
@@ -41,7 +41,7 @@ def gradient_descent(features: np.ndarray,
 
     Parameters:
         features: The input feature values 
-        labels: The target labels corresponding to the input features 
+        targets: The target targets corresponding to the input features 
         weight: The current weight value of the model
         bias: The current bias value of the model
         learn_rate: The learning rate for gradient descent
@@ -58,7 +58,7 @@ def gradient_descent(features: np.ndarray,
     # Calculate gradients for weight and bias
     for i in range(m):
         x = features[i]
-        y = labels[i]
+        y = targets[i]
 
         weight_gradient += -(2 / m) * x * (y - ((weight * x) + bias))
         bias_gradient += -(2 / m) * (y - ((weight * x) + bias))
@@ -85,13 +85,13 @@ class LinearRegressionNumpy(Model):
     
     def fit(self, 
             features: np.ndarray, 
-            labels: np.ndarray) -> None:
+            targets: np.ndarray) -> None:
         """
         Trains the linear regression model on the input data using gradient descent
 
         Parameters:
             features: The input features for training 
-            labels: The target labels corresponding to the input features 
+            targets: The target targets corresponding to the input features 
         """
         features = features.squeeze()
         self.weight = 0  # Initialize weight to 0
@@ -99,12 +99,31 @@ class LinearRegressionNumpy(Model):
 
         # Perform gradient descent over the specified number of epochs
         for _ in range(self.number_of_epochs):
-            self.cost = cost_function(features, labels, self.weight, self.bias)
-            self.weight, self.bias = gradient_descent(features, labels, self.weight, self.bias, self.learn_rate)
+            self.cost = cost_function(features, targets, self.weight, self.bias)
+            self.weight, self.bias = gradient_descent(features, targets, self.weight, self.bias, self.learn_rate)
+    
+    def predict(self, 
+                test_features: np.ndarray, 
+                test_targets: np.ndarray = None) -> np.ndarray:
+
+        """
+        Predict continuous target values for given samples
+
+        Parameters:
+            test_features: Test feature matrix
+            test_targets: Test target values (optional, for evaluation)
+
+        Returns:
+            np.ndarray: Predicted target values
+        """
         
-        # Print the final state of the model
-        print("Epoch: {}/{} Weight: {:.5f}, Bias: {:.5f} Cost: {:.5f}".format(
-               self.number_of_epochs, self.number_of_epochs, self.weight, self.bias, self.cost))
+        predictions = (self.weight * test_features) + self.bias
+
+        if test_targets is not None:
+            mse, r2 = self.regression_evaluate(predictions, test_targets)
+            print("MSE: {:.5f} R-squared: {:.5f}".format(mse, r2))
+
+        return predictions
     
     def __str__(self) -> str:
         return "Linear Regression (Numpy)"

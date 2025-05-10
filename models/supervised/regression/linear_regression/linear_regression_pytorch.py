@@ -45,22 +45,22 @@ class LinearRegressionPytorch(Model):
     
     def fit(self, 
             features: torch.Tensor, 
-            labels: torch.Tensor) -> None:
+            targets: torch.Tensor) -> None:
         """
         Trains the linear regression model on the input data
 
         Parameters:
             features: The input features for training
-            labels: The target labels corresponding to the input features
+            targets: The target targets corresponding to the input features
         """
-        labels = labels.unsqueeze(1).to(dtype=torch.float)
+        targets = targets.unsqueeze(1).to(dtype=torch.float)
         self.model = LinearRegressionModule()
         optimizer = optim.SGD(self.model.parameters(), lr=self.learn_rate)
 
         for _ in range(self.number_of_epochs):
             predictions = self.model(features)  # Forward pass
             
-            cost = func.mse_loss(predictions, labels)  # Compute mean squared error loss
+            cost = func.mse_loss(predictions, targets)  # Compute mean squared error loss
             
             optimizer.zero_grad()  # Reset gradients
             cost.backward()  # Backpropagation
@@ -68,12 +68,31 @@ class LinearRegressionPytorch(Model):
         
         # Extract the learned parameters (weight and bias)
         params = list(self.model.parameters())
-        weight = params[0].item()
-        bias = params[1].item()
+        self.weight = params[0].item()
+        self.bias = params[1].item()
     
-        # Print the final state of the model
-        print("Epoch: {}/{} Weight: {:.5f}, Bias: {:.5f} Cost: {:.5f}".format(
-               self.number_of_epochs, self.number_of_epochs, weight, bias, cost))
+    def predict(self, 
+                test_features: torch.Tensor, 
+                test_targets: torch.Tensor = None):
+
+        """
+        Predict continuous target values for given samples
+
+        Parameters:
+            test_features: Test feature matrix of shape 
+            test_targets: Test target values (optional, for evaluation)
+
+        Returns:
+            torch.Tensor: Predicted target values
+        """
+        
+        predictions = (self.weight * test_features) + self.bias
+
+        if test_targets is not None:
+            mse, r2 = self.regression_evaluate(predictions, test_targets)
+            print("MSE: {:.5f} R-squared: {:.5f}".format(mse, r2))
+
+        return predictions
     
     def __str__(self) -> str:
         return "Linear Regression (Pytorch)"
