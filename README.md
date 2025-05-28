@@ -45,7 +45,7 @@ models/
 ├── supervised/
 │   ├── classification/
 │   │   ├── decision_tree/
-│   │   │   ├── id3, c4.5, c5.0/see5 algorithm/
+│   │   │   ├── id3, c4.5, c5.0 algorithm/
 │   │   │   ├── cart algorithm/
 │   │   │   ├── chaid algorithm/
 │   │   │   ├── cits algorithm/
@@ -63,6 +63,14 @@ models/
 │   │   └── support_vector_machines/
 │   ├── regression/
 |   |   ├── decision_tree/
+│   │   ├── elastic_net/
+│   │   │   ├── lasso_regression/
+│   │   │   └── ridge_regression/
+│   │   ├── generalized_linear_model/
+│   │   ├── huber_regression/
+│   │   ├── stepwise_regression/
+│   │   ├── theilsen_regression/
+│   │   ├── bayes_linear_regression/
 │   │   └── linear_regression/
 │   └── ensemble/
 │       ├── bagging/
@@ -74,8 +82,25 @@ models/
 │           ├── xgboost/
 │           └── catboost/
 ├── unsupervised/
-│   └── clustering/
-│       └── kmeans/
+│   ├── clustering/
+|   |   ├── affinity_propagation/
+│   │   ├── agglomerative_clustering/
+│   │   ├── dbscan/
+│   │   ├── gaussian_mixture_model/
+│   │   ├── k_means_clustering/
+│   │   ├── optics/
+│   │   └── spectral_clustering/
+│   └── dimensionality_reduction/
+│       ├── isomap/
+│       ├── lda/
+│       ├── lle/
+│       ├── mds/
+│       ├── nmf/
+│       ├── pca/
+│       ├── spectral_embedding/
+│       ├── svd/
+│       ├── t_sne/
+|       └── umap/
 └── deep_learning/
     ├── cnn/
     │   ├── lenet/
@@ -85,5 +110,12 @@ models/
     │   ├── googlenet, xception, nasnet/
     │   ├── resnet34, resnet152, resnext, wideresnet/
     │   └── densenet/
+    ├── rnn/
+    │   ├── gru, mgu, sru/
+    │   ├── lstm/
+    │   ├── indrnn, scrn, ugrnn, yamrnn/
+    │   ├── janet/
+    │   ├── ran/
+    │   └── rhn/
     └── mlp/
 ```
