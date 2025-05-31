@@ -7,16 +7,18 @@ A simple **deep learning framework** built using **pure NumPy**
 ```
 npmod/nn/
 ├── layers/
-│   ├── __init__/
-│   │   ├── linear/
-│   │   ├── dropout/
-│   │   └── flatten/
+│   ├── linear/
+│   ├── dropout/
+│   ├── flatten/
+│   ├── linear/
 │   ├── batchnorm/
-│   └── conv/
-│       ├── conv2d/
-│       ├── conv3d/
-│       ├── maxpool2d/
-│       └── maxpool3d/
+│   ├── conv/
+│   │   ├── conv2d, conv3d/
+│   │   └── maxpool2d, maxpool3d/
+│   └── rnn/
+│       ├── rnn/
+│       ├── lstm/
+│       └── gru/
 ├── activations/
 │   ├── relu, leaky relu/
 │   ├── sigmoid/
