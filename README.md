@@ -119,5 +119,11 @@ models/
     │   ├── janet/
     │   ├── ran/
     │   └── rhn/
+    ├── gan/
+    │   ├── gan/
+    │   ├── dcgan, lapgan, srgan/
+    │   ├── wgan/
+    │   ├── cgan, pix2pix/
+    │   └── stylegan, spade/
     └── mlp/
 ```
