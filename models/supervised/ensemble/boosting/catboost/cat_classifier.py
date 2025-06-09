@@ -1,9 +1,8 @@
 from typing import List
 import numpy as np
-from .....base import Model
 from .cat_tree import CatTreeRegressor
 
-class CatBoostClassifier(Model):
+class CatBoostClassifier():
     """
     CatBoost binary classifier using gradient boosting
     """
@@ -165,25 +164,18 @@ class CatBoostClassifier(Model):
             raw_pred -= self.eta * tree.predict(features_enc)
         return self._sigmoid(raw_pred)
 
-    def predict(self, 
-                test_features: np.ndarray, 
-                test_targets: np.ndarray = None) -> np.ndarray:
+    def predict(self, test_features: np.ndarray) -> np.ndarray:
         """
         Predict binary class labels
 
         Parameters:
             test_features: Feature matrix
-            test_targets: True labels for evaluation
 
         Returns:
             np.ndarray: Predicted labels (0 or 1)
         """
         proba = self.predict_proba(test_features)
         predictions = (proba >= self.threshold).astype(int)
-
-        if test_targets is not None:
-            acc = np.mean(predictions == test_targets)
-            print(f"Accuracy: {acc:.5f}")
 
         return predictions
 

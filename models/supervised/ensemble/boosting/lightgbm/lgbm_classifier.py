@@ -1,8 +1,7 @@
 import numpy as np
 from .lgbm_tree import LightGBMTreeRegressor
-from .....base import Model
 
-class LightGBMClassifier(Model):
+class LightGBMClassifier():
     """
     LightGBM-style binary classifier implemented from scratch using leaf-wise tree growth.
     Utilizes LightGBMTreeRegressor as the base learner with logistic loss
@@ -93,25 +92,18 @@ class LightGBMClassifier(Model):
         probs_neg = 1 - probs_pos
         return np.vstack([probs_neg, probs_pos]).T
 
-    def predict(self,
-                test_features: np.ndarray,
-                test_targets: np.ndarray = None) -> np.ndarray:
+    def predict(self, test_features: np.ndarray) -> np.ndarray:
         """
         Predict binary class labels for input samples
 
         Parameters:
-            test_features: Feature matrix, shape (n_samples, n_features)
-            test_targets: True labels for evaluation
+            test_features: Feature matrix
 
         Returns:
             np.ndarray: Predicted class labels (0 or 1)
         """
         prob = self.predict_proba(test_features)[:, 1]
         predictions = (prob >= self.threshold).astype(int)
-
-        if test_targets is not None:
-            accuracy, f1 = self.classification_evaluate(predictions, test_targets)
-            print("Accuracy: {:.5f} F1-score: {:.5f}".format(accuracy, f1))
 
         return predictions
 

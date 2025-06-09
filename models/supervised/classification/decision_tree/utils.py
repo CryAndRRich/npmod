@@ -3,7 +3,7 @@ import math
 import numpy as np
 
 def split_data(features: np.ndarray, 
-               labels: np.ndarray, 
+               targets: np.ndarray, 
                feature: int, 
                value: float, 
                weights: np.ndarray = None) -> Tuple[np.ndarray, np.ndarray, np.ndarray, np.ndarray]:
@@ -12,14 +12,14 @@ def split_data(features: np.ndarray,
 
     Parameters:
         features: Feature matrix of the data
-        labels: Array of labels corresponding to the features
+        targets: Array of targets corresponding to the features
         feature: Index of the feature used for splitting
         value: Threshold value for the feature to split on
         weights: Array of weights corresponding to each sample
 
     Returns:
-        true_features, true_labels, false_features, false_labels: 
-            Subsets of features and labels for the two branches
+        true_features, true_targets, false_features, false_targets: 
+            Subsets of features and targets for the two branches
         If weights are provided, returns true_weights and false_weights as well
     """
     if isinstance(value, (int, float)):
@@ -29,36 +29,36 @@ def split_data(features: np.ndarray,
         true_indices = np.where(features[:, feature] == value)[0]
         false_indices = np.where(features[:, feature] != value)[0]
 
-    true_features, true_labels = features[true_indices], labels[true_indices]
-    false_features, false_labels = features[false_indices], labels[false_indices]
+    true_features, true_targets = features[true_indices], targets[true_indices]
+    false_features, false_targets = features[false_indices], targets[false_indices]
 
     if weights is None:
-        return true_features, true_labels, false_features, false_labels
+        return true_features, true_targets, false_features, false_targets
     
     true_weights, false_weights = weights[true_indices], weights[false_indices]
-    return true_features, true_labels, true_weights, false_features, false_labels, false_weights
+    return true_features, true_targets, true_weights, false_features, false_targets, false_weights
 
-def entropy(labels: np.ndarray, 
+def entropy(targets: np.ndarray, 
             weights: np.ndarray = None) -> float:
     """
-    Computes the entropy of a label distribution
+    Computes the entropy of a target distribution
 
     Parameters:
-        labels: Array of labels
-        weights: Array of weights corresponding to each label
+        targets: Array of targets
+        weights: Array of weights corresponding to each target
 
     Returns:
-        float: Entropy of the label distribution
+        float: Entropy of the target distribution
     """
     if weights is None:
-        weights = np.ones(len(labels))
-    weighted_counts = np.bincount(labels, weights=weights)
+        weights = np.ones(len(targets))
+    weighted_counts = np.bincount(targets, weights=weights)
     total_weight = np.sum(weights)
     probs = weighted_counts / total_weight
     return -np.sum([p * np.log2(p) for p in probs if p > 0])
 
-def information_gain(true_labels: np.ndarray, 
-                     false_labels: np.ndarray, 
+def information_gain(true_targets: np.ndarray, 
+                     false_targets: np.ndarray, 
                      current_entropy: float, 
                      true_weights: np.ndarray = None, 
                      false_weights: np.ndarray = None, 
@@ -67,8 +67,8 @@ def information_gain(true_labels: np.ndarray,
     Calculates the information gain from a split
 
     Parameters:
-        true_labels: Labels of the left branch
-        false_labels: Labels of the right branch
+        true_targets: targets of the left branch
+        false_targets: targets of the right branch
         current_entropy: Entropy before the split
         true_weights: Weights of samples in the left branch
         false_weights: Weights of samples in the right branch
@@ -77,15 +77,15 @@ def information_gain(true_labels: np.ndarray,
     Returns:
         float: Information gain (or gain ratio if `get_ratio=True`)
     """
-    true = len(true_labels) if true_weights is None else np.sum(true_weights)
-    false = len(false_labels) if false_weights is None else np.sum(false_weights)
+    true = len(true_targets) if true_weights is None else np.sum(true_weights)
+    false = len(false_targets) if false_weights is None else np.sum(false_weights)
 
     total_size = true + false
     true_ratio = true / total_size
     false_ratio = false / total_size
 
-    true_entropy = entropy(true_labels, true_weights)
-    false_entropy = entropy(false_labels, false_weights)
+    true_entropy = entropy(true_targets, true_weights)
+    false_entropy = entropy(false_targets, false_weights)
 
     information_gain = current_entropy - (true_ratio * true_entropy + false_ratio * false_entropy)
     if not get_ratio:
@@ -94,27 +94,27 @@ def information_gain(true_labels: np.ndarray,
     split_info = -(true_ratio * np.log2(true_ratio) + false_ratio * np.log2(false_ratio)) if true_ratio > 0 and false_ratio > 0 else 0
     return information_gain / split_info if split_info != 0 else 0
 
-def gini_impurity(labels: np.ndarray, 
+def gini_impurity(targets: np.ndarray, 
                   weights: np.ndarray = None) -> float:
     """
-    Computes the Gini impurity of a label distribution
+    Computes the Gini impurity of a target distribution
 
     Parameters:
-        labels: Array of labels
-        weights: Array of weights corresponding to each label
+        targets: Array of targets
+        weights: Array of weights corresponding to each target
 
     Returns:
-        float: Gini impurity of the label distribution
+        float: Gini impurity of the target distribution
     """
     if weights is None:
-        weights = np.ones(len(labels))
-    weighted_counts = np.bincount(labels, weights=weights)
+        weights = np.ones(len(targets))
+    weighted_counts = np.bincount(targets, weights=weights)
     total_weight = np.sum(weights)
     probs = weighted_counts / total_weight
     return -np.sum([p ** 2 for p in probs if p > 0])
 
-def gini_index(true_labels: np.ndarray, 
-               false_labels: np.ndarray, 
+def gini_index(true_targets: np.ndarray, 
+               false_targets: np.ndarray, 
                current_uncertainty: float, 
                true_weights: np.ndarray = None, 
                false_weights: np.ndarray = None) -> float:
@@ -122,8 +122,8 @@ def gini_index(true_labels: np.ndarray,
     Calculates the Gini index for a split
 
     Parameters:
-        true_labels: Labels of the left branch
-        false_labels: Labels of the right branch
+        true_targets: targets of the left branch
+        false_targets: targets of the right branch
         current_uncertainty:  Gini impurity before the split
         true_weights: Weights of samples in the left branch
         false_weights: Weights of samples in the right branch
@@ -131,39 +131,39 @@ def gini_index(true_labels: np.ndarray,
     Returns:
         float: Reduction in Gini impurity from the split
     """
-    true = len(true_labels) if true_weights is None else np.sum(true_weights)
-    false = len(false_labels) if false_weights is None else np.sum(false_weights)
+    true = len(true_targets) if true_weights is None else np.sum(true_weights)
+    false = len(false_targets) if false_weights is None else np.sum(false_weights)
 
     total_size = true + false
     true_ratio = true / total_size
     false_ratio = false / total_size
 
-    true_entropy = gini_impurity(true_labels, true_weights)
-    false_entropy = gini_impurity(false_labels, false_weights)
+    true_entropy = gini_impurity(true_targets, true_weights)
+    false_entropy = gini_impurity(false_targets, false_weights)
 
     return current_uncertainty - (true_ratio * true_entropy + false_ratio * false_entropy)
 
-def chi_square(true_labels: np.ndarray, 
-               false_labels: np.ndarray, 
-               total_labels: np.ndarray, 
+def chi_square(true_targets: np.ndarray, 
+               false_targets: np.ndarray, 
+               total_targets: np.ndarray, 
                true_weights: np.ndarray = None, 
                false_weights: np.ndarray = None) -> float:
     """
     Computes the chi-square statistic for a split
 
     Parameters:
-        true_labels: Labels of the left branch
-        false_labels: Labels of the right branch
-        total_labels: Total labels before the split
+        true_targets: targets of the left branch
+        false_targets: targets of the right branch
+        total_targets: Total targets before the split
         true_weights: Weights of samples in the left branch
         false_weights: Weights of samples in the right branch
 
     Returns:
         chi_square_stat: Chi-square statistic
     """
-    true = np.bincount(true_labels, weights=true_weights)
-    false = np.bincount(false_labels, weights=false_weights)
-    total = np.bincount(total_labels)
+    true = np.bincount(true_targets, weights=true_weights)
+    false = np.bincount(false_targets, weights=false_weights)
+    total = np.bincount(total_targets)
 
     chi_square_stat = 0
     for observed_true, observed_false, total_count in zip(true, false, total):

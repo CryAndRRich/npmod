@@ -6,7 +6,6 @@ def compute_mse(preds: np.ndarray, y: np.ndarray) -> float:
     """
     return np.mean((preds - y) ** 2)
 
-
 def compute_r2(preds: np.ndarray, y: np.ndarray) -> float:
     """
     Compute R-squared coefficient of determination
@@ -14,7 +13,6 @@ def compute_r2(preds: np.ndarray, y: np.ndarray) -> float:
     ss_res = np.sum((y - preds) ** 2)
     ss_tot = np.sum((y - np.mean(y)) ** 2)
     return 1 - ss_res / ss_tot
-
 
 def compute_aic(n: int, mse: float, k: int) -> float:
     """

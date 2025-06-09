@@ -12,7 +12,7 @@ from .TAO_algorithm import TAODecisionTree
 
 random.seed(42)
 
-class DecisionTree():
+class DecisionTreeClassifier():
     """
     A unified interface for decision tree algorithms. This class acts as a wrapper
     for different decision tree implementations, allowing users to specify the algorithm type
@@ -58,17 +58,14 @@ class DecisionTree():
     
     def fit(self, 
             features: np.ndarray, 
-            labels: np.ndarray) -> None:
+            targets: np.ndarray) -> None:
         
-        self.inherit.fit(features, labels)
+        self.inherit.fit(features, targets)
 
-    def predict(self, 
-                test_features: np.ndarray, 
-                test_labels: np.ndarray,
-                get_accuracy: bool = True) -> np.ndarray:
+    def predict(self, test_features: np.ndarray) -> np.ndarray:
         
-        predictions = self.inherit.predict(test_features, test_labels, get_accuracy)
+        predictions = self.inherit.predict(test_features)
         return predictions
     
     def __str__(self) -> str:
-        return self.inherit.__str__()
+        return "Decision Tree Classifier: " + self.inherit.__str__()

@@ -1,7 +1,6 @@
 import numpy as np
-from ....base import Model
 
-class TreeNode:
+class TreeNode():
     def __init__(self,
                  feature: int = None,
                  threshold: float = None,
@@ -29,7 +28,7 @@ class TreeNode:
         return self.value is not None
 
 
-class DecisionTreeRegressor(Model):
+class DecisionTreeRegressor():
     def __init__(self,
                  n_feats: int = None,
                  max_depth: int = 100,
@@ -55,7 +54,7 @@ class DecisionTreeRegressor(Model):
         Build the regression tree using the training data
 
         Parameters:
-            features: Training feature matrix of shape (n_samples, n_features)
+            features: Training feature matrix
             targets: Training target values (continuous) array of length n_samples
             sample_weights: Optional 1D array of length n_samples giving each sample's weight
         """
@@ -160,15 +159,12 @@ class DecisionTreeRegressor(Model):
                         left=left_subtree,
                         right=right_subtree)
 
-    def predict(self,
-                test_features: np.ndarray,
-                test_targets: np.ndarray = None) -> np.ndarray:
+    def predict(self, test_features: np.ndarray) -> np.ndarray:
         """
         Predict continuous target values for given samples.
 
         Parameters:
-            test_features: Test feature matrix of shape (n_samples, n_features)
-            test_targets: Test target values (optional, for evaluation)
+            test_features: Test feature matrix 
 
         Returns:
             np.ndarray: Predicted target values
@@ -177,10 +173,6 @@ class DecisionTreeRegressor(Model):
             self.traverse_tree(sample, self.root)
             for sample in test_features
         ])
-
-        if test_targets is not None:
-            mse, r2 = self.regression_evaluate(predictions, test_targets)
-            print("MSE: {:.5f} R-squared: {:.5f}".format(mse, r2))
 
         return predictions
 
@@ -206,5 +198,4 @@ class DecisionTreeRegressor(Model):
             return self.traverse_tree(sample, node.right)
 
     def __str__(self) -> str:
-        """String representation of the DecisionTreeRegressor"""
         return "Decision Tree Regressor"

@@ -1,7 +1,6 @@
 import numpy as np
-from ....base import Model
 
-class SpectralClustering(Model):
+class SpectralClustering():
     def __init__(self, 
                  number_of_clusters: int = 2, 
                  max_iterations: int = 100, 

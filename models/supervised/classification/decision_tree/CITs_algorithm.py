@@ -22,21 +22,21 @@ class CITsDecisionTree(Tree):
 
     def build_tree(self, 
                    features: np.ndarray, 
-                   labels: np.ndarray) -> TreeNode:
+                   targets: np.ndarray) -> TreeNode:
         """
         Recursively builds the CITs decision tree with permutation tests and 
         Bonferroni correction for multiple testing
 
         Parameters:
             features: Feature matrix of the training data
-            labels: Array of labels corresponding to the training data
+            targets: Array of targets corresponding to the training data
 
         Returns:
             TreeNode: The root node of the constructed decision tree
         """
         # Stop splitting if the number of samples is less than the minimum required
-        if len(labels) < self.min_samples_split:
-            return TreeNode(results=np.argmax(np.bincount(labels)))
+        if len(targets) < self.min_samples_split:
+            return TreeNode(results=np.argmax(np.bincount(targets)))
         
         candidate_p_values = []  # To store permutation p-values for each candidate split
         candidate_splits = []    # To store candidate splits (feature, value, split data)
@@ -48,31 +48,31 @@ class CITsDecisionTree(Tree):
             feature_values = set(features[:, feature])
             for value in feature_values:
                 # Split the data based on the current candidate split
-                true_features, true_labels, false_features, false_labels = split_data(features, labels, feature, value)
+                true_features, true_targets, false_features, false_targets = split_data(features, targets, feature, value)
                 
                 # Skip candidate splits that result in an empty branch
-                if len(true_labels) == 0 or len(false_labels) == 0:
+                if len(true_targets) == 0 or len(false_targets) == 0:
                     continue
 
                 # Compute the chi-square statistic for the candidate split
-                chi_square_value = chi_square(true_labels, false_labels, labels)
+                chi_square_value = chi_square(true_targets, false_targets, targets)
                 
                 # Perform a permutation test to obtain a robust p-value
-                # We build a null distribution by randomly permuting the labels
+                # We build a null distribution by randomly permuting the targets
                 permuted_count = 0
                 for _ in range(self.num_permutations):
-                    # Permute the labels.
-                    permuted_labels = np.random.permutation(labels)
-                    # Apply the same split to the permuted labels.
-                    _, true_labels_perm, _, false_labels_perm = \
-                        split_data(features, permuted_labels, feature, value)
+                    # Permute the targets.
+                    permuted_targets = np.random.permutation(targets)
+                    # Apply the same split to the permuted targets.
+                    _, true_targets_perm, _, false_targets_perm = \
+                        split_data(features, permuted_targets, feature, value)
                     
                     # Skip this permutation if one branch is empty
-                    if len(true_labels_perm) == 0 or len(false_labels_perm) == 0:
+                    if len(true_targets_perm) == 0 or len(false_targets_perm) == 0:
                         continue
                     
                     # Compute the chi-square statistic for the permuted split
-                    chi_square_perm = chi_square(true_labels_perm, false_labels_perm, permuted_labels)
+                    chi_square_perm = chi_square(true_targets_perm, false_targets_perm, permuted_targets)
                     if chi_square_perm >= chi_square_value:
                         permuted_count += 1
                 
@@ -82,11 +82,11 @@ class CITsDecisionTree(Tree):
 
                 # Store candidate p-value and split information
                 candidate_p_values.append(permutation_p_value)
-                candidate_splits.append((feature, value, (true_features, true_labels, false_features, false_labels)))
+                candidate_splits.append((feature, value, (true_features, true_targets, false_features, false_targets)))
 
         # If no candidate splits were found, return a leaf node
         if len(candidate_p_values) == 0:
-            return TreeNode(results=np.argmax(np.bincount(labels)))
+            return TreeNode(results=np.argmax(np.bincount(targets)))
         
         # Apply Bonferroni correction for multiple testing
         # Multiply each candidate p-value by the number of tests and clip at 1.0
@@ -107,7 +107,7 @@ class CITsDecisionTree(Tree):
                             true_branch=true_branch, 
                             false_branch=false_branch)
 
-        return TreeNode(results=np.argmax(np.bincount(labels)))
+        return TreeNode(results=np.argmax(np.bincount(targets)))
 
     def __str__(self) -> str:
-        return "Decision Trees: CITs Algorithm"
+        return "CITs Algorithm"

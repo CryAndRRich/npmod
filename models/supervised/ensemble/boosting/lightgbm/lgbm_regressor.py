@@ -1,8 +1,7 @@
 import numpy as np
 from .lgbm_tree import LightGBMTreeRegressor
-from .....base import Model
 
-class LightGBMRegressor(Model):
+class LightGBMRegressor():
     """
     LightGBM-style regressor implemented from scratch using leaf-wise tree growth.
     Utilizes LightGBMTreeRegressor as the base learner with squared error objective
@@ -66,18 +65,15 @@ class LightGBMRegressor(Model):
             predictions -= self.eta * update
             self.trees.append(tree)
 
-    def predict(self,
-                test_features: np.ndarray,
-                test_targets: np.ndarray = None) -> np.ndarray:
+    def predict(self, test_features: np.ndarray) -> np.ndarray:
         """
         Predict continuous target values for given samples
 
         Parameters:
-            test_features: Test feature matrix of shape (n_samples, n_features)
-            test_targets: True target values
+            test_features: Test feature matrix
 
         Returns:
-            np.ndarray: Predicted target values, shape (n_samples,)
+            np.ndarray: Predicted target values
         """
         # Start from the initial constant prediction
         predictions = np.full(shape=(test_features.shape[0],), fill_value=self.init_pred, dtype=float)
@@ -85,10 +81,6 @@ class LightGBMRegressor(Model):
         # Aggregate contributions from each tree
         for tree in self.trees:
             predictions -= self.eta * tree.predict(test_features)
-
-        if test_targets is not None:
-            mse, r2 = self.regression_evaluate(predictions, test_targets)
-            print(f"MSE: {mse:.5f} R-squared: {r2:.5f}")
 
         return predictions
 

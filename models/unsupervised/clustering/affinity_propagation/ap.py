@@ -1,8 +1,7 @@
-import numpy as np
 from typing import Optional
-from ....base import Model
+import numpy as np
 
-class AffinityPropagation(Model):
+class AffinityPropagation():
     def __init__(self,
                  max_iterations: int = 200,
                  preference: Optional[float] = None) -> None:

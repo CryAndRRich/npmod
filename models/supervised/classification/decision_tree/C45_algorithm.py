@@ -5,25 +5,25 @@ from .utils import entropy, information_gain, split_data
 class C45DecisionTree(Tree):
     def build_tree(self, 
                    features: np.ndarray, 
-                   labels: np.ndarray) -> TreeNode:
+                   targets: np.ndarray) -> TreeNode:
         best_gain_ratio = 0
         best_criteria = None
         best_sets = None
         _, n = features.shape
 
-        current_entropy = entropy(labels)
+        current_entropy = entropy(targets)
 
         # Iterate over each feature to find the best split
         for feature in range(n):
             feature_values = set(features[:, feature])
             for value in feature_values:
-                true_features, true_labels, false_features, false_labels = split_data(features, labels, feature, value)
-                gain_ratio_value = information_gain(true_labels, false_labels, current_entropy, get_ratio=True)
+                true_features, true_targets, false_features, false_targets = split_data(features, targets, feature, value)
+                gain_ratio_value = information_gain(true_targets, false_targets, current_entropy, get_ratio=True)
 
                 if gain_ratio_value > best_gain_ratio:
                     best_gain_ratio = gain_ratio_value
                     best_criteria = (feature, value)
-                    best_sets = (true_features, true_labels, false_features, false_labels)
+                    best_sets = (true_features, true_targets, false_features, false_targets)
 
         # If a valid split is found, create branches recursively
         if best_gain_ratio > 0:
@@ -35,7 +35,7 @@ class C45DecisionTree(Tree):
                             false_branch=false_branch)
 
         # If no further split is possible, return a leaf node with the most common label
-        return TreeNode(results=np.argmax(np.bincount(labels)))
+        return TreeNode(results=np.argmax(np.bincount(targets)))
 
     def __str__(self) -> str:
-        return "Decision Trees: C4.5 Algorithm"
+        return "C4.5 Algorithm"

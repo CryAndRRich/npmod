@@ -1,7 +1,6 @@
 import numpy as np
-from ....base import Model
 
-class BayesianLinearRegression(Model):
+class BayesianLinearRegression():
     def __init__(self,
                  sigma2: float = 1.0,
                  tau2: float = 1.0) -> None:
@@ -48,15 +47,12 @@ class BayesianLinearRegression(Model):
         # Posterior mean
         self.w_mean = (1.0 / self.sigma2) * self.w_cov @ X_design.T @ targets
 
-    def predict(self,
-                test_features: np.ndarray,
-                test_targets: np.ndarray = None) -> np.ndarray:
+    def predict(self, test_features: np.ndarray) -> np.ndarray:
         """
         Predict target values for test data, optionally returning predictive standard deviation
 
         Parameters:
             test_features: Test feature matrix 
-            test_targets: Test target values
 
         Returns:
             np.ndarray: Predicted means
@@ -69,10 +65,6 @@ class BayesianLinearRegression(Model):
 
         # Predictive mean
         predictions = X_design @ self.w_mean  
-
-        if test_targets is not None:
-            mse, r2 = self.regression_evaluate(predictions, test_targets)
-            print("MSE: {:.5f} R-squared: {:.5f}".format(mse, r2))
 
         return predictions
 

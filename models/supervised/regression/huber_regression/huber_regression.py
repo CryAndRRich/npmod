@@ -1,6 +1,5 @@
 from typing import Tuple
 import numpy as np
-from ....base import Model
 
 def huber_loss(r: float, delta: float) -> float:
     """
@@ -93,7 +92,7 @@ def gradient_descent(features: np.ndarray,
     bias   -= learn_rate * bias_grad
     return weight, bias
 
-class HuberRegression(Model):
+class HuberRegression():
     def __init__(self,
                  learn_rate: float,
                  number_of_epochs: int,
@@ -130,24 +129,17 @@ class HuberRegression(Model):
                 self.learn_rate, self.delta
             )
 
-    def predict(self,
-                test_features: np.ndarray,
-                test_targets: np.ndarray = None) -> np.ndarray:
+    def predict(self, test_features: np.ndarray) -> np.ndarray:
         """
         Predict using the trained Huber regression model
 
         Parameters:
             test_features: Test feature array
-            test_targets: Optional true targets for evaluation
 
         Returns:
             np.ndarray: Predicted target values
         """
         predictions = self.weight * test_features.squeeze() + self.bias
-        
-        if test_targets is not None:
-            mse, r2 = self.regression_evaluate(predictions, test_targets)
-            print("MSE: {:.5f} R-squared: {:.5f}".format(mse, r2))
 
         return predictions
 

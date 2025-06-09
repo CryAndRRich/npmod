@@ -1,8 +1,7 @@
 import numpy as np
-from .....base import Model
 from ....regression import DecisionTreeRegressor
 
-class AdaBoostClassifier(Model):
+class AdaBoostClassifier():
     def __init__(self,
                  learn_rate: float = 1.0,
                  number_of_epochs: int = 50,
@@ -78,15 +77,12 @@ class AdaBoostClassifier(Model):
             self.trees.append(tree)
             self.alphas.append(alpha)
 
-    def predict(self,
-                test_features: np.ndarray,
-                test_targets: np.ndarray = None) -> np.ndarray:
+    def predict(self, test_features: np.ndarray) -> np.ndarray:
         """
         Predict using the trained AdaBoost model.
 
         Parameters:
             test_features: Test feature matrix, shape (n_samples, n_features)
-            test_targets: True binary labels (optional, for evaluation)
 
         Returns:
             np.ndarray: Predicted binary labels (0 or 1)
@@ -101,10 +97,6 @@ class AdaBoostClassifier(Model):
         # Convert sign to (0, 1)
         pred_sign = np.sign(agg)
         predictions = np.where(pred_sign > 0, 1, 0)
-
-        if test_targets is not None:
-            accuracy, f1 = self.classification_evaluate(predictions, test_targets)
-            print("Accuracy: {:.5f} F1-score: {:.5f}".format(accuracy, f1))
 
         return predictions
 

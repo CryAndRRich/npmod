@@ -1,9 +1,8 @@
+from typing import List, Tuple, Optional
 import numpy as np
 import heapq
-from typing import List, Tuple, Optional
-from ....base import Model
 
-class OPTICS(Model):
+class OPTICS():
     def __init__(self,
                  eps: float = np.inf,
                  min_samples: int = 5) -> None:

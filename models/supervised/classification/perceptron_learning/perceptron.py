@@ -1,22 +1,21 @@
 from typing import List
 import numpy as np
-from ....base import Model
 
 np.random.seed(42)
 
 def cost_function(predictions: np.ndarray, 
-                  labels: np.ndarray) -> float:
+                  targets: np.ndarray) -> float:
     """
-    Computes the difference (error) between predictions and true labels
+    Computes the difference (error) between predictions and true targets
 
     Parameters:
-        predictions: Predicted labels from the perceptron model
-        labels: True target labels 
+        predictions: Predicted targets from the perceptron model
+        targets: True targets 
 
     Returns:
-        cost: The error between predictions and labels
+        cost: The error between predictions and targets
     """
-    cost = predictions - labels
+    cost = predictions - targets
     return cost
 
 def heaviside_step(x_train: np.ndarray, 
@@ -40,7 +39,7 @@ def heaviside_step(x_train: np.ndarray,
     except:
         return int(weighted_sum >= 0)
 
-class PerceptronLearningNumpy(Model):
+class PerceptronLearning():
     def __init__(self, 
                  learn_rate: float, 
                  number_of_epochs: int) -> None:
@@ -56,13 +55,13 @@ class PerceptronLearningNumpy(Model):
     
     def fit(self, 
             features: np.ndarray, 
-            labels: np.ndarray) -> None:
+            targets: np.ndarray) -> None:
         """
         Trains the Perceptron model using the training data
 
         Parameters:
             features: Input feature matrix for training
-            labels: True target labels corresponding to the input features
+            targets: True targets corresponding to the input features
         """
         _, n = features.shape
 
@@ -73,11 +72,11 @@ class PerceptronLearningNumpy(Model):
         # Perform training over the specified number of epochs
         for _ in range(self.number_of_epochs):
             cost = 0
-            for x, y in zip(features, labels):
+            for x, y in zip(features, targets):
                 # Apply the Heaviside step function to make a prediction
                 predictions = heaviside_step(x, self.weights, self.bias)
                 
-                # Compute the error (cost) based on the predictions and true labels
+                # Compute the error (cost) based on the predictions and true targets
                 error = cost_function(predictions, y)
                 cost += error
 
@@ -85,34 +84,20 @@ class PerceptronLearningNumpy(Model):
                 self.weights += self.learn_rate * error * x
                 self.bias += self.learn_rate * error
             
-    def predict(self, 
-                test_features: np.ndarray, 
-                test_labels: np.ndarray,
-                get_accuracy: bool = True) -> np.ndarray:
+    def predict(self, test_features: np.ndarray) -> np.ndarray:
         """
         Makes predictions on the test set and evaluates the model
 
         Parameters:
             test_features: The input features for testing
-            test_labels: The true target labels corresponding to the test features
-            get_accuracy: If True, calculates and prints the accuracy of predictions
 
         Returns:
-            predictions: The prediction labels
+            predictions: The prediction targets
         """
         # Make predictions by applying the Heaviside step function
         predictions = 1 - np.array(heaviside_step(test_features, self.weights, self.bias))
 
-        if get_accuracy:
-            # Evaluate the predictions using accuracy and F1 score
-            accuracy, f1 = self.evaluate(predictions, test_labels)
-            print("Epoch: {}/{} Accuracy: {:.5f} F1-score: {:.5f}".format(
-                self.number_of_epochs, self.number_of_epochs, accuracy, f1))
-        
         return predictions
     
     def __str__(self) -> str:
-        """
-        Returns a string representation of the Perceptron Learning model
-        """
-        return "Perceptron Learning Algorithm (Numpy)"
+        return "Perceptron Learning Algorithm"

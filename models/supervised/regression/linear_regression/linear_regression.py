@@ -1,6 +1,5 @@
 from typing import Tuple
 import numpy as np
-from ....base import Model
 
 def cost_function(features: np.ndarray, 
                   targets: np.ndarray, 
@@ -69,7 +68,7 @@ def gradient_descent(features: np.ndarray,
 
     return weight, bias
 
-class LinearRegressionNumpy(Model):
+class LinearRegression():
     def __init__(self, 
                  learn_rate: float, 
                  number_of_epochs: int) -> None:
@@ -102,28 +101,19 @@ class LinearRegressionNumpy(Model):
             self.cost = cost_function(features, targets, self.weight, self.bias)
             self.weight, self.bias = gradient_descent(features, targets, self.weight, self.bias, self.learn_rate)
     
-    def predict(self, 
-                test_features: np.ndarray, 
-                test_targets: np.ndarray = None) -> np.ndarray:
-
+    def predict(self, test_features: np.ndarray) -> np.ndarray:
         """
         Predict continuous target values for given samples
 
         Parameters:
             test_features: Test feature matrix
-            test_targets: Test target values (optional, for evaluation)
 
         Returns:
             np.ndarray: Predicted target values
         """
-        
         predictions = (self.weight * test_features) + self.bias
-
-        if test_targets is not None:
-            mse, r2 = self.regression_evaluate(predictions, test_targets)
-            print("MSE: {:.5f} R-squared: {:.5f}".format(mse, r2))
 
         return predictions
     
     def __str__(self) -> str:
-        return "Linear Regression (Numpy)"
+        return "Linear Regression"

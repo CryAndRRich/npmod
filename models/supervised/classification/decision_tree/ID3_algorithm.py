@@ -5,26 +5,26 @@ from .utils import entropy, information_gain, split_data
 class ID3DecisionTree(Tree):
     def build_tree(self, 
                    features: np.ndarray, 
-                   labels: np.ndarray) -> TreeNode:
+                   targets: np.ndarray) -> TreeNode:
 
         best_gain = 0
         best_criteria = None
         best_sets = None
         _, n = features.shape
 
-        current_entropy = entropy(labels)
+        current_entropy = entropy(targets)
 
         # Iterate over each feature to find the best split
         for feature in range(n):
             feature_values = set(features[:, feature])
             for value in feature_values:
-                true_features, true_labels, false_features, false_labels = split_data(features, labels, feature, value)
-                information_gain_value = information_gain(true_labels, false_labels, current_entropy)
+                true_features, true_targets, false_features, false_targets = split_data(features, targets, feature, value)
+                information_gain_value = information_gain(true_targets, false_targets, current_entropy)
 
                 if information_gain_value > best_gain:
                     best_gain = information_gain_value
                     best_criteria = (feature, value)
-                    best_sets = (true_features, true_labels, false_features, false_labels)
+                    best_sets = (true_features, true_targets, false_features, false_targets)
 
         # If a valid split is found, create branches recursively
         if best_gain > 0:
@@ -36,7 +36,7 @@ class ID3DecisionTree(Tree):
                             false_branch=false_branch)
 
         # If no further split is possible, return a leaf node
-        return TreeNode(results=labels[0])
+        return TreeNode(results=targets[0])
 
     def __str__(self) -> str:
-        return "Decision Trees: ID3 Algorithm"
+        return "ID3 Algorithm"

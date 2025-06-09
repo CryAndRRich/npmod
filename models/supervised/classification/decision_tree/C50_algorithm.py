@@ -20,17 +20,17 @@ class C50DecisionTree(Tree):
 
     def fit(self, 
             features: np.ndarray, 
-            labels: np.ndarray) -> None:
+            targets: np.ndarray) -> None:
         """
         Fits the C5.0 model to the training data using boosting
         """
-        n_samples = len(labels)
+        n_samples = len(targets)
         weights = np.ones(n_samples) / n_samples
         
         for _ in range(self.n_estimators):
-            tree = self.build_tree(features, labels, weights)
+            tree = self.build_tree(features, targets, weights)
             predictions = np.array([self.predict_node(tree, sample) for sample in features])
-            error = np.sum(weights * (predictions != labels)) / np.sum(weights)
+            error = np.sum(weights * (predictions != targets)) / np.sum(weights)
             
             if error >= 0.5:
                 continue
@@ -39,19 +39,19 @@ class C50DecisionTree(Tree):
             self.trees.append(tree)
             self.tree_weights.append(tree_weight)
             
-            weights *= np.exp(-tree_weight * labels * (2 * predictions - 1))
+            weights *= np.exp(-tree_weight * targets * (2 * predictions - 1))
             weights /= np.sum(weights)
 
     def build_tree(self, 
                    features: np.ndarray, 
-                   labels: np.ndarray, 
+                   targets: np.ndarray, 
                    weights: np.ndarray) -> TreeNode:
         """
         Builds a single decision tree using weighted data
 
         Parameters:
             features: Feature matrix of the training data
-            labels: Array of labels corresponding to the training data
+            targets: Array of targets corresponding to the training data
             weights: Weights for each sample in the training data
 
         Returns:
@@ -62,33 +62,30 @@ class C50DecisionTree(Tree):
         best_sets = None
         _, n = features.shape
 
-        current_entropy = entropy(labels, weights)
+        current_entropy = entropy(targets, weights)
 
         # Iterate over each feature to find the best split
         for feature in range(n):
             feature_values = set(features[:, feature])
             for value in feature_values:
-                true_features, true_labels, true_weights, false_features, false_labels, false_weights = split_data(features, labels, feature, value, weights)
-                gain_ratio_value = information_gain(true_labels, false_labels, current_entropy, true_weights, false_weights, get_ratio=True)
+                true_features, true_targets, true_weights, false_features, false_targets, false_weights = split_data(features, targets, feature, value, weights)
+                gain_ratio_value = information_gain(true_targets, false_targets, current_entropy, true_weights, false_weights, get_ratio=True)
 
                 if gain_ratio_value > best_gain_ratio:
                     best_gain_ratio = gain_ratio_value
                     best_criteria = (feature, value)
-                    best_sets = (true_features, true_labels, true_weights, false_features, false_labels, false_weights)
+                    best_sets = (true_features, true_targets, true_weights, false_features, false_targets, false_weights)
 
         # If a valid split is found, create branches recursively
         if best_gain_ratio > 0:
             true_branch = self.build_tree(best_sets[0], best_sets[1], best_sets[2])
             false_branch = self.build_tree(best_sets[3], best_sets[4], best_sets[5])
-            return TreeNode(feature=best_criteria[0], value=best_criteria[1], true_branch=true_branch, false_branch=false_branch, samples=len(labels))
+            return TreeNode(feature=best_criteria[0], value=best_criteria[1], true_branch=true_branch, false_branch=false_branch, samples=len(targets))
 
         # If no further split is possible, return a leaf node with the most common label
-        return TreeNode(results=np.argmax(np.bincount(labels, weights=weights)), samples=len(labels))
+        return TreeNode(results=np.argmax(np.bincount(targets, weights=weights)), samples=len(targets))
 
-    def predict(self, 
-                test_features: np.ndarray, 
-                test_labels: np.ndarray,
-                get_accuracy: bool = True) -> np.ndarray:
+    def predict(self, test_features: np.ndarray) -> np.ndarray:
         
         num_samples, _ = test_features.shape
 
@@ -98,11 +95,7 @@ class C50DecisionTree(Tree):
 
         final_predictions = np.sign(predictions)
 
-        if get_accuracy:
-            accuracy, f1 = self.evaluate(final_predictions, test_labels)
-            print("Accuracy: {:.5f} F1-score: {:.5f}".format(accuracy, f1))
-
         return final_predictions
     
     def __str__(self) -> str:
-        return "Decision Trees: C5.0/See5 Algorithm"
+        return "C5.0/See5 Algorithm"

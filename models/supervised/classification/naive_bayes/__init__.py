@@ -1,3 +1,4 @@
+from typing import Optional
 import numpy as np
 from .gaussian_nb import GaussianNaiveBayes
 from .multinomial_nb import MultinomialNaiveBayes
@@ -7,7 +8,7 @@ from .categorical_nb import CategoricalNaiveBayes
 class NaiveBayes():
     def __init__(self, 
                  distribution: str = "gaussian", 
-                 alpha: int = 1) -> None:
+                 alpha: Optional[int] = None) -> None:
         """
         Initializes the Naive Bayes model by selecting the appropriate distribution type
 
@@ -29,16 +30,13 @@ class NaiveBayes():
 
     def fit(self, 
             features: np.ndarray, 
-            labels: np.ndarray) -> None:
+            targets: np.ndarray) -> None:
         
-        self.inherit.fit(features, labels)
+        self.inherit.fit(features, targets)
 
-    def predict(self, 
-                test_features: np.ndarray, 
-                test_labels: np.ndarray,
-                get_accuracy: bool = True) -> np.ndarray:
+    def predict(self, test_features: np.ndarray) -> np.ndarray:
         
-        predictions = self.inherit.predict(test_features, test_labels, get_accuracy)
+        predictions = self.inherit.predict(test_features)
         return predictions
 
     def __str__(self) -> str:

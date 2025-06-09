@@ -1,8 +1,7 @@
 import numpy as np
 from .xgb_tree import XGTreeRegressor
-from .....base import Model
 
-class XGBClassifier(Model):
+class XGBClassifier():
     """
     XGBoost-style classifier implemented from scratch using second-order approximation.
     Utilizes XGTreeRegressor as the base learner with logistic loss for binary classification
@@ -101,25 +100,18 @@ class XGBClassifier(Model):
             raw_pred -= self.eta * tree.predict(features)
         return self._sigmoid(raw_pred)
 
-    def predict(self,
-                test_features: np.ndarray,
-                test_targets: np.ndarray = None) -> np.ndarray:
+    def predict(self, test_features: np.ndarray) -> np.ndarray:
         """
         Predict binary class labels for input samples
 
         Parameters:
-            test_features: Feature matrix, shape (n_samples, n_features)
-            test_targets: True labels for evaluation
+            test_features: Feature matrix
 
         Returns:
             np.ndarray: Predicted class labels (0 or 1)
         """
         prob = self.predict_proba(test_features)
         predictions = (prob >= self.threshold).astype(int)
-
-        if test_targets is not None:
-            accuracy, f1 = self.classification_evaluate(predictions, test_targets)
-            print("Accuracy: {:.5f} F1-score: {:.5f}".format(accuracy, f1))
 
         return predictions
 

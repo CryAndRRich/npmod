@@ -1,8 +1,7 @@
 import numpy as np
 from .xgb_tree import XGTreeRegressor
-from .....base import Model
 
-class XGBRegressor(Model):
+class XGBRegressor():
     """
     XGBoost-style regressor implemented from scratch using second-order approximation.
     Utilizes XGTreeRegressor as the base learner with squared error objective
@@ -63,15 +62,12 @@ class XGBRegressor(Model):
             predictions -= self.eta * update
             self.trees.append(tree)
 
-    def predict(self, 
-                test_features: np.ndarray,
-                test_targets: np.ndarray = None) -> np.ndarray:
+    def predict(self, test_features: np.ndarray) -> np.ndarray:
         """
         Predict continuous target values for given samples
 
         Parameters:
-            test_features: Test feature matrix of shape (n_samples, n_features)
-            test_targets: Test target values
+            test_features: Test feature matrix
 
         Returns:
             np.ndarray: Predicted target values
@@ -79,10 +75,6 @@ class XGBRegressor(Model):
         predictions = np.full(shape=(test_features.shape[0],), fill_value=self.init_pred, dtype=float)
         for tree in self.trees:
             predictions -= self.eta * tree.predict(test_features)
-
-        if test_targets is not None:
-            mse, r2 = self.regression_evaluate(predictions, test_targets)
-            print("MSE: {:.5f} R-squared: {:.5f}".format(mse, r2))
 
         return predictions
     

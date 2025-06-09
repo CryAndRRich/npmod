@@ -1,8 +1,7 @@
 import numpy as np
-from .....base import Model
 from ....regression import DecisionTreeRegressor
 
-class GradientBoostingClassifier(Model):
+class GradientBoostingClassifier():
     def __init__(self,
                  learn_rate: float = 0.01,
                  number_of_epochs: int = 100,
@@ -77,15 +76,12 @@ class GradientBoostingClassifier(Model):
             # Store the fitted tree
             self.trees.append(tree)
 
-    def predict(self,
-                test_features: np.ndarray,
-                test_targets: np.ndarray = None) -> np.ndarray:
+    def predict(self, test_features: np.ndarray) -> np.ndarray:
         """
         Predict using the trained gradient boosting model.
 
         Parameters:
-            test_features: Test feature matrix of shape (n_samples, n_features)
-            test_targets: Test target values
+            test_features: Test feature matrix
 
         Returns:
             np.ndarray: Predicted target values
@@ -103,10 +99,6 @@ class GradientBoostingClassifier(Model):
         # Convert raw scores to probabilities and then to binary labels
         prob = self._sigmoid(raw_pred)
         predictions = (prob >= 0.5).astype(int)
-
-        if test_targets is not None:
-            accuracy, f1 = self.classification_evaluate(predictions, test_targets)
-            print("Accuracy: {:.5f} F1-score: {:.5f}".format(accuracy, f1))
 
         return predictions
     

@@ -1,9 +1,8 @@
 from typing import List
 import numpy as np
-from .....base import Model
 from .cat_tree import CatTreeRegressor
 
-class CatBoostRegressor(Model):
+class CatBoostRegressor():
     """
     CatBoost gradient boosting regressor with native categorical support.
     Utilizes ordered target encoding and oblivious CatTreeRegressor for boosting
@@ -137,15 +136,12 @@ class CatBoostRegressor(Model):
             features_enc[:, col] = enc
         return features_enc.astype(float)
 
-    def predict(self,
-                test_features: np.ndarray,
-                test_targets: np.ndarray = None) -> np.ndarray:
+    def predict(self, test_features: np.ndarray) -> np.ndarray:
         """
         Predict continuous outputs for input data
 
         Parameters:
             test_features: Feature matrix
-            test_targets: True values for evaluation
 
         Returns:
             np.ndarray: Predicted values
@@ -155,10 +151,6 @@ class CatBoostRegressor(Model):
         for tree in self.trees:
             predictions -= self.eta * tree.predict(features_enc)
 
-        if test_targets is not None:
-            mse, r2 = self.regression_evaluate(predictions, test_targets)
-            print(f"MSE: {mse:.5f} R-squared: {r2:.5f}")
-            
         return predictions
 
     def __str__(self) -> str:

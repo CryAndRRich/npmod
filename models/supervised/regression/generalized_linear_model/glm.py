@@ -1,7 +1,6 @@
 import numpy as np
-from ....base import Model
 
-class GLMRegression(Model):
+class GLMRegression():
     def __init__(self,
                  distribution: str,
                  max_iter: int = 100,
@@ -129,9 +128,7 @@ class GLMRegression(Model):
 
         self._coef = beta
 
-    def predict(self, 
-                test_features: np.ndarray, 
-                test_targets: np.ndarray = None) -> np.ndarray:
+    def predict(self, test_features: np.ndarray) -> np.ndarray:
         """
         Predict the mean response for new data using the fitted GLM
 
@@ -148,10 +145,6 @@ class GLMRegression(Model):
         X_design = np.hstack([X, np.ones((X.shape[0], 1))])
         eta = X_design @ self._coef
         mu = self._inv_link(eta)
-
-        if test_targets is not None:
-            mse, r2 = self.regression_evaluate(mu, test_targets)
-            print("MSE: {:.5f} R-squared: {:.5f}".format(mse, r2))
 
         return mu
 

@@ -1,7 +1,6 @@
 import numpy as np
-from ....base import Model
 
-class TheilSenRegression(Model):
+class TheilSenRegression():
     def __init__(self) -> None:
         """
         Initializes the Theil-Sen Regression model.
@@ -33,24 +32,17 @@ class TheilSenRegression(Model):
         self.slope = np.median(slopes)
         self.intercept = np.median(y - self.slope * x)
 
-    def predict(self, 
-                test_features: np.ndarray, 
-                test_targets: np.ndarray = None) -> np.ndarray:
+    def predict(self, test_features: np.ndarray) -> np.ndarray:
         """
         Predicts target values using the trained Theil-Sen regression model
 
         Parameters:
             test_features: Test feature matrix
-            test_targets: Test target values (optional, for evaluation)
 
         Returns:
             np.ndarray: Predicted target values
         """
         predictions = self.slope * test_features + self.intercept
-
-        if test_targets is not None:
-            mse, r2 = self.regression_evaluate(predictions, test_targets)
-            print("MSE: {:.5f} R-squared: {:.5f}".format(mse, r2))
 
         return predictions
 

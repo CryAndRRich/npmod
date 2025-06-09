@@ -2,7 +2,7 @@ from typing import Tuple
 import torch
 import torch.nn as nn
 import torch.optim as optim
-from ..cnn import Reshape, ConvNet
+from . import Reshape, ConvNet
 
 class WRNBlock(nn.Module):
     """
@@ -60,7 +60,7 @@ class WRNBlock(nn.Module):
                           kernel_size=1, 
                           stride=stride, 
                           bias=False),
-                nn.BatchNorm2d(out_channels)
+                nn.BatchNorm2d(num_features=out_channels)
             )
 
     def forward(self, x: torch.Tensor) -> torch.Tensor:
@@ -112,7 +112,7 @@ class WideResNet(ConvNet):
                       stride=1, 
                       padding=1, 
                       bias=False),
-            nn.BatchNorm2d(16),
+            nn.BatchNorm2d(num_features=16),
             nn.ReLU(inplace=True)
         )
         

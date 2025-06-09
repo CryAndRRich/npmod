@@ -133,7 +133,7 @@ class DenseNet(ConvNet):
             
             nn.BatchNorm2d(num_features=num_channels),
             nn.ReLU(),
-            nn.AdaptiveMaxPool2d(output_size=(1,1)),
+            nn.AdaptiveMaxPool2d(output_size=(1, 1)),
             nn.Flatten(),
             nn.Linear(in_features=num_channels, out_features=10)
         )

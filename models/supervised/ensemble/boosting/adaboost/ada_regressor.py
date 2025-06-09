@@ -1,8 +1,7 @@
 import numpy as np
-from .....base import Model
 from ....regression import DecisionTreeRegressor
 
-class AdaBoostRegressor(Model):
+class AdaBoostRegressor():
     def __init__(self,
                  learn_rate: float = 1.0,
                  number_of_epochs: int = 50,
@@ -79,15 +78,12 @@ class AdaBoostRegressor(Model):
             self.trees.append(tree)
             self.alphas.append(alpha_m)
 
-    def predict(self,
-                test_features: np.ndarray,
-                test_targets: np.ndarray = None) -> np.ndarray:
+    def predict(self, test_features: np.ndarray) -> np.ndarray:
         """
         Predict continuous target values using the trained AdaBoost model.
 
         Parameters:
             test_features: Test feature matrix, shape (n_samples, n_features)
-            test_targets: True target values (optional, for evaluation)
 
         Returns:
             np.ndarray: Predicted continuous values, shape (n_samples,)
@@ -102,10 +98,6 @@ class AdaBoostRegressor(Model):
         # Final prediction is the weighted average
         total_alpha = np.sum(self.alphas)
         predictions = agg / total_alpha
-
-        if test_targets is not None:
-            mse, r2 = self.regression_evaluate(predictions, test_targets)
-            print("MSE: {:.5f} R-squared: {:.5f}".format(mse, r2))
 
         return predictions
 

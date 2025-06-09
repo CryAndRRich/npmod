@@ -1,8 +1,7 @@
 import numpy as np
-from .....base import Model
 from ....regression import DecisionTreeRegressor
 
-class GradientBoostingRegressor(Model):
+class GradientBoostingRegressor():
     def __init__(self,
                  learn_rate: float = 0.01,
                  number_of_epochs: int = 100,
@@ -61,15 +60,12 @@ class GradientBoostingRegressor(Model):
             # Store tree
             self.trees.append(tree)
 
-    def predict(self,
-                test_features: np.ndarray,
-                test_targets: np.ndarray = None) -> np.ndarray:
+    def predict(self, test_features: np.ndarray) -> np.ndarray:
         """
         Predict using the trained gradient boosting model.
 
         Parameters:
-            test_features: Test feature matrix of shape (n_samples, n_features)
-            test_targets: Test target values
+            test_features: Test feature matrix
 
         Returns:
             np.ndarray: Predicted target values
@@ -82,10 +78,6 @@ class GradientBoostingRegressor(Model):
         # Add contributions from each tree
         for tree in self.trees:
             predictions += self.learn_rate * tree.predict(test_features, np.zeros_like(predictions), get_accuracy=False)
-
-        if test_targets is not None:
-            mse, r2 = self.regression_evaluate(predictions, test_targets)
-            print("MSE: {:.5f} R-squared: {:.5f}".format(mse, r2))
 
         return predictions
     

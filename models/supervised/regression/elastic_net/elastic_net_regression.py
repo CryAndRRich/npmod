@@ -1,6 +1,5 @@
 from typing import Tuple
 import numpy as np
-from ....base import Model
 
 def cost_function(features: np.ndarray,
                   targets: np.ndarray,
@@ -80,7 +79,7 @@ def gradient_descent(features: np.ndarray,
 
     return weight, bias
 
-class ElasticNetRegression(Model):
+class ElasticNetRegression():
     def __init__(self,
                  learn_rate: float,
                  number_of_epochs: int,
@@ -123,28 +122,20 @@ class ElasticNetRegression(Model):
                 self.learn_rate, self.reg_rate
             )
 
-    def predict(self, 
-                test_features: np.ndarray, 
-                test_targets: np.ndarray = None):
+    def predict(self, test_features: np.ndarray):
 
         """
         Predict continuous target values for given samples
 
         Parameters:
-            test_features: Test feature matrix of shape 
-            test_targets: Test target values (optional, for evaluation)
+            test_features: Test feature matrix 
 
         Returns:
             np.ndarray: Predicted target values
         """
-        
         predictions = (self.weight * test_features) + self.bias
-
-        if test_targets is not None:
-            mse, r2 = self.regression_evaluate(predictions, test_targets)
-            print("MSE: {:.5f} R-squared: {:.5f}".format(mse, r2))
 
         return predictions
 
     def __str__(self) -> str:
-        return f"ElasticNet Regression"
+        return "ElasticNet Regression"

@@ -1,7 +1,6 @@
 import numpy as np
-from ....base import Model
 
-class MultinomialNaiveBayes(Model):
+class MultinomialNaiveBayes():
     def __init__(self, alpha: int = 1) -> None:
         """
         Initializes the Multinomial Naive Bayes model.
@@ -13,20 +12,20 @@ class MultinomialNaiveBayes(Model):
 
     def fit(self, 
             features: np.ndarray, 
-            labels: np.ndarray) -> None:
+            targets: np.ndarray) -> None:
         """
         Fits the Multinomial Naive Bayes model by calculating feature counts and total counts for each class.
 
         Parameters:
             features: Input features for training
-            labels: Corresponding target labels for the input features
+            targets: Corresponding targets for the input features
         """
         self.features = features
-        self.labels = labels
-        self.unique_labels = np.unique(labels)
+        self.targets = targets
+        self.unique_targets = np.unique(targets)
 
         _, self.num_features = self.features.shape
-        self.num_classes = self.unique_labels.shape[0]
+        self.num_classes = self.unique_targets.shape[0]
 
         # N_yi stores the sum of feature counts for each feature in each class
         self.N_yi = np.zeros((self.num_classes, self.num_features))
@@ -34,14 +33,14 @@ class MultinomialNaiveBayes(Model):
         self.N_y = np.zeros((self.num_classes))
 
         # Calculate feature counts for each class
-        for label in self.unique_labels:
-            indices = np.argwhere(self.labels == label).flatten()  # Indices of samples for the current class
+        for target in self.unique_targets:
+            indices = np.argwhere(self.targets == target).flatten()  # Indices of samples for the current class
             columnwise_sum = []
             for j in range(self.num_features):
                 columnwise_sum.append(np.sum(self.features[indices, j]))  # Sum the feature counts for the class
                 
-            self.N_yi[label] = columnwise_sum  # Store the feature counts
-            self.N_y[label] = np.sum(columnwise_sum)  # Store the total count of features for the class
+            self.N_yi[target] = columnwise_sum  # Store the feature counts
+            self.N_y[target] = np.sum(columnwise_sum)  # Store the total count of features for the class
 
     def multinomial_distribution(self, 
                                  data: np.ndarray, 
@@ -70,20 +69,15 @@ class MultinomialNaiveBayes(Model):
         prob = np.prod(temp)
         return prob  # Return the product of the probabilities
 
-    def predict(self, 
-                test_features: np.ndarray, 
-                test_labels: np.ndarray,
-                get_accuracy: bool = True) -> np.ndarray:
+    def predict(self, test_features: np.ndarray) -> np.ndarray:
         """
         Makes predictions on the test set and evaluates the model
 
         Parameters:
             test_features: The input features for testing
-            test_labels: The true target labels corresponding to the test features
-            get_accuracy: If True, calculates and prints the accuracy of predictions
 
         Returns:
-            predictions: The prediction labels
+            predictions: The prediction targets
         """
         num_samples, _ = test_features.shape
 
@@ -93,9 +87,9 @@ class MultinomialNaiveBayes(Model):
             joint_likelihood = []
 
             # Calculate joint likelihood for each class
-            for label_idx, label in enumerate(self.unique_labels):
-                prior = np.log((self.labels == label).mean())  # Calculate prior log-probability of the class
-                likelihood = np.log(self.multinomial_distribution(feature, label_idx))  # Calculate log-likelihood
+            for target_idx, target in enumerate(self.unique_targets):
+                prior = np.log((self.targets == target).mean())  # Calculate prior log-probability of the class
+                likelihood = np.log(self.multinomial_distribution(feature, target_idx))  # Calculate log-likelihood
                 
                 joint_likelihood.append(prior + likelihood)  # Add prior and likelihood to get joint likelihood
 
@@ -104,12 +98,7 @@ class MultinomialNaiveBayes(Model):
                 posteriors.append(likelihood - denominator)  # Normalize the posterior probability
 
             # Choose the class with the highest posterior probability
-            predictions[ind] = self.unique_labels[np.argmax(posteriors)]
-
-        if get_accuracy:
-            # Evaluate accuracy and F1-score
-            accuracy, f1 = self.evaluate(predictions, test_labels)
-            print("Alpha: {} Accuracy: {:.5f} F1-score: {:.5f}".format(self.alpha, accuracy, f1))
+            predictions[ind] = self.unique_targets[np.argmax(posteriors)]
 
         return predictions
 

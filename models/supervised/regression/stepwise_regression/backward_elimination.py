@@ -1,9 +1,8 @@
 import numpy as np
-from ....base import Model
-from ..linear_regression import LinearRegressionNumpy
+from ..linear_regression import LinearRegression
 from .utils import *
 
-class StepwiseBackward(Model):
+class StepwiseBackward():
     def __init__(self,
                  learn_rate: float,
                  number_of_epochs: int,
@@ -28,7 +27,7 @@ class StepwiseBackward(Model):
         self.selected_feature = []
 
     def _evaluate(self, 
-                  model: LinearRegressionNumpy, 
+                  model: LinearRegression, 
                   X: np.ndarray, 
                   y: np.ndarray) -> float:
         """
@@ -66,7 +65,7 @@ class StepwiseBackward(Model):
         self.selected_features = list(range(n_features))
 
         # Compute initial full model score
-        model_full = LinearRegressionNumpy(self.learn_rate, self.number_of_epochs)
+        model_full = LinearRegression(self.learn_rate, self.number_of_epochs)
         model_full.fit(features, targets)
         best_score = self._evaluate(model_full, features, targets)
 
@@ -77,7 +76,7 @@ class StepwiseBackward(Model):
             for feat in self.selected_features:
                 cols = [f for f in self.selected_features if f != feat]
                 X_sub = features[:, cols]
-                model = LinearRegressionNumpy(self.learn_rate, self.number_of_epochs)
+                model = LinearRegression(self.learn_rate, self.number_of_epochs)
                 model.fit(X_sub, targets)
                 score = self._evaluate(model, X_sub, targets)
                 if self.verbose:
@@ -95,25 +94,22 @@ class StepwiseBackward(Model):
                 print(f"Removed feature {worst_candidate}, new {self.criterion} = {best_score:.5f}")
 
         # Train final model on retained features
-        self.model = LinearRegressionNumpy(self.learn_rate, self.number_of_epochs)
+        self.model = LinearRegression(self.learn_rate, self.number_of_epochs)
         X_final = features[:, self.selected_features]
         self.model.fit(X_final, targets)
 
-    def predict(self,
-                test_features: np.ndarray,
-                test_targets: np.ndarray = None) -> np.ndarray:
+    def predict(self, test_features: np.ndarray) -> np.ndarray:
         """
         Predict and optionally evaluate on test data
 
         Parameters:
             test_features: Test feature matrix 
-            test_targets: True targets for evaluation
 
         Returns:
             np.ndarray: Predicted target values.
         """
         X_sub = test_features[:, self.selected_features]
-        return self.model.predict(X_sub, test_targets)
+        return self.model.predict(X_sub)
 
     def __str__(self) -> str:
-        return f"Stepwise Regression: Backward Elimination"
+        return "Stepwise Regression: Backward Elimination"

@@ -1,6 +1,5 @@
 from typing import List
 import numpy as np
-from ...base import Model
 
 np.random.seed(42)
 
@@ -21,10 +20,10 @@ def sigmoid_backward(x: np.ndarray) -> np.ndarray:
     Calculate derivative of sigmoid activation based on sigmoid output
 
     Parameters
-        x: Output values processed by a sigmoid function.
+        x: Output values processed by a sigmoid function
     
     Returns
-        np.ndarray: Derivative of sigmoid, based on value of sigmoid.
+        np.ndarray: Derivative of sigmoid, based on value of sigmoid
     """
     return x * (1 - x)
 
@@ -42,21 +41,21 @@ def softmax_function(z: np.ndarray) -> np.ndarray:
     return exp_z / np.sum(exp_z, axis=1, keepdims=True)
 
 def cost_function(predictions: np.ndarray,
-                  labels: np.ndarray) -> float:
+                  targets: np.ndarray) -> float:
     """
-    Computes the loss between predictions and true labels
+    Computes the loss between predictions and true targets
 
     Parameters:
-        predictions: Predicted labels
-        labels: True target labels 
+        predictions: Predicted targets
+        targets: True targets 
 
     Returns:
-        float: The loss between predictions and labels
+        float: The loss between predictions and targets
     """
-    return ((-np.log(predictions)) * labels).sum(axis=1).mean()
+    return ((-np.log(predictions)) * targets).sum(axis=1).mean()
 
 
-class MLPNumpy(Model):
+class MLP():
     def __init__(self,
                  batch_size: int,
                  learn_rate: float, 
@@ -97,13 +96,13 @@ class MLPNumpy(Model):
 
     def _categorical(self, probs: np.ndarray) -> np.ndarray:  
         """Transform probabilities into categorical predictions row-wise, by simply taking the max probability"""
-        categorical = np.zeros((probs.shape[0], self.labels.shape[1]))
+        categorical = np.zeros((probs.shape[0], self.targets.shape[1]))
         categorical[np.arange(probs.shape[0]), probs.argmax(axis=1)] = 1
         return categorical
     
     def forward(self, batch: np.ndarray) -> None:
         """
-        Perform a forward pass of 'batch' samples (n_samples x n_features)
+        Perform a forward pass of 'batch' samples (n_samples, n_features)
         
         Parameters:
             batch : Matrix of inputs
@@ -122,7 +121,7 @@ class MLPNumpy(Model):
         Calculate derivative of sigmoid activation based on sigmoid output
         
         Parameters:
-            batch : True labels for the samples in the batch
+            batch : True targets for the samples in the batch
         """
         # Update the weights of the network through back-propagation
         delta_t = (self.output - batch) * sigmoid_backward(self.hidden_layers[-1])
@@ -132,20 +131,20 @@ class MLPNumpy(Model):
     
     def fit(self, 
             features: np.ndarray, 
-            labels: np.ndarray) -> None:
+            targets: np.ndarray) -> None:
         """
         Trains the MLP model using the training data
 
         Parameters:
             features: Input feature matrix for training
-            labels: True target labels corresponding to the input features
+            targets: True targets corresponding to the input features
         """
         features = features.astype(np.float32)
         self.features = np.concatenate((features, np.ones((features.shape[0], 1), dtype=np.float32)), axis=1)
-        self.labels = np.squeeze(np.eye(10)[labels.astype(np.int32).reshape(-1)])
+        self.targets = np.squeeze(np.eye(10)[targets.astype(np.int32).reshape(-1)])
 
         self.n_samples = self.features.shape[0]
-        self.layer_sizes = np.array([self.features.shape[1]] + self.n_neurons + [self.labels.shape[1]])
+        self.layer_sizes = np.array([self.features.shape[1]] + self.n_neurons + [self.targets.shape[1]])
         self._weights()
 
         for _ in range(self.number_of_epochs):
@@ -153,41 +152,29 @@ class MLPNumpy(Model):
             shuffle = np.random.permutation(self.n_samples)
 
             features_batches = np.array_split(self.features[shuffle], self.n_samples // self.batch_size)
-            labels_batches = np.array_split(self.labels[shuffle], self.n_samples // self.batch_size)
+            targets_batches = np.array_split(self.targets[shuffle], self.n_samples // self.batch_size)
 
-            for features_batch, labels_batch in zip(features_batches, labels_batches):
+            for features_batch, targets_batch in zip(features_batches, targets_batches):
                 self.forward(features_batch)  
-                self.backward(labels_batch)
+                self.backward(targets_batch)
     
-    def predict(self, 
-                test_features: np.ndarray, 
-                test_labels: np.ndarray,
-                get_accuracy: bool = True) -> np.ndarray:
+    def predict(self, test_features: np.ndarray) -> np.ndarray:
         """
         Makes predictions on the test set and evaluates the model
 
         Parameters:
             test_features: The input features for testing
-            test_labels: The true target labels corresponding to the test features
-            get_accuracy: If True, calculates and prints the accuracy of predictions
 
         Returns:
-            predictions: The prediction labels
+            predictions: The prediction targets
         """
         test_features = test_features.astype(np.float32)
         self.test_features = np.concatenate((test_features, np.ones((test_features.shape[0], 1), dtype=np.float32)), axis=1)
-        self.test_labels = np.squeeze(np.eye(10)[test_labels.astype(np.int32).reshape(-1)])
 
         self.forward(self.test_features)
         predictions = self._categorical(self.output)
 
-        if get_accuracy:
-            # Evaluate the predictions using accuracy and F1 score
-            accuracy, f1 = self.evaluate(predictions, self.test_labels)
-            print("Epoch: {}/{} Accuracy: {:.5f} F1-score: {:.5f}".format(
-                self.number_of_epochs, self.number_of_epochs, accuracy, f1))
-        
         return predictions
     
     def __str__(self) -> str:
-        return "Multilayer Perceptron (Numpy)"
+        return "Multilayer Perceptron"

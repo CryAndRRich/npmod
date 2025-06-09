@@ -1,7 +1,6 @@
 import numpy as np
-from ....base import Model
 
-class GaussianMixtureModel(Model):
+class GaussianMixtureModel():
     def __init__(self,
                  number_of_components: int = 1,
                  max_number_of_epochs: int = 100,

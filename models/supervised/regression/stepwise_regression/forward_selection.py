@@ -1,9 +1,8 @@
 import numpy as np
-from ....base import Model
-from ..linear_regression import LinearRegressionNumpy
+from ..linear_regression import LinearRegression
 from .utils import *
 
-class StepwiseForward(Model):
+class StepwiseForward():
     def __init__(self,
                  learn_rate: float,
                  number_of_epochs: int,
@@ -28,7 +27,7 @@ class StepwiseForward(Model):
         self.selected_features = []
 
     def _evaluate(self, 
-                  model: LinearRegressionNumpy, 
+                  model: LinearRegression, 
                   X: np.ndarray, 
                   y: np.ndarray) -> float:
         """
@@ -83,7 +82,7 @@ class StepwiseForward(Model):
             for feat in remaining:
                 cols = self.selected_features + [feat]
                 X_sub = features[:, cols]
-                model = LinearRegressionNumpy(self.learn_rate, self.number_of_epochs)
+                model = LinearRegression(self.learn_rate, self.number_of_epochs)
                 model.fit(X_sub, targets)
                 score = self._evaluate(model, X_sub, targets)
 
@@ -104,25 +103,22 @@ class StepwiseForward(Model):
             if self.verbose:
                 print(f"Added feature {best_candidate}, new {self.criterion} = {best_score:.5f}")
 
-        self.model = LinearRegressionNumpy(self.learn_rate, self.number_of_epochs)
+        self.model = LinearRegression(self.learn_rate, self.number_of_epochs)
         X_final = features[:, self.selected_features]
         self.model.fit(X_final, targets)
 
-    def predict(self, 
-                test_features: np.ndarray, 
-                test_targets: np.ndarray = None):
+    def predict(self, test_features: np.ndarray):
         """
         Predict and optionally evaluate on test data
 
         Parameters:
             test_features: Test feature matrix 
-            test_targets: True targets for evaluation
 
         Returns:
             np.ndarray: Predicted target values
         """
         X_sub = test_features[:, self.selected_features]
-        return self.model.predict(X_sub, test_targets)
+        return self.model.predict(X_sub)
 
     def __str__(self) -> str:
-        return f"Stepwise Regression: Forward Selection"
+        return "Stepwise Regression: Forward Selection"

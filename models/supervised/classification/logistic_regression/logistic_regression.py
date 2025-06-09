@@ -1,6 +1,5 @@
 from typing import Tuple
 import numpy as np
-from ....base import Model
 
 def sigmoid_function(x: np.ndarray) -> np.ndarray:
     """
@@ -17,19 +16,19 @@ def sigmoid_function(x: np.ndarray) -> np.ndarray:
 def log_loss(x: np.ndarray, 
              y: np.ndarray) -> np.ndarray:
     """
-    Computes the logistic loss (binary cross-entropy) for a given prediction and true label
+    Computes the logistic loss (binary cross-entropy) for a given prediction and true target
 
     Parameters:
-        x: The true labels 
+        x: The true targets 
         y: The predicted probabilities 
 
     Returns:
-        np.ndarray: The binary cross-entropy loss for the prediction and label
+        np.ndarray: The binary cross-entropy loss for the prediction and target
     """
     return -(x * np.log(y)) - ((1 - x) * np.log(1 - y))
 
 def cost_function(features: np.ndarray, 
-                  labels: np.ndarray, 
+                  targets: np.ndarray, 
                   weight: np.ndarray, 
                   bias: float) -> float:
     """
@@ -37,7 +36,7 @@ def cost_function(features: np.ndarray,
 
     Parameters:
         features: The input features 
-        labels: The target labels 
+        targets: The targets 
         weight: The current weight values 
         bias: The current bias value 
 
@@ -55,11 +54,11 @@ def cost_function(features: np.ndarray,
         prob[i] = sigmoid_function(predict + bias)
     
     # Calculate the cost using binary cross-entropy
-    cost = np.mean(log_loss(labels, prob))
+    cost = np.mean(log_loss(targets, prob))
     return cost
 
 def gradient_descent(features: np.ndarray, 
-                     labels: np.ndarray, 
+                     targets: np.ndarray, 
                      weight: np.ndarray, 
                      bias: float, 
                      learn_rate: float) -> Tuple[np.ndarray, float]:
@@ -68,7 +67,7 @@ def gradient_descent(features: np.ndarray,
 
     Parameters:
         features: The input features 
-        labels: The target labels 
+        targets: The targets 
         weight: The current weight values 
         bias: The current bias value 
         learn_rate: The learning rate for gradient descent 
@@ -90,8 +89,8 @@ def gradient_descent(features: np.ndarray,
         prob = sigmoid_function(predict + bias)
 
         for j in range(n):
-            weight_gradient[j] += (prob - labels[i]) * features[i, j]
-        bias_gradient += prob - labels[i]
+            weight_gradient[j] += (prob - targets[i]) * features[i, j]
+        bias_gradient += prob - targets[i]
 
     # Average the gradients
     weight_gradient /= m
@@ -103,7 +102,7 @@ def gradient_descent(features: np.ndarray,
 
     return weight, bias
 
-class LogisticRegressionNumpy(Model):
+class LogisticRegression():
     def __init__(self, 
                  learn_rate: float, 
                  number_of_epochs: int) -> None:
@@ -119,13 +118,13 @@ class LogisticRegressionNumpy(Model):
     
     def fit(self, 
             features: np.ndarray, 
-            labels: np.ndarray) -> None:
+            targets: np.ndarray) -> None:
         """
         Trains the logistic regression model on the input data using gradient descent
 
         Parameters:
             features: The input features for training 
-            labels: The target labels corresponding to the input features 
+            targets: The targets corresponding to the input features 
         """
         _, n = features.shape
 
@@ -134,33 +133,23 @@ class LogisticRegressionNumpy(Model):
 
         # Perform gradient descent over the specified number of epochs
         for _ in range(self.number_of_epochs):
-            # cost = cost_function(features, labels, self.weight, self.bias)
-            self.weight, self.bias = gradient_descent(features, labels, self.weight, self.bias, self.learn_rate)
+            # cost = cost_function(features, targets, self.weight, self.bias)
+            self.weight, self.bias = gradient_descent(features, targets, self.weight, self.bias, self.learn_rate)
 
-    def predict(self, 
-                test_features: np.ndarray, 
-                test_labels: np.ndarray,
-                get_accuracy: bool = True) -> np.ndarray:
+    def predict(self, test_features: np.ndarray) -> np.ndarray:
         """
         Makes predictions on the test set and evaluates the model
 
         Parameters:
             test_features: The input features for testing
-            test_labels: The true target labels corresponding to the test features
-            get_accuracy: If True, calculates and prints the accuracy of predictions
 
         Returns:
-            predictions: The prediction labels
+            predictions: The prediction targets
         """
         prob = sigmoid_function(np.dot(test_features, self.weight)) + self.bias
         predictions = (prob >= 0.5).astype(int)
 
-        if get_accuracy:
-            accuracy, f1 = self.evaluate(predictions, test_labels)
-            print("Epoch: {}/{} Accuracy: {:.5f} F1-score: {:.5f}".format(
-                self.number_of_epochs, self.number_of_epochs, accuracy, f1))
-    
         return predictions
     
     def __str__(self) -> str:
-        return "Logistic Regression (Numpy)"
+        return "Logistic Regression"

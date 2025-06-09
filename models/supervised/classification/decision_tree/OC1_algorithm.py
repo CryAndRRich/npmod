@@ -11,14 +11,14 @@ class OC1DecisionTree(Tree):
     """
     def build_tree(self, 
                    features: np.ndarray, 
-                   labels: np.ndarray) -> TreeNode:
+                   targets: np.ndarray) -> TreeNode:
         
-        # If all labels are the same, return a leaf node with that label
-        if len(np.unique(labels)) == 1:
-            return TreeNode(results=labels[0])
+        # If all targets are the same, return a leaf node with that target
+        if len(np.unique(targets)) == 1:
+            return TreeNode(results=targets[0])
         
         _, n_features = features.shape
-        current_entropy = entropy(labels)
+        current_entropy = entropy(targets)
         
         best_gain = 0.0
         best_weights = None
@@ -47,15 +47,15 @@ class OC1DecisionTree(Tree):
                 continue
             
             true_features, false_features = features[true_idx], features[false_idx]
-            true_labels, false_labels = labels[true_idx], labels[false_idx]
+            true_targets, false_targets = targets[true_idx], targets[false_idx]
             
-            information_gain_value = information_gain(true_labels, false_labels, current_entropy)
+            information_gain_value = information_gain(true_targets, false_targets, current_entropy)
             
             if information_gain_value > best_gain:
                 best_gain = information_gain_value
                 best_weights = weights
                 best_threshold = threshold
-                best_sets = (true_features, true_labels, false_features, false_labels)
+                best_sets = (true_features, true_targets, false_features, false_targets)
         
         if best_gain > 0 and best_sets is not None:
             true_branch = self.build_tree(best_sets[0], best_sets[1])
@@ -65,27 +65,27 @@ class OC1DecisionTree(Tree):
                             true_branch=true_branch, 
                             false_branch=false_branch)
         else:
-            # If no valid split is found, create a leaf node with the majority label
+            # If no valid split is found, create a leaf node with the majority target
             counts = {}
-            for label in labels:
-                counts[label] = counts.get(label, 0) + 1
-            majority_label = max(counts.items(), key=lambda x: x[1])[0]
-            return TreeNode(results=majority_label)
+            for target in targets:
+                counts[target] = counts.get(target, 0) + 1
+            majority_target = max(counts.items(), key=lambda x: x[1])[0]
+            return TreeNode(results=majority_target)
     
     def predict_node(self, 
                      tree: TreeNode, 
                      sample: np.ndarray) -> int:
         """
-        Traverses the decision tree to predict the label for a single data sample
+        Traverses the decision tree to predict the target for a single data sample
         
         Parameters:
-            tree: The current node in the decision tree.
+            tree: The current node in the decision tree
             sample: The feature vector of the sample to predict
         
         Returns:
-            int: The predicted label for the sample.
+            int: The predicted target for the sample
         """
-        # If it's a leaf node, return its label
+        # If it's a leaf node, return its target
         if tree.results is not None:
             return tree.results
         else:
@@ -99,4 +99,4 @@ class OC1DecisionTree(Tree):
             return self.predict_node(branch, sample)
     
     def __str__(self) -> str:
-        return "Decision Trees: OC1 Algorithm"
+        return "OC1 Algorithm"

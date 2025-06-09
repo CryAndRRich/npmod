@@ -1,6 +1,5 @@
-import numpy as np
 from typing import Tuple
-from ....base import Model
+import numpy as np
 
 def expectation_step(features: np.ndarray,
                      centroids: np.ndarray,
@@ -52,7 +51,7 @@ def maximization_step(features: np.ndarray,
             centroids[i] = np.mean(features[idxs], axis=0)
     return centroids
 
-class KMeansClustering(Model):
+class KMeans():
     def __init__(self,
                  number_of_clusters: int = 1,
                  max_number_of_epochs: int = 20,

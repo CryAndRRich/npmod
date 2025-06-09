@@ -2,9 +2,7 @@ import numpy as np
 import torch
 import torchvision.datasets as dsets
 import torchvision.transforms as transforms
-import os
 
-from models import *
 import npmod.nn as nn
 
 def test_npmod():
@@ -58,29 +56,3 @@ def test_npmod():
     predictions = np.argmax(net(test_features), axis=1)
     accuracy = (predictions == test_labels).mean()
     print(accuracy)
-
-def test_model():
-    path = os.path.join('datasets', 'svm_data.csv')
-    data = Data(data_path=path)
-
-    features, test_features, labels, test_labels = data.get_processed_data()
-
-    model = RandomForest()
-    print(model)
-    model.fit(features, labels)
-    model.predict(test_features, test_labels)
-
-test_model()
-#Random Forest:
-#- Decision Trees: C4.5 Algorithm
-#- Decision Trees: ID3 Algorithm
-#- Decision Trees: CHAID Algorithm
-#- Decision Trees: CART Algorithm
-#- Decision Trees: CART Algorithm
-#- Decision Trees: C5.0/See5 Algorithm
-#- Decision Trees: C4.5 Algorithm
-#- Decision Trees: TAO Algorithm
-#- Decision Trees: C4.5 Algorithm
-#- Decision Trees: OC1 Algorithm
-
-#Accuracy: 0.97500 F1-score: 0.97505

@@ -1,7 +1,6 @@
 import numpy as np
-from ....base import Model
 
-class CategoricalNaiveBayes(Model):
+class CategoricalNaiveBayes():
     def __init__(self, alpha: int = 1) -> None:
         """
         Initializes the Categorical Naive Bayes model
@@ -13,25 +12,25 @@ class CategoricalNaiveBayes(Model):
 
     def fit(self, 
             features: np.ndarray, 
-            labels: np.ndarray) -> None:
+            targets: np.ndarray) -> None:
         """
         Fits the model to the training data by calculating class priors and conditional probabilities
 
         Parameters:
             features: Input features for training
-            labels: Corresponding target labels for the input features
+            targets: Corresponding targets for the input features
         """
         self.features = features
-        self.labels = labels
-        self.unique_labels = np.unique(labels)
+        self.targets = targets
+        self.unique_targets = np.unique(targets)
 
         self.num_samples, self.num_features = self.features.shape
-        self.num_classes = self.unique_labels.shape[0]
+        self.num_classes = self.unique_targets.shape[0]
 
-        # Compute class priors based on label frequency
+        # Compute class priors based on target frequency
         self.class_priors = np.zeros(self.num_classes)
-        for idx, label in enumerate(self.unique_labels):
-            self.class_priors[idx] = np.sum(self.labels == label) / self.num_samples
+        for idx, target in enumerate(self.unique_targets):
+            self.class_priors[idx] = np.sum(self.targets == target) / self.num_samples
 
         # Compute conditional probabilities for each feature and class
         self.conditional_probs = []
@@ -39,8 +38,8 @@ class CategoricalNaiveBayes(Model):
             unique_values = np.unique(self.features[:, feature_idx])  # Find unique values in each feature
             cond_prob = np.zeros((self.num_classes, len(unique_values)))
 
-            for class_idx, label in enumerate(self.unique_labels):
-                indices = np.argwhere(self.labels == label).flatten()  # Find indices of each class
+            for class_idx, target in enumerate(self.unique_targets):
+                indices = np.argwhere(self.targets == target).flatten()  # Find indices of each class
                 feature_values = self.features[indices, feature_idx]   # Extract feature values for the class
 
                 # Compute conditional probabilities with Laplace smoothing
@@ -81,20 +80,15 @@ class CategoricalNaiveBayes(Model):
 
         return log_prob
 
-    def predict(self, 
-                test_features: np.ndarray, 
-                test_labels: np.ndarray,
-                get_accuracy: bool = True) -> np.ndarray:
+    def predict(self, test_features: np.ndarray) -> np.ndarray:
         """
         Makes predictions on the test set and evaluates the model
 
         Parameters:
             test_features: The input features for testing
-            test_labels: The true target labels corresponding to the test features
-            get_accuracy: If True, calculates and prints the accuracy of predictions
 
         Returns:
-            predictions: The prediction labels
+            predictions: The prediction targets
         """
         num_samples, _ = test_features.shape
 
@@ -107,12 +101,7 @@ class CategoricalNaiveBayes(Model):
                 posteriors.append(likelihood)
 
             # Choose the class with the highest posterior probability
-            predictions[ind] = self.unique_labels[np.argmax(posteriors)]
-
-        if get_accuracy:
-            # Evaluate accuracy and F1-score
-            accuracy, f1 = self.evaluate(predictions, test_labels)
-            print("Alpha: {} Accuracy: {:.5f} F1-score: {:.5f}".format(self.alpha, accuracy, f1))
+            predictions[ind] = self.unique_targets[np.argmax(posteriors)]
 
         return predictions
 

@@ -1,6 +1,5 @@
-import numpy as np
 from typing import List
-from ....base import Model
+import numpy as np
 
 def region_query(features: np.ndarray,
                  point_idx: int,
@@ -60,7 +59,7 @@ def expand_cluster(features: np.ndarray,
                     labels[idx] = cluster_id
     return True
 
-class DBSCAN(Model):
+class DBSCAN():
     def __init__(self,
                  eps: float = 0.5,
                  min_samples: int = 5) -> None:

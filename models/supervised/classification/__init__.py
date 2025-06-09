@@ -4,4 +4,4 @@ from .logistic_regression import *
 from .naive_bayes import *
 from .perceptron_learning import *
 from .softmax_regression import *
-from support_vector_machines import *
+from .support_vector_machines import *

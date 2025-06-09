@@ -32,7 +32,7 @@ class AlexNet(ConvNet):
             
             nn.Flatten(),
             nn.Dropout(p=0.5), 
-            nn.Linear(in_features=256*3*3, out_features=4096),
+            nn.Linear(in_features=256 * 3 * 3, out_features=4096),
             nn.BatchNorm1d(num_features=4096),
             nn.ReLU(inplace=True),
             

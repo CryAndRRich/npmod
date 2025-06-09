@@ -1,7 +1,6 @@
 import torch
 import torch.nn as nn
 import torch.optim as optim
-from ....base import Model
 
 torch.manual_seed(42)
 
@@ -113,7 +112,7 @@ class SVMModule(nn.Module):
 
         Parameters:
             x: Predictions
-            y: Ground truth labels
+            y: Ground truth targets
 
         Returns:
             torch.Tensor: The hinge loss value
@@ -134,7 +133,7 @@ class SVMModule(nn.Module):
         y = self.weight(y)  # Apply the learned weights
         return y
 
-class SVMModel(Model):
+class SVMModel():
     def __init__(self, 
                  learn_rate: float, 
                  number_of_epochs: int, 
@@ -156,58 +155,45 @@ class SVMModel(Model):
 
     def fit(self, 
             features: torch.Tensor, 
-            labels: torch.Tensor) -> None:
+            targets: torch.Tensor) -> None:
         """
-        Trains the SVM model on the input features and labels
+        Trains the SVM model on the input features and targets
 
         Parameters:
             features: The input features for training
-            labels: The target labels corresponding to the input features
+            targets: The targets corresponding to the input features
         """
-        labels = labels.unsqueeze(1)
+        targets = targets.unsqueeze(1)
         self.model = SVMModule(features, self.kernel, self.gamma)
         optimizer = optim.SGD(self.model.parameters(), lr=self.learn_rate)
 
         self.model.train()
         for _ in range(self.number_of_epochs):
             predictions = self.model(features)  # Forward pass
-            cost = self.model.hinge_loss(predictions, labels.unsqueeze(1))  # Compute hinge loss
+            cost = self.model.hinge_loss(predictions, targets.unsqueeze(1))  # Compute hinge loss
 
             optimizer.zero_grad()  # Reset gradients
             cost.backward()  # Backpropagation
             optimizer.step()  # Update weights
         self.model.eval()  # Set the model to evaluation mode after training
     
-    def predict(self, 
-                test_features: torch.Tensor, 
-                test_labels: torch.Tensor,
-                get_accuracy: bool = True) -> torch.Tensor:
+    def predict(self, test_features: torch.Tensor) -> torch.Tensor:
         """
         Makes predictions on the test set and evaluates the model
 
         Parameters:
             test_features: The input features for testing
-            test_labels: The true target labels corresponding to the test features
-            get_accuracy: If True, calculates and prints the accuracy of predictions
 
         Returns:
-            predictions: The prediction labels
+            predictions: The prediction targets
         """
-        test_labels = test_labels.unsqueeze(1)
+        test_targets = test_targets.unsqueeze(1)
         with torch.no_grad():
             predictions = (self.model(test_features)).detach().numpy()
             predictions = (predictions > predictions.mean())  # Binarize predictions
-            test_labels = test_labels.detach().numpy()
+            test_targets = test_targets.detach().numpy()
 
-            if get_accuracy:
-                accuracy, f1 = self.evaluate(predictions, test_labels)
-                print("Epoch: {}/{} Accuracy: {:.5f} F1-score: {:.5f}".format(
-                    self.number_of_epochs, self.number_of_epochs, accuracy, f1))
-        
         return predictions
     
     def __str__(self) -> str:
-        """
-        Returns a string representation of the SVM model, including the chosen kernel
-        """
-        return "Support Vector Machine (SVM) - Kernel:'{}'".format(self.kernel)
+        return "Support Vector Machine (SVM) - Kernel: '{}'".format(self.kernel)

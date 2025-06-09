@@ -1,8 +1,7 @@
-import numpy as np
 from typing import List
-from ....base import Model
+import numpy as np
 
-class AgglomerativeClustering(Model):
+class AgglomerativeClustering():
     def __init__(self,
                  number_of_clusters: int = 2,
                  linkage: str = "single") -> None:
