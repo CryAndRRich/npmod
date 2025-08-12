@@ -1,5 +1,4 @@
 import numpy as np
-from ..linear_regression import LinearRegression
 from .utils import *
 
 class StepwiseForward():
@@ -27,9 +26,9 @@ class StepwiseForward():
         self.selected_features = []
 
     def _evaluate(self, 
-                  model: LinearRegression, 
                   X: np.ndarray, 
-                  y: np.ndarray) -> float:
+                  y: np.ndarray,
+                  linear_model = None) -> float:
         """
         Evaluate the trained model on given data according to the chosen criterion
 
@@ -42,7 +41,7 @@ class StepwiseForward():
             float: Score to minimize
         """
         
-        preds = model.predict(X)
+        preds = linear_model.predict(X)
         mse = compute_mse(preds, y)
         if self.criterion == "mse":
             return mse
@@ -56,7 +55,8 @@ class StepwiseForward():
 
     def fit(self, 
             features: np.ndarray, 
-            targets: np.ndarray) -> None:
+            targets: np.ndarray,
+            linear_model = None) -> None:
         """
         Perform forward stepwise selection and train the final model on selected features
 
@@ -82,9 +82,9 @@ class StepwiseForward():
             for feat in remaining:
                 cols = self.selected_features + [feat]
                 X_sub = features[:, cols]
-                model = LinearRegression(self.learn_rate, self.number_of_epochs)
+                model = linear_model(self.learn_rate, self.number_of_epochs)
                 model.fit(X_sub, targets)
-                score = self._evaluate(model, X_sub, targets)
+                score = self._evaluate(X_sub, targets, model)
 
                 if self.verbose:
                     print(f"Trying feature {feat}: {self.criterion} = {score:.5f}")
@@ -103,7 +103,7 @@ class StepwiseForward():
             if self.verbose:
                 print(f"Added feature {best_candidate}, new {self.criterion} = {best_score:.5f}")
 
-        self.model = LinearRegression(self.learn_rate, self.number_of_epochs)
+        self.model = linear_model(self.learn_rate, self.number_of_epochs)
         X_final = features[:, self.selected_features]
         self.model.fit(X_final, targets)
 

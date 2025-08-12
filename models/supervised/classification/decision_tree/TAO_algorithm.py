@@ -84,15 +84,17 @@ class TAODecisionTree(Tree):
             TreeNode: The optimized decision tree
         """
         for _ in range(self.max_iterations):
-            improved = False
+            improved_overall = False
             for node in self.iterate_nodes(tree):
                 if node.results is None:
                     best_gain = 0
                     best_value = node.value
                     best_feature = node.feature
+
                     node_features, node_targets = self.get_node_data(features, targets, node)
-                    
                     current_entropy = entropy(node_targets)
+                    improved_node = False
+
                     for value in set(node_features[:, node.feature]):
                         _, true_targets, _, false_targets = split_data(node_features, node_targets, node.feature, value)
                         gain = information_gain(true_targets, false_targets, current_entropy)
@@ -101,12 +103,14 @@ class TAODecisionTree(Tree):
                             best_gain = gain
                             best_value = value
                             best_feature = node.feature
-                            improved = True
+                            improved_node = True
 
-                    if improved and abs(best_gain - current_entropy) > self.threshold:
+                    if improved_node and best_gain > self.threshold:
                         node.feature = best_feature
                         node.value = best_value
-            if not improved:
+                        improved_overall = True
+
+            if not improved_overall:
                 break
         return tree
 

@@ -1,199 +1,149 @@
-import torch
-import torch.nn as nn
-import torch.optim as optim
+import numpy as np
 
-torch.manual_seed(42)
-
-class SVMModule(nn.Module):
-    """
-    Support Vector Machine (SVM) module using various kernels (linear, RBF, polynomial, sigmoid)
-
-    The module implements different types of SVM kernels and the forward pass logic based on the selected kernel
-    """
+class SupportVectorMachine:
     def __init__(self, 
-                 features: torch.Tensor, 
                  kernel: str = "rbf", 
+                 C: float = 1.0,
                  gamma: float = 0.1, 
-                 train_gamma: bool = True, 
                  degree: int = 3, 
-                 b: float = 1.0) -> None:
+                 coef0: float = 1.0,
+                 tol: float = 1e-3,
+                 max_iter: int = 1000):
         """
-        Initializes the SVM module by defining the kernel function and the weight layer.
+        Support Vector Machine (binary classification)
 
         Parameters:
-            features: The input feature data for training 
-            kernel: The kernel function to use ('linear', 'rbf', 'poly', 'sigmoid')
-            gamma: A kernel-specific parameter 
-            train_gamma: Boolean flag to allow updating gamma during training 
-            degree: Degree of the polynomial kernel 
-            b: Constant used in polynomial and sigmoid kernels 
+            kernel: "linear", "rbf", "poly", or "sigmoid"
+            C: Regularization parameter
+            gamma: Kernel coefficient (used in RBF, poly, sigmoid)
+            degree: Degree for polynomial kernel
+            coef0: Constant term for poly and sigmoid
+            tol: Tolerance for stopping
+            max_iter: Maximum training iterations
         """
-        super().__init__()
-        self.train_data = features
-        self.gamma = torch.nn.Parameter(torch.FloatTensor([gamma]), requires_grad=train_gamma)
-        self.b = b
-
-        # Select the appropriate kernel function
-        if kernel == "linear":
-            self.kernel = self.linear
-            self.C = features.size(1)
-        elif kernel == "rbf":
-            self.kernel = self.rbf
-            self.C = features.size(0)
-        elif kernel == "poly":
-            self.kernel = self.poly
-            self.C = features.size(0)
-            self.degree = degree
-        elif kernel == "sigmoid":
-            self.kernel = self.sigmoid
-            self.C = features.size(0)
-        else: 
-            raise ValueError(f"Unsupported kernel '{kernel}'. Supported kernels are 'linear', 'rbf', 'poly', and 'sigmoid'")
-
-        # Initialize the weight layer
-        self.weight = nn.Linear(in_features=self.C, out_features=1)
-
-    def rbf(self, x: torch.Tensor) -> torch.Tensor:
-        """
-        Radial Basis Function (RBF) kernel computation.
-
-        Parameters:
-            x: Input features
-
-        Returns:
-            torch.Tensor: Computed RBF kernel matrix
-        """
-        y = self.train_data.repeat(x.size(0), 1, 1)
-        return torch.exp(-self.gamma * ((x[:, None] - y) ** 2).sum(dim=2))
-    
-    def linear(self, x: torch.Tensor) -> torch.Tensor:
-        """
-        Linear kernel computation (identity function)
-
-        Parameters:
-            x: Input features
-
-        Returns:
-            torch.Tensor: Computed linear kernel
-        """
-        return x
-    
-    def poly(self, x: torch.Tensor) -> torch.Tensor:
-        """
-        Polynomial kernel computation
-
-        Parameters:
-            x: Input features
-
-        Returns:
-            torch.Tensor: Computed polynomial kernel matrix
-        """
-        y = self.train_data.repeat(x.size(0), 1, 1)
-        return (self.gamma * torch.bmm(x.unsqueeze(1), y.transpose(1, 2)) + self.b).pow(self.degree).squeeze(1)
-    
-    def sigmoid(self, x: torch.Tensor) -> torch.Tensor:
-        """
-        Sigmoid kernel computation
-
-        Parameters:
-            x: Input features
-
-        Returns:
-            torch.Tensor: Computed sigmoid kernel matrix
-        """
-        y = self.train_data.repeat(x.size(0), 1, 1)
-        return torch.tanh(self.gamma * torch.bmm(x.unsqueeze(1), y.transpose(1, 2)) + self.b).squeeze(1)
-    
-    def hinge_loss(self, 
-                   x: torch.Tensor, 
-                   y: torch.Tensor) -> torch.Tensor:
-        """
-        Hinge loss function for SVM
-
-        Parameters:
-            x: Predictions
-            y: Ground truth targets
-
-        Returns:
-            torch.Tensor: The hinge loss value
-        """
-        return torch.max(torch.zeros_like(y), 1 - y * x).mean()
-    
-    def forward(self, x: torch.Tensor) -> torch.Tensor:
-        """
-        Forward pass through the kernel and weight layers
-
-        Parameters:
-            x: Input features
-
-        Returns:
-            torch.Tensor: The final output after kernel transformation and linear weight application
-        """
-        y = self.kernel(x)  # Apply the kernel function
-        y = self.weight(y)  # Apply the learned weights
-        return y
-
-class SVMModel():
-    def __init__(self, 
-                 learn_rate: float, 
-                 number_of_epochs: int, 
-                 kernel: str = "linear", 
-                 gamma: float = 0.1) -> None:
-        """
-        Initializes the SVM model with learning rate, epochs, and kernel choice
-
-        Parameters:
-            learn_rate: The learning rate for the optimizer
-            number_of_epochs: The number of training epochs
-            kernel: The kernel function to use for the SVM model ('linear', 'rbf', 'poly', 'sigmoid')
-            gamma: The kernel parameter 
-        """
-        self.learn_rate = learn_rate
-        self.number_of_epochs = number_of_epochs
         self.kernel = kernel
+        self.C = C
         self.gamma = gamma
+        self.degree = degree
+        self.coef0 = coef0
+        self.tol = tol
+        self.max_iter = max_iter
+        self.alphas = None
+        self.bias = 0
+        self.support_vectors = None
+        self.support_vector_labels = None
+        self.support_vector_alphas = None
+        self.features = None
+
+        # Assign kernel function
+        if kernel == "linear":
+            self.kernel = self._linear
+        elif kernel == "rbf":
+            self.kernel = self._rbf
+        elif kernel == "poly":
+            self.kernel = self._poly
+        elif kernel == "sigmoid":
+            self.kernel = self._sigmoid
+        else:
+            raise ValueError("Unsupported")
+
+    def _linear(self, x, y):
+        return np.dot(x, y.T)
+
+    def _rbf(self, x, y):
+        if x.ndim == 1:
+            x = x[np.newaxis, :]
+        if y.ndim == 1:
+            y = y[np.newaxis, :]
+        sq_dists = np.sum((x[:, np.newaxis] - y[np.newaxis, :]) ** 2, axis=2)
+        return np.exp(-self.gamma * sq_dists)
+
+    def _poly(self, x, y):
+        return (self.gamma * np.dot(x, y.T) + self.coef0) ** self.degree
+
+    def _sigmoid(self, x, y):
+        return np.tanh(self.gamma * np.dot(x, y.T) + self.coef0)
 
     def fit(self, 
-            features: torch.Tensor, 
-            targets: torch.Tensor) -> None:
+            features: np.ndarray, 
+            targets: np.ndarray) -> None:
         """
-        Trains the SVM model on the input features and targets
+        Train SVM
 
         Parameters:
-            features: The input features for training
-            targets: The targets corresponding to the input features
+            features: Training data (n_samples, n_features)
+            y: Labels in {-1, 1}
         """
-        targets = targets.unsqueeze(1)
-        self.model = SVMModule(features, self.kernel, self.gamma)
-        optimizer = optim.SGD(self.model.parameters(), lr=self.learn_rate)
+        n_samples, _ = features.shape
+        targets = targets.astype(float)
+        targets[targets == 0] = -1  # Convert 0 to -1
 
-        self.model.train()
-        for _ in range(self.number_of_epochs):
-            predictions = self.model(features)  # Forward pass
-            cost = self.model.hinge_loss(predictions, targets.unsqueeze(1))  # Compute hinge loss
+        self.features = features
+        self.alphas = np.zeros(n_samples)
+        self.bias = 0
 
-            optimizer.zero_grad()  # Reset gradients
-            cost.backward()  # Backpropagation
-            optimizer.step()  # Update weights
-        self.model.eval()  # Set the model to evaluation mode after training
-    
-    def predict(self, test_features: torch.Tensor) -> torch.Tensor:
+        K = self.kernel(features, features)  # Kernel matrix
+
+        for _ in range(self.max_iter):
+            alpha_prev = np.copy(self.alphas)
+
+            for i in range(n_samples):
+                j = np.random.randint(0, n_samples)
+                while j == i:
+                    j = np.random.randint(0, n_samples)
+
+                yi, yj = targets[i], targets[j]
+
+                kii = K[i, i]
+                kjj = K[j, j]
+                kij = K[i, j]
+
+                eta = kii + kjj - 2 * kij
+                if eta <= 0:
+                    continue
+
+                Ei = np.sum(self.alphas * targets * K[:, i]) + self.bias - yi
+                Ej = np.sum(self.alphas * targets * K[:, j]) + self.bias - yj
+
+                alpha_j_new = self.alphas[j] + yj * (Ei - Ej) / eta
+                alpha_j_new = np.clip(alpha_j_new, 0, self.C)
+
+                alpha_i_new = self.alphas[i] + yi * yj * (self.alphas[j] - alpha_j_new)
+
+                self.alphas[i] = alpha_i_new
+                self.alphas[j] = alpha_j_new
+
+            diff = np.linalg.norm(self.alphas - alpha_prev)
+            if diff < self.tol:
+                break
+
+        # Extract support vectors
+        idx = self.alphas > 1e-5
+        self.support_vectors = features[idx]
+        self.support_vector_labels = targets[idx]
+        self.support_vector_alphas = self.alphas[idx]
+
+        # Compute bias 
+        self.bias = np.mean(
+            self.support_vector_labels - 
+            np.sum(self.support_vector_alphas * self.support_vector_labels *
+                   self.kernel(self.support_vectors, self.support_vectors), axis=0)
+        )
+
+    def _decision_function(self, x):
+        K = self.kernel(self.support_vectors, x)
+        result = np.sum(self.support_vector_alphas * self.support_vector_labels * K) + self.bias
+        return result
+
+    def predict(self, test_features: np.ndarray) -> np.ndarray:
         """
-        Makes predictions on the test set and evaluates the model
+        Predict labels for input data
 
         Parameters:
-            test_features: The input features for testing
+            test_features: Input features
 
         Returns:
-            predictions: The prediction targets
+            Array of 0/1 predictions
         """
-        test_targets = test_targets.unsqueeze(1)
-        with torch.no_grad():
-            predictions = (self.model(test_features)).detach().numpy()
-            predictions = (predictions > predictions.mean())  # Binarize predictions
-            test_targets = test_targets.detach().numpy()
-
-        return predictions
-    
-    def __str__(self) -> str:
-        return "Support Vector Machine (SVM) - Kernel: '{}'".format(self.kernel)
+        decision = np.array([self._decision_function(x) for x in test_features])
+        return np.where(decision >= 0, 1, 0)

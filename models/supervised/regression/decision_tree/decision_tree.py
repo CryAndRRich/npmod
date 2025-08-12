@@ -112,7 +112,7 @@ class DecisionTreeRegressor():
             for thr in thresholds:
                 left_mask = features[:, feat_idx] <= thr
                 right_mask = ~left_mask
-                if not (np.any(left_mask) and np.any(right_mask)):
+                if np.sum(left_mask) < self.min_samples_split or np.sum(right_mask) < self.min_samples_split:
                     continue
 
                 w_left = sample_weights[left_mask]

@@ -12,41 +12,28 @@ class GaussianNaiveBayes():
             features: Input features for training
             targets: Corresponding targets for the input features
         """
-        self.features = features
-        self.targets = targets
-        self.unique_targets = np.unique(targets)
+        self.classes = np.unique(targets)
+        self.params = {} # mean and variance for each class
+        self.class_priors = {} # prior probability for each class
+        eps = 1e-9 # to ensure non-zero variance
 
-        # Calculate mean and variance for each feature in each class
-        self.params = []
-        for target in self.unique_targets:
-            target_features = self.features[self.targets == target]  # Select features of the current class
-            # Store the mean and variance for each feature of the class
-            self.params.append([(col.mean(), col.var()) for col in target_features.T])
+        for cls in self.classes:
+            cls_features = features[targets == cls]
+            means = cls_features.mean(axis=0)
+            variances = cls_features.var(axis=0) + eps # add epsilon to avoid 0 variance
+            self.params[cls] = (means, variances)
+            self.class_priors[cls] = cls_features.shape[0] / features.shape[0]
 
-    def gaussian_distribution(self, 
-                              data: np.ndarray, 
-                              sigma: float, 
-                              mu: float) -> np.ndarray:
+    def _gaussian_log_likelihood(self, 
+                                 x: np.ndarray, 
+                                 mean: np.ndarray, 
+                                 var: np.ndarray) -> float:
         """
-        Computes the Gaussian distribution for the input data using the given mean (mu) and variance (sigma).
-
-        Parameters:
-            data: Input feature values
-            sigma: Variance of the Gaussian distribution
-            mu: Mean of the Gaussian distribution
-
-        Returns:
-            prob: Gaussian probability values for the input data
+        Computes log likelihood under Gaussian distribution
         """
-        eps = 1e-15  # Small value to avoid division by zero
-
-        # Compute the Gaussian coefficient and exponent
-        coeff = 1 / np.sqrt(2 * np.pi * sigma + eps)
-        exponent = np.exp(-((data - mu) ** 2 / (2 * sigma + eps)))
-
-        # Return the Gaussian probability
-        prob = coeff * exponent + eps
-        return prob
+        coeff = -0.5 * np.log(2 * np.pi * var)
+        exponent = -((x - mean) ** 2) / (2 * var)
+        return np.sum(coeff + exponent)
 
     def predict(self, test_features: np.ndarray) -> np.ndarray:
         """
@@ -58,26 +45,17 @@ class GaussianNaiveBayes():
         Returns:
             predictions: The prediction targets
         """
-        num_samples, _ = test_features.shape
-
-        predictions = np.empty(num_samples)
-        for ind, feature in enumerate(test_features):
-            posteriors = []
-            # Calculate posterior probabilities for each class
-            for target_idx, target in enumerate(self.unique_targets):
-                prior = np.log((self.targets == target).mean())  # Calculate prior log-probability of the class
-
-                # Combine the feature with the mean and variance
-                pairs = zip(feature, self.params[target_idx])
-                # Calculate the log-likelihood of the data given the Gaussian distribution for each feature
-                likelihood = np.sum([np.log(self.gaussian_distribution(f, m, v)) for f, (m, v) in pairs])
-
-                posteriors.append(prior + likelihood)  # Add prior and likelihood to get the posterior
-
-            # Choose the class with the highest posterior probability
-            predictions[ind] = self.unique_targets[np.argmax(posteriors)]
-
-        return predictions
+        predictions = []
+        for feature in test_features:
+            class_log_posteriors = []
+            for cls in self.classes:
+                mean, var = self.params[cls]
+                prior = np.log(self.class_priors[cls])
+                likelihood = self._gaussian_log_likelihood(feature, mean, var)
+                class_log_posteriors.append(prior + likelihood)
+            predicted_class = self.classes[np.argmax(class_log_posteriors)]
+            predictions.append(predicted_class)
+        return np.array(predictions)
 
     def __str__(self) -> str:
         return "Gaussian Naive Bayes"

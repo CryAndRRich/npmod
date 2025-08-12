@@ -1,1 +1,1 @@
-from .svm import SVMModel
+from .svm import SupportVectorMachine

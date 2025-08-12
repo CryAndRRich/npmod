@@ -1,1 +1,1 @@
-from .k_nearest_neighbors import KNearestNeighbors
+from .knn_classifier import KNeighborsClassifier

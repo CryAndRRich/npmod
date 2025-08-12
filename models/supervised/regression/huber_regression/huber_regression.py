@@ -33,7 +33,7 @@ def huber_gradient(r: float, delta: float) -> float:
 
 def cost_function(features: np.ndarray,
                   targets: np.ndarray,
-                  weight: float,
+                  weights: float,
                   bias: float,
                   delta: float) -> float:
     """
@@ -42,7 +42,7 @@ def cost_function(features: np.ndarray,
     Parameters:
         features: Input feature values
         targets: True target values
-        weight: Model weight
+        weights: Model weight
         bias: Model bias 
         delta: Huber threshold
 
@@ -50,15 +50,16 @@ def cost_function(features: np.ndarray,
         float: Mean Huber loss over all samples
     """
     m = features.shape[0]
+    predictions = features @ weights + bias
+    residuals = targets - predictions
     total_loss = 0.0
-    for i in range(m):
-        r = targets[i] - (weight * features[i] + bias)
+    for r in residuals:
         total_loss += huber_loss(r, delta)
     return total_loss / m
 
 def gradient_descent(features: np.ndarray,
                      targets: np.ndarray,
-                     weight: float,
+                     weights: float,
                      bias: float,
                      learn_rate: float,
                      delta: float) -> Tuple[float, float]:
@@ -68,7 +69,7 @@ def gradient_descent(features: np.ndarray,
     Parameters:
         features: Input feature values
         targets: True target values
-        weight: Current model weight
+        weights: Current model weight
         bias: Current model bias
         learn_rate: Learning rate
         delta: Huber threshold
@@ -76,21 +77,22 @@ def gradient_descent(features: np.ndarray,
     Returns:
         Tuple[float, float]: Updated weight and bias
     """
-    m = features.shape[0]
-    weight_grad = 0.0
+    m, n = features.shape
+    predictions = features @ weights + bias
+    residuals = targets - predictions
+
+    weight_grad = np.zeros(n)
     bias_grad = 0.0
+
     for i in range(m):
-        x = features[i]
-        y = targets[i]
-        y_pred = weight * x + bias
-        r = y - y_pred
+        r = residuals[i]
         dL_dr = huber_gradient(r, delta)
-        # Chain rule: dL/dw = -dL/dr * x, dL/db = -dL/dr
-        weight_grad += -(1/m) * dL_dr * x
-        bias_grad   += -(1/m) * dL_dr
-    weight -= learn_rate * weight_grad
-    bias   -= learn_rate * bias_grad
-    return weight, bias
+        weight_grad += -(1 / m) * dL_dr * features[i]
+        bias_grad   += -(1 / m) * dL_dr
+
+    weights -= learn_rate * weight_grad
+    bias -= learn_rate * bias_grad
+    return weights, bias
 
 class HuberRegression():
     def __init__(self,
@@ -119,13 +121,13 @@ class HuberRegression():
             features: Training feature array
             targets: Training targets
         """
-        x = features.squeeze()
-        self.weight = 0.0
+        _, n = features.shape
+        self.weights = np.zeros(n)
         self.bias = 0.0
         for _ in range(self.number_of_epochs):
-            self.cost = cost_function(x, targets, self.weight, self.bias, self.delta)
-            self.weight, self.bias = gradient_descent(
-                x, targets, self.weight, self.bias,
+            self.cost = cost_function(features, targets, self.weights, self.bias, self.delta)
+            self.weights, self.bias = gradient_descent(
+                features, targets, self.weights, self.bias,
                 self.learn_rate, self.delta
             )
 
@@ -139,7 +141,7 @@ class HuberRegression():
         Returns:
             np.ndarray: Predicted target values
         """
-        predictions = self.weight * test_features.squeeze() + self.bias
+        predictions = test_features @ self.weights + self.bias
 
         return predictions
 

@@ -29,7 +29,7 @@ def log_loss(x: np.ndarray,
 
 def cost_function(features: np.ndarray, 
                   targets: np.ndarray, 
-                  weight: np.ndarray, 
+                  weights: np.ndarray, 
                   bias: float) -> float:
     """
     Computes the logistic regression cost function using mean binary cross-entropy
@@ -37,7 +37,7 @@ def cost_function(features: np.ndarray,
     Parameters:
         features: The input features 
         targets: The targets 
-        weight: The current weight values 
+        weights: The current weights values 
         bias: The current bias value 
 
     Returns:
@@ -50,7 +50,7 @@ def cost_function(features: np.ndarray,
     for i in range(m):
         predict = 0
         for j in range(n):
-            predict += features[i, j] * weight[j]
+            predict += features[i, j] * weights[j]
         prob[i] = sigmoid_function(predict + bias)
     
     # Calculate the cost using binary cross-entropy
@@ -59,21 +59,21 @@ def cost_function(features: np.ndarray,
 
 def gradient_descent(features: np.ndarray, 
                      targets: np.ndarray, 
-                     weight: np.ndarray, 
+                     weights: np.ndarray, 
                      bias: float, 
                      learn_rate: float) -> Tuple[np.ndarray, float]:
     """
-    Performs one step of gradient descent to update the model's weight and bias
+    Performs one step of gradient descent to update the model's weights and bias
 
     Parameters:
         features: The input features 
         targets: The targets 
-        weight: The current weight values 
+        weights: The current weights values 
         bias: The current bias value 
         learn_rate: The learning rate for gradient descent 
 
     Returns:
-        weight: The updated weight values after one step of gradient descent
+        weights: The updated weights values after one step of gradient descent
         bias: The updated bias value after one step of gradient descent
     """
     m, n = features.shape
@@ -81,11 +81,11 @@ def gradient_descent(features: np.ndarray,
     weight_gradient = np.zeros(n)
     bias_gradient = 0
     
-    # Compute gradients for weight and bias
+    # Compute gradients for weights and bias
     for i in range(m):
         predict = 0
         for j in range(n):
-            predict += features[i, j] * weight[j]
+            predict += features[i, j] * weights[j]
         prob = sigmoid_function(predict + bias)
 
         for j in range(n):
@@ -96,11 +96,11 @@ def gradient_descent(features: np.ndarray,
     weight_gradient /= m
     bias_gradient /= m
 
-    # Update the weight and bias values based on the gradients and learning rate
-    weight -= (learn_rate * weight_gradient)
+    # Update the weights and bias values based on the gradients and learning rate
+    weights -= (learn_rate * weight_gradient)
     bias -= (learn_rate * bias_gradient)
 
-    return weight, bias
+    return weights, bias
 
 class LogisticRegression():
     def __init__(self, 
@@ -128,13 +128,13 @@ class LogisticRegression():
         """
         _, n = features.shape
 
-        self.weight = np.zeros(n)  # Initialize weight to zeros
+        self.weights = np.zeros(n)  # Initialize weights to zeros
         self.bias = 0              # Initialize bias to 0
 
         # Perform gradient descent over the specified number of epochs
         for _ in range(self.number_of_epochs):
-            # cost = cost_function(features, targets, self.weight, self.bias)
-            self.weight, self.bias = gradient_descent(features, targets, self.weight, self.bias, self.learn_rate)
+            # cost = cost_function(features, targets, self.weights, self.bias)
+            self.weights, self.bias = gradient_descent(features, targets, self.weights, self.bias, self.learn_rate)
 
     def predict(self, test_features: np.ndarray) -> np.ndarray:
         """
@@ -146,7 +146,7 @@ class LogisticRegression():
         Returns:
             predictions: The prediction targets
         """
-        prob = sigmoid_function(np.dot(test_features, self.weight)) + self.bias
+        prob = sigmoid_function(np.dot(test_features, self.weights) + self.bias)
         predictions = (prob >= 0.5).astype(int)
 
         return predictions

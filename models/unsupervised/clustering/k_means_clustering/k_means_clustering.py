@@ -46,9 +46,9 @@ def maximization_step(features: np.ndarray,
         centroids: The updated centroids
     """
     for i in range(number_of_clusters):
-        idxs = np.where(targets == i)[0]
-        if idxs.size > 0:
-            centroids[i] = np.mean(features[idxs], axis=0)
+        idx = np.where(targets == i)[0]
+        if idx.size > 0:
+            centroids[i] = np.mean(features[idx], axis=0)
     return centroids
 
 class KMeans():
@@ -98,12 +98,12 @@ class KMeans():
             self.centroids = maximization_step(features, self.centroids, targets, self.k)
 
             loss = np.sum(dists_min)
-            if prev_loss is not None and loss == prev_loss:
-                print(f"Converged at epoch {epoch}/{self.max_epochs}")
+            if prev_loss is not None and np.isclose(loss, prev_loss, atol=1e-6):
+                # print(f"Converged at epoch {epoch}/{self.max_epochs}")
                 break
             prev_loss = loss
-        else:
-            print(f"Reached max epochs {self.max_epochs}/{self.max_epochs}")
+        # else:
+        #   print(f"Reached max epochs {self.max_epochs}/{self.max_epochs}")
 
         return targets
 

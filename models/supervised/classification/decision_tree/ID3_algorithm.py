@@ -1,4 +1,5 @@
 import numpy as np
+from collections import Counter
 from .tree import *
 from .utils import entropy, information_gain, split_data
 
@@ -36,7 +37,8 @@ class ID3DecisionTree(Tree):
                             false_branch=false_branch)
 
         # If no further split is possible, return a leaf node
-        return TreeNode(results=targets[0])
+        most_common_class = Counter(targets).most_common(1)[0][0]
+        return TreeNode(results=most_common_class)
 
     def __str__(self) -> str:
         return "ID3 Algorithm"

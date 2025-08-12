@@ -13,7 +13,7 @@ def softmax_function(z: np.ndarray) -> np.ndarray:
     Returns:
         np.ndarray: The output probability distribution after applying softmax
     """
-    exp_z = np.exp(z - np.max(z))  # Numerical stability by subtracting max(z)
+    exp_z = np.exp(z - np.max(z, axis=1, keepdims=True))  # Numerical stability by subtracting max(z)
     return exp_z / np.sum(exp_z, axis=1, keepdims=True)
 
 def cross_entropy(targets: np.ndarray, 

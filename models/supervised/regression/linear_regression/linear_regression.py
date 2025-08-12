@@ -3,7 +3,7 @@ import numpy as np
 
 def cost_function(features: np.ndarray, 
                   targets: np.ndarray, 
-                  weight: float, 
+                  weights: np.ndarray, 
                   bias: float) -> float:
     """
     Computes the mean squared error cost for linear regression
@@ -11,37 +11,29 @@ def cost_function(features: np.ndarray,
     Parameters:
         features: The input feature values 
         targets: The target targets corresponding to the input features 
-        weight: The current weight value of the model
+        weights: The current weight value of the model
         bias: The current bias value of the model
 
     Returns:
         avg_cost: The average cost (mean squared error) for the current weight and bias
     """
-    m = features.shape[0]
-    total_cost = 0
-
-    # Compute the total squared error
-    for i in range(m):
-        x = features[i]
-        y = targets[i]
-        total_cost += (y - (weight * x + bias)) ** 2
-    
-    # Average cost over all data points
-    avg_cost = total_cost / m
-    return avg_cost
+    predictions = np.dot(features, weights) + bias
+    errors = targets - predictions
+    mse = (errors ** 2).mean()
+    return mse
 
 def gradient_descent(features: np.ndarray, 
                      targets: np.ndarray, 
-                     weight: float, 
+                     weights: np.ndarray, 
                      bias: float, 
                      learn_rate: float) -> Tuple[float, float]:
     """
-    Performs one step of gradient descent to update the model's weight and bias
+    Performs one step of gradient descent to update the weight and bias
 
     Parameters:
         features: The input feature values 
         targets: The target targets corresponding to the input features 
-        weight: The current weight value of the model
+        weights: The current weight value of the model
         bias: The current bias value of the model
         learn_rate: The learning rate for gradient descent
 
@@ -50,23 +42,18 @@ def gradient_descent(features: np.ndarray,
         bias: The updated bias value after one step of gradient descent
     """
     m = features.shape[0]
+    predictions = np.dot(features, weights) + bias
+    errors = targets - predictions
 
-    weight_gradient = 0
-    bias_gradient = 0
+    # Compute gradients
+    weights_grad = -(2 / m) * np.dot(features.T, errors)
+    bias_grad = -(2 / m) * np.sum(errors)
 
-    # Calculate gradients for weight and bias
-    for i in range(m):
-        x = features[i]
-        y = targets[i]
+    # Update parameters
+    weights -= learn_rate * weights_grad
+    bias -= learn_rate * bias_grad
 
-        weight_gradient += -(2 / m) * x * (y - ((weight * x) + bias))
-        bias_gradient += -(2 / m) * (y - ((weight * x) + bias))
-    
-    # Update weight and bias based on the gradients and learning rate
-    weight -= (learn_rate * weight_gradient)
-    bias -= (learn_rate * bias_gradient)
-
-    return weight, bias
+    return weights, bias
 
 class LinearRegression():
     def __init__(self, 
@@ -90,16 +77,19 @@ class LinearRegression():
 
         Parameters:
             features: The input features for training 
-            targets: The target targets corresponding to the input features 
+            targets: The target corresponding to the input features 
         """
-        features = features.squeeze()
-        self.weight = 0  # Initialize weight to 0
-        self.bias = 0    # Initialize bias to 0
+        _, n = features.shape
+        self.weights = np.zeros(n)
+        self.bias = 0
 
         # Perform gradient descent over the specified number of epochs
         for _ in range(self.number_of_epochs):
-            self.cost = cost_function(features, targets, self.weight, self.bias)
-            self.weight, self.bias = gradient_descent(features, targets, self.weight, self.bias, self.learn_rate)
+            self.cost = cost_function(features, targets, self.weights, self.bias)
+            self.weights, self.bias = gradient_descent(
+                features, targets, 
+                self.weights, self.bias, self.learn_rate
+            )
     
     def predict(self, test_features: np.ndarray) -> np.ndarray:
         """
@@ -111,7 +101,7 @@ class LinearRegression():
         Returns:
             np.ndarray: Predicted target values
         """
-        predictions = (self.weight * test_features) + self.bias
+        predictions = np.dot(test_features, self.weights) + self.bias
 
         return predictions
     

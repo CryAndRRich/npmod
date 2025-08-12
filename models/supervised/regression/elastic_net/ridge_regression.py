@@ -3,7 +3,7 @@ import numpy as np
 
 def cost_function(features: np.ndarray,
                   targets: np.ndarray,
-                  weight: float,
+                  weights: float,
                   bias: float,
                   reg_rate: float) -> float:
     """
@@ -12,32 +12,23 @@ def cost_function(features: np.ndarray,
     Parameters:
         features: The input feature values
         targets: The target values corresponding to the input features 
-        weight: The current weight value of the model
+        weights: The current weight value of the model
         bias: The current bias value of the model
         reg_rate: The regularization rate (lambda) for L2 penalty
 
     Returns:
         avg_cost: The average cost (MSE + L2 penalty) for the current weight and bias
     """
-    m = features.shape[0]
-    total_error = 0.0
-
-    # Compute sum of squared errors
-    for i in range(m):
-        x = features[i]
-        y = targets[i]
-        total_error += (y - (weight * x + bias)) ** 2
-
-    mse = total_error / m
-    l2_penalty = reg_rate * (weight ** 2)
-
-    avg_cost = mse + l2_penalty
-    return avg_cost
+    predictions = np.dot(features, weights) + bias
+    errors = targets - predictions
+    mse = (errors ** 2).mean()
+    l2_penalty = reg_rate * np.sum(weights ** 2)
+    return mse + l2_penalty
 
 
 def gradient_descent(features: np.ndarray,
                      targets: np.ndarray,
-                     weight: float,
+                     weights: float,
                      bias: float,
                      learn_rate: float,
                      reg_rate: float) -> Tuple[float, float]:
@@ -47,7 +38,7 @@ def gradient_descent(features: np.ndarray,
     Parameters:
         features: The input feature values 
         targets: The target values corresponding to the input features 
-        weight: The current weight value of the model
+        weights: The current weight value of the model
         bias: The current bias value of the model
         learn_rate: The learning rate for gradient descent
         reg_rate: The regularization rate (lambda) for L2 penalty
@@ -57,25 +48,18 @@ def gradient_descent(features: np.ndarray,
         bias: The updated bias value after one step of gradient descent
     """
     m = features.shape[0]
-    weight_grad = 0.0
-    bias_grad = 0.0
+    predictions = np.dot(features, weights) + bias
+    errors = targets - predictions
 
-    # Compute gradients for weight and bias
-    for i in range(m):
-        x = features[i]
-        y = targets[i]
-        error = y - (weight * x + bias)
-        weight_grad += -(2 / m) * x * error
-        bias_grad   += -(2 / m) * error
-    
-    # Add gradient of L2 penalty for weight
-    weight_grad += 2 * reg_rate * weight
+    # Compute gradients
+    weights_grad = -(2 / m) * np.dot(features.T, errors) + 2 * reg_rate * weights
+    bias_grad = -(2 / m) * np.sum(errors)
 
     # Update parameters
-    weight -= learn_rate * weight_grad
-    bias   -= learn_rate * bias_grad
+    weights -= learn_rate * weights_grad
+    bias -= learn_rate * bias_grad
 
-    return weight, bias
+    return weights, bias
 
 class RidgeRegression():
     def __init__(self,
@@ -104,19 +88,17 @@ class RidgeRegression():
             features: The input features for training 
             targets: The target values corresponding to the input features 
         """
-        features = features.squeeze()
-        self.weight = 0.0  # Initialize weight
-        self.bias = 0.0    # Initialize bias
+        _, n = features.shape
+        self.weights = np.zeros(n)  # Initialize weight vector
+        self.bias = 0.0             # Initialize bias
 
-        for _ in range(1, self.number_of_epochs + 1):
-            # Compute current cost with L2 penalty
+        for _ in range(self.number_of_epochs):
             self.cost = cost_function(features, targets,
-                                      self.weight, self.bias,
+                                      self.weights, self.bias,
                                       self.reg_rate)
-            # Update parameters via gradient descent
-            self.weight, self.bias = gradient_descent(
+            self.weights, self.bias = gradient_descent(
                 features, targets,
-                self.weight, self.bias,
+                self.weights, self.bias,
                 self.learn_rate, self.reg_rate
             )
 
@@ -130,8 +112,8 @@ class RidgeRegression():
         Returns:
             np.ndarray: Predicted target values
         """
-        predictions = (self.weight * test_features) + self.bias
-
+        predictions = test_features @ self.weights + self.bias
+        
         return predictions
 
     def __str__(self) -> str:

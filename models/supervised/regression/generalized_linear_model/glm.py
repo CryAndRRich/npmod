@@ -21,21 +21,6 @@ class GLMRegression():
         self.tol = tol
         self._coef = None
 
-    def _link(self, mu: np.ndarray) -> np.ndarray:
-        """
-        Compute the link function g(μ) for the chosen distribution
-
-        Parameters:
-            mu: Array of mean responses 
-
-        Returns:
-            np.ndarray: Transformed linear predictor values η = g(μ).
-        """
-        if self.distribution in ("poisson", "tweedie"):
-            return np.log(mu)
-        # Gamma uses inverse link: η = 1/μ
-        return 1.0 / mu
-
     def _inv_link(self, eta: np.ndarray) -> np.ndarray:
         """
         Compute the inverse link function g⁻¹(η) to map linear predictor to mean response
@@ -46,10 +31,7 @@ class GLMRegression():
         Returns:
             np.ndarray: Mean response values μ
         """
-        if self.distribution in ("poisson", "tweedie"):
-            return np.exp(eta)
-        # Gamma: μ = 1/η
-        return 1.0 / eta
+        return np.exp(eta)
 
     def _d_link(self, mu: np.ndarray) -> np.ndarray:
         """
@@ -61,10 +43,7 @@ class GLMRegression():
         Returns:
             np.ndarray: Derivative values g'(μ)
         """
-        if self.distribution in ("poisson", "tweedie"):
-            return 1.0 / mu
-        # Gamma: derivative of g(μ) = 1/μ is -1/μ²
-        return -1.0 / (mu ** 2)
+        return 1.0 / mu
 
     def _variance(self, mu: np.ndarray) -> np.ndarray:
         """
@@ -78,11 +57,11 @@ class GLMRegression():
         """
         if self.distribution == "poisson":
             return mu
-        if self.distribution == "gamma":
+        elif self.distribution == "gamma":
             return mu ** 2
-        # Tweedie: variance function μ^p with p default to 1.5
-        p = 1.5
-        return mu ** p
+        else:  # tweedie with p=1.5 default
+            p = 1.5
+            return mu ** p
 
     def fit(self, 
             features: np.ndarray, 
@@ -97,30 +76,33 @@ class GLMRegression():
         X = features.squeeze()
         if X.ndim == 1:
             X = X.reshape(-1, 1)
+
         n_samples, n_features = X.shape
         # Add intercept term
         X_design = np.hstack([X, np.ones((n_samples, 1))])
-        # Initialize coefficients
+
         beta = np.zeros(n_features + 1)
 
         for iteration in range(self.max_iter):
-            # Compute linear predictor and mean response
-            eta = self._link(np.clip(X_design @ beta, 1e-8, None))
+            eta = X_design @ beta
+            # Clip eta to avoid overflow in exp()
+            eta = np.clip(eta, -20, 20)  
             mu = self._inv_link(eta)
 
-            # Compute derivative of link and variance
+            # Avoid zeros in mu for division
+            mu = np.clip(mu, 1e-8, None)
+
             g_prime = self._d_link(mu)
             V = self._variance(mu)
+            # Avoid zeros in V
+            V = np.clip(V, 1e-8, None)
 
-            # Compute weights W and working response z for IRLS
             W = (g_prime ** 2) / V
             z = eta + (targets - mu) * g_prime
 
-            # IRLS update: beta_new = (X^T W X)^(-1) X^T W z
             WX = X_design * W[:, np.newaxis]
             beta_new = np.linalg.solve(WX.T @ X_design, WX.T @ z)
 
-            # Check convergence
             if np.linalg.norm(beta_new - beta) < self.tol:
                 beta = beta_new
                 break
@@ -142,8 +124,10 @@ class GLMRegression():
         X = test_features.squeeze()
         if X.ndim == 1:
             X = X.reshape(-1, 1)
+
         X_design = np.hstack([X, np.ones((X.shape[0], 1))])
         eta = X_design @ self._coef
+        eta = np.clip(eta, -20, 20)
         mu = self._inv_link(eta)
 
         return mu

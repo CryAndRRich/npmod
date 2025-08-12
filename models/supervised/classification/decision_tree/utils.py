@@ -111,7 +111,7 @@ def gini_impurity(targets: np.ndarray,
     weighted_counts = np.bincount(targets, weights=weights)
     total_weight = np.sum(weights)
     probs = weighted_counts / total_weight
-    return -np.sum([p ** 2 for p in probs if p > 0])
+    return 1 - np.sum([p ** 2 for p in probs if p > 0])
 
 def gini_index(true_targets: np.ndarray, 
                false_targets: np.ndarray, 
@@ -161,14 +161,25 @@ def chi_square(true_targets: np.ndarray,
     Returns:
         chi_square_stat: Chi-square statistic
     """
-    true = np.bincount(true_targets, weights=true_weights)
-    false = np.bincount(false_targets, weights=false_weights)
-    total = np.bincount(total_targets)
+    if true_weights is None:
+        true_weights = np.ones(len(true_targets))
+    if false_weights is None:
+        false_weights = np.ones(len(false_targets))
 
-    chi_square_stat = 0
-    for observed_true, observed_false, total_count in zip(true, false, total):
-        expected_true = total_count * sum(true) / (sum(true) + sum(false))
-        expected_false = total_count * sum(false) / (sum(true) + sum(false))
+    num_classes = len(np.bincount(total_targets))
+
+    true_counts = np.bincount(true_targets, weights=true_weights, minlength=num_classes)
+    false_counts = np.bincount(false_targets, weights=false_weights, minlength=num_classes)
+    total_counts = np.bincount(total_targets, minlength=num_classes)
+
+    total_true = np.sum(true_counts)
+    total_false = np.sum(false_counts)
+    total_all = total_true + total_false
+
+    chi_square_stat = 0.0
+    for observed_true, observed_false, total_count in zip(true_counts, false_counts, total_counts):
+        expected_true = total_count * (total_true / total_all) if total_all > 0 else 0
+        expected_false = total_count * (total_false / total_all) if total_all > 0 else 0
 
         if expected_true > 0:
             chi_square_stat += ((observed_true - expected_true) ** 2) / expected_true

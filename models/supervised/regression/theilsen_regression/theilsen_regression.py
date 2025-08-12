@@ -1,3 +1,4 @@
+import random
 import numpy as np
 
 class TheilSenRegression():
@@ -11,7 +12,8 @@ class TheilSenRegression():
 
     def fit(self, 
             features: np.ndarray, 
-            targets: np.ndarray) -> None:
+            targets: np.ndarray,
+            max_pairs: int = 100000) -> None:
         """
         Fits the Theil-Sen regression model using the training data
 
@@ -19,18 +21,33 @@ class TheilSenRegression():
             features: The input features for training 
             targets: The target targets corresponding to the input features 
         """
-        x = features.flatten()
-        y = targets.flatten()
-        n = len(x)
+        n_samples, _ = features.shape
+        betas = []
 
-        slopes = []
-        for i in range(n):
-            for j in range(i + 1, n):
-                if x[j] != x[i]:
-                    slopes.append((y[j] - y[i]) / (x[j] - x[i]))
+        max_possible_pairs = n_samples * (n_samples - 1) // 2
+        num_pairs = min(max_pairs, max_possible_pairs)
 
-        self.slope = np.median(slopes)
-        self.intercept = np.median(y - self.slope * x)
+        pairs = set()
+        while len(pairs) < num_pairs:
+            i, j = random.sample(range(n_samples), 2)
+            if i > j:
+                i, j = j, i
+            pairs.add((i, j))
+
+        for i, j in pairs:
+            diff_x = features[j] - features[i]
+            if np.all(diff_x == 0):
+                continue
+            diff_y = targets[j] - targets[i]
+            beta_ij = diff_y / np.linalg.norm(diff_x) ** 2 * diff_x
+            betas.append(beta_ij)
+
+        betas = np.array(betas)
+        if betas.size == 0:
+            raise ValueError("Cannot compute slopes: all features differences are zero")
+
+        self.slope = np.median(betas, axis=0)
+        self.intercept = np.median(targets - features @ self.slope)
 
     def predict(self, test_features: np.ndarray) -> np.ndarray:
         """
@@ -42,7 +59,7 @@ class TheilSenRegression():
         Returns:
             np.ndarray: Predicted target values
         """
-        predictions = self.slope * test_features + self.intercept
+        predictions = test_features @ self.slope + self.intercept
 
         return predictions
 

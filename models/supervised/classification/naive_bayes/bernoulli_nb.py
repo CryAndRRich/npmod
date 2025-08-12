@@ -9,6 +9,7 @@ class BernoulliNaiveBayes():
             alpha: Smoothing parameter for Laplace smoothing
         """
         self.alpha = alpha
+        self.eps = 1e-9
 
     def fit(self, 
             features: np.ndarray, 
@@ -20,29 +21,19 @@ class BernoulliNaiveBayes():
             features: Input features for training
             targets: Corresponding targets for the input features
         """
-        self.features = features
-        self.targets = targets
         self.unique_targets = np.unique(targets)
+        self.num_classes = len(self.unique_targets)
+        self.num_features = features.shape[1]
 
-        _, self.num_features = self.features.shape
-        self.num_classes = self.unique_targets.shape[0]
+        self.class_feature_probs = {}
+        self.class_priors = {}
 
-    def bernoulli_distribution(self, data: np.ndarray) -> np.ndarray:
-        """
-        Computes the Bernoulli distribution for the feature set
+        for target in self.unique_targets:
+            class_features = features[targets == target]
+            mu = (class_features.sum(axis=0) + self.alpha) /  (class_features.shape[0] + 2 * self.alpha)
+            self.class_feature_probs[target] = mu
+            self.class_priors[target] = np.mean(targets == target)
 
-        Parameters:
-            data: Input feature data for calculating probabilities
-
-        Returns:
-            mu: Bernoulli probabilities for each feature
-        """
-        numerator = data.sum(axis=0) + self.alpha
-        denominator = data.shape[0] + 2 * self.alpha
-
-        mu = numerator / denominator
-        return mu
-    
     def predict(self, test_features: np.ndarray) -> np.ndarray:
         """
         Makes predictions on the test set and evaluates the model
@@ -53,23 +44,26 @@ class BernoulliNaiveBayes():
         Returns:
             predictions: The prediction targets
         """
-        num_samples, _ = test_features.shape
-
+        num_samples = test_features.shape[0]
         predictions = np.empty(num_samples)
-        for ind, feature in enumerate(test_features):
+
+        for i in range(num_samples):
+            feature = test_features[i]
             posteriors = []
-            for _, target in enumerate(self.unique_targets):
-                prior = np.log((self.targets == target).mean())
-                target_feature = self.features[self.targets == target, :]
 
-                mu = self.bernoulli_distribution(target_feature)
-                likelihood = np.log(mu).dot(feature.T) + np.log(1 - mu).dot(1 - feature.T)
+            for target in self.unique_targets:
+                mu = self.class_feature_probs[target]
+                prior_log = np.log(self.class_priors[target] + self.eps)
 
-                posteriors.append(prior + likelihood)
-            
-            predictions[ind] = self.unique_targets[np.argmax(posteriors)]
+                # Bernoulli log-likelihood
+                log_likelihood = np.sum(
+                    feature * np.log(mu + self.eps) + 
+                    (1 - feature) * np.log(1 - mu + self.eps)
+                )
+                posteriors.append(prior_log + log_likelihood)
+
+            predictions[i] = self.unique_targets[np.argmax(posteriors)]
 
         return predictions
-    
     def __str__(self) -> str:
         return "Bernoulli Naive Bayes"

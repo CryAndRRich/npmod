@@ -3,7 +3,7 @@ import numpy as np
 
 def cost_function(features: np.ndarray,
                   targets: np.ndarray,
-                  weight: float,
+                  weights: float,
                   bias: float,
                   reg_rate: float) -> float:
     """
@@ -12,32 +12,22 @@ def cost_function(features: np.ndarray,
     Parameters:
         features: The input feature values
         targets: The target values corresponding to the input features 
-        weight: The current weight value of the model
+        weights: The current weight value of the model
         bias: The current bias value of the model
         reg_rate: The regularization rate (lambda) for L1 penalty
 
     Returns:
         avg_cost: The average cost (MSE + L1 penalty) for the current weight and bias
     """
-    m = features.shape[0]
-    total_error = 0.0
-
-    # Compute sum of squared errors
-    for i in range(m):
-        x = features[i]
-        y = targets[i]
-        total_error += (y - (weight * x + bias)) ** 2
-
-    mse = total_error / m
-    l1_penalty = reg_rate * abs(weight)
-
-    avg_cost = mse + l1_penalty
-    return avg_cost
-
+    predictions = features @ weights + bias
+    errors = targets - predictions
+    mse = np.mean(errors ** 2)
+    l1_penalty = reg_rate * np.sum(np.abs(weights))
+    return mse + l1_penalty
 
 def gradient_descent(features: np.ndarray,
                      targets: np.ndarray,
-                     weight: float,
+                     weights: float,
                      bias: float,
                      learn_rate: float,
                      reg_rate: float) -> Tuple[float, float]:
@@ -47,7 +37,7 @@ def gradient_descent(features: np.ndarray,
     Parameters:
         features: The input feature values 
         targets: The target values corresponding to the input features 
-        weight: The current weight value of the model
+        weights: The current weight value of the model
         bias: The current bias value of the model
         learn_rate: The learning rate for gradient descent
         reg_rate: The regularization rate (lambda) for L1 penalty
@@ -57,29 +47,20 @@ def gradient_descent(features: np.ndarray,
         bias: The updated bias value after one step of gradient descent
     """
     m = features.shape[0]
-    weight_grad = 0.0
-    bias_grad = 0.0
+    predictions = features @ weights + bias
+    errors = targets - predictions
 
-    # Compute gradients for weight and bias
-    for i in range(m):
-        x = features[i]
-        y = targets[i]
-        error = y - (weight * x + bias)
-        weight_grad += -(2 / m) * x * error
-        bias_grad   += -(2 / m) * error
+    # Gradients
+    weight_grad = -(2 / m) * (features.T @ errors)
+    bias_grad = -(2 / m) * np.sum(errors)
 
-    # Add subgradient of L1 penalty for weight
-    if weight > 0:
-        weight_grad += reg_rate
-    elif weight < 0:
-        weight_grad -= reg_rate
-    # if weight == 0, subgradient can be anything between [-reg_rate, reg_rate]; we leave it
+    # Add sub-gradient for L1 regularization
+    weight_grad += reg_rate * np.sign(weights)
 
-    # Update parameters
-    weight -= learn_rate * weight_grad
-    bias   -= learn_rate * bias_grad
+    weights -= learn_rate * weight_grad
+    bias -= learn_rate * bias_grad
 
-    return weight, bias
+    return weights, bias
 
 class LassoRegression():
     def __init__(self,
@@ -108,19 +89,14 @@ class LassoRegression():
             features: The input features for training 
             targets: The target values corresponding to the input features 
         """
-        features = features.squeeze()
-        self.weight = 0.0  # Initialize weight
-        self.bias = 0.0    # Initialize bias
+        _, n = features.shape
+        self.weights = np.zeros(n)
+        self.bias = 0.0
 
-        for _ in range(1, self.number_of_epochs + 1):
-            # Compute current cost with L1 penalty
-            self.cost = cost_function(features, targets,
-                                      self.weight, self.bias,
-                                      self.reg_rate)
-            # Update parameters via gradient descent
-            self.weight, self.bias = gradient_descent(
-                features, targets,
-                self.weight, self.bias,
+        for _ in range(self.number_of_epochs):
+            self.cost = cost_function(features, targets, self.weights, self.bias, self.reg_rate)
+            self.weights, self.bias = gradient_descent(
+                features, targets, self.weights, self.bias,
                 self.learn_rate, self.reg_rate
             )
 
@@ -134,7 +110,7 @@ class LassoRegression():
         Returns:
             np.ndarray: Predicted target values
         """
-        predictions = (self.weight * test_features) + self.bias
+        predictions = test_features @ self.weights + self.bias
 
         return predictions
 

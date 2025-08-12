@@ -1,141 +1,120 @@
-from typing import Tuple
 import numpy as np
+from typing import Tuple
 
 def cost_function(features: np.ndarray,
                   targets: np.ndarray,
-                  weight: float,
+                  weights: np.ndarray,
                   bias: float,
-                  reg_rate: float) -> float:
+                  alpha: float,
+                  l1_ratio: float) -> float:
     """
-    Computes the mean squared error cost for ElasticNet regression with L1, L2 regularization
+    Compute ElasticNet cost function: MSE + L1 + L2 penalty
 
     Parameters:
-        features: The input feature values
-        targets: The target values corresponding to the input features 
-        weight: The current weight value of the model
-        bias: The current bias value of the model
-        reg_rate: The regularization rate (lambda) for L1 and L2 penalty
+        features: Feature matrix
+        targets: Target vector
+        weights: Weight vector
+        bias: Bias term.
+        alpha: Regularization strength.
+        l1_ratio: Ratio between L1 and L2 penalty
 
     Returns:
-        avg_cost: The average cost (MSE + L1 and L2 penalty) for the current weight and bias
+        float: Computed cost value
     """
-    m = features.shape[0]
-    total_error = 0.0
-
-    # Compute sum of squared errors
-    for i in range(m):
-        x = features[i]
-        y = targets[i]
-        total_error += (y - (weight * x + bias)) ** 2
-
-    mse = total_error / m
-    l1_penalty = reg_rate * abs(weight)
-    l2_penalty = reg_rate * (weight ** 2)
-
-    avg_cost = mse + l1_penalty + l2_penalty
-    return avg_cost
+    preds = features @ weights + bias
+    mse = np.mean((targets - preds) ** 2)
+    l1_penalty = alpha * l1_ratio * np.sum(np.abs(weights))
+    l2_penalty = alpha * (1 - l1_ratio) * np.sum(weights ** 2)
+    return mse + l1_penalty + l2_penalty
 
 
 def gradient_descent(features: np.ndarray,
                      targets: np.ndarray,
-                     weight: float,
+                     weights: np.ndarray,
                      bias: float,
                      learn_rate: float,
-                     reg_rate: float) -> Tuple[float, float]:
+                     alpha: float,
+                     l1_ratio: float) -> Tuple[np.ndarray, float]:
     """
-    Performs one step of gradient descent for ElasticNet regression (L1 regularization)
+    Perform one step of gradient descent for ElasticNet regression
 
     Parameters:
-        features: The input feature values 
-        targets: The target values corresponding to the input features 
-        weight: The current weight value of the model
-        bias: The current bias value of the model
-        learn_rate: The learning rate for gradient descent
-        reg_rate: The regularization rate (lambda) for L1 and L2 penalty
+        features: Feature matrix
+        targets: Target vector
+        weights: Current weights
+        bias: Current bias
+        learn_rate: Learning rate
+        alpha: Regularization strength
+        l1_ratio: Ratio between L1 and L2 penalty
 
     Returns:
-        weight: The updated weight value after one step of gradient descent
-        bias: The updated bias value after one step of gradient descent
+        Tuple[np.ndarray, float]: Updated weight vector and bias
     """
     m = features.shape[0]
-    weight_grad = 0.0
-    bias_grad = 0.0
+    preds = features @ weights + bias
+    errors = targets - preds
 
-    # Compute gradients for weight and bias
-    for i in range(m):
-        x = features[i]
-        y = targets[i]
-        error = y - (weight * x + bias)
-        weight_grad += -(2 / m) * x * error
-        bias_grad   += -(2 / m) * error
+    w_grad = -(2 / m) * (features.T @ errors)
+    b_grad = -(2 / m) * np.sum(errors)
 
-    # Add subgradient of L1, L2 penalty for weight
-    weight_grad += reg_rate * np.sign(weight)
-    weight_grad += 2 * reg_rate * weight
+    # Regularization terms
+    w_grad += alpha * l1_ratio * np.sign(weights)               
+    w_grad += 2 * alpha * (1 - l1_ratio) * weights            
 
-    # Update parameters
-    weight -= learn_rate * weight_grad
-    bias   -= learn_rate * bias_grad
+    weights -= learn_rate * w_grad
+    bias -= learn_rate * b_grad
+    return weights, bias
 
-    return weight, bias
 
-class ElasticNetRegression():
+class ElasticNetRegression:
     def __init__(self,
-                 learn_rate: float,
-                 number_of_epochs: int,
-                 reg_rate: float) -> None:
+                 learn_rate: float = 0.01,
+                 number_of_epochs: int = 1000,
+                 alpha: float = 0.1,
+                 l1_ratio: float = 0.5):
         """
-        Initializes the ElasticNet Regression model using manual gradient descent
-
         Parameters:
-            learn_rate: The learning rate for gradient descent
-            number_of_epochs: The number of training iterations to run
-            reg_rate: The regularization rate (lambda) for L1 and L2 penalty
+            learn_rate: Learning rate.
+            number_of_epochs: Number of iterations for gradient descent.
+            alpha: Regularization strength.
+            l1_ratio: Ratio between L1 and L2 penalty.
         """
         self.learn_rate = learn_rate
         self.number_of_epochs = number_of_epochs
-        self.reg_rate = reg_rate
+        self.alpha = alpha
+        self.l1_ratio = l1_ratio
 
-    def fit(self,
-            features: np.ndarray,
-            targets: np.ndarray) -> None:
+    def fit(self, features: np.ndarray, targets: np.ndarray) -> None:
         """
-        Trains the ElasticNet regression model on the input data using gradient descent
+        Train the ElasticNet regression model.
 
         Parameters:
-            features: The input features for training 
-            targets: The target values corresponding to the input features 
+            features: Feature matrix
+            targets: Target vector
         """
-        features = features.squeeze()
-        self.weight = 0.0  # Initialize weight
-        self.bias = 0.0    # Initialize bias
+        n_features = features.shape[1]
+        self.weights = np.zeros(n_features)
+        self.bias = 0.0
+        self.cost_history = []
 
-        for _ in range(1, self.number_of_epochs + 1):
-            # Compute current cost with L1 and L2 penalty
-            self.cost = cost_function(features, targets,
-                                      self.weight, self.bias,
-                                      self.reg_rate)
-            # Update parameters via gradient descent
-            self.weight, self.bias = gradient_descent(
-                features, targets,
-                self.weight, self.bias,
-                self.learn_rate, self.reg_rate
-            )
+        for _ in range(self.number_of_epochs):
+            cost = cost_function(features, targets, self.weights, self.bias, self.alpha, self.l1_ratio)
+            self.cost_history.append(cost)
+            self.weights, self.bias = gradient_descent(features, targets, self.weights, self.bias,
+                                              self.learn_rate, self.alpha, self.l1_ratio)
 
-    def predict(self, test_features: np.ndarray):
-
+    def predict(self, test_features: np.ndarray) -> np.ndarray:
         """
-        Predict continuous target values for given samples
+        Predict target values for given input features.
 
         Parameters:
-            test_features: Test feature matrix 
+            test_features: Feature matrix for prediction
 
         Returns:
-            np.ndarray: Predicted target values
+            np.ndarray: Predicted target values.
         """
-        predictions = (self.weight * test_features) + self.bias
-
+        predictions = test_features @ self.weights + self.bias
         return predictions
-
+    
     def __str__(self) -> str:
-        return "ElasticNet Regression"
+            return "ElasticNet Regression"

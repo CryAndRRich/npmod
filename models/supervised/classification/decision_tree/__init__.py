@@ -6,7 +6,7 @@ from .C50_algorithm import C50DecisionTree
 from .CART_algorithm import CARTDecisionTree
 from .CHAID_algorithm import CHAIDDecisionTree
 from .CITs_algorithm import CITsDecisionTree
-from .OC1_algorithm import OC1DecisionTree
+from .OCT1_algorithm import OCT1DecisionTree
 from .QUEST_algorithm import QUESTDecisionTree
 from .TAO_algorithm import TAODecisionTree
 
@@ -24,10 +24,10 @@ class DecisionTreeClassifier():
 
         Parameters:
             algorithm: The type of decision tree algorithm to use
-            Supported values are: 'ID3', 'C4.5', 'C5.0/See5', 'CART', 'CHAID', 'CITs', 'OC1', 'QUEST' and 'TAO'
+            Supported values are: 'ID3', 'C4.5', 'C5.0/See5', 'CART', 'CHAID', 'CITs', 'OCT1', 'QUEST' and 'TAO'
         """
 
-        self.algorithms = ["ID3", "C4.5", "C5.0", "CART", "CHAID", "CITs", "OC1", "QUEST", "TAO"]
+        self.algorithms = ["ID3", "C4.5", "C5.0", "CART", "CHAID", "CITs", "OCT1", "QUEST", "TAO"]
         if algorithm is None:
             tree_type = random.randint(0, len(self.algorithms) - 1)
             algorithm=self.algorithms[tree_type]
@@ -44,8 +44,8 @@ class DecisionTreeClassifier():
             self.inherit = CHAIDDecisionTree()
         elif algorithm == "CITs":
             self.inherit = CITsDecisionTree()
-        elif algorithm == "OC1":
-            self.inherit = OC1DecisionTree()
+        elif algorithm == "OCT1":
+            self.inherit = OCT1DecisionTree()
         elif algorithm == "QUEST":
             self.inherit = QUESTDecisionTree()
         elif algorithm == "TAO":
@@ -53,7 +53,7 @@ class DecisionTreeClassifier():
         else:
             raise ValueError(
                 f"Unsupported algorithm '{algorithm}'. Supported types of algorithm are "
-                f"'ID3', 'C4.5', 'C5.0/See5', 'CART', 'CHAID', 'CITs', 'OC1', 'QUEST' and 'TAO'"
+                f"'ID3', 'C4.5', 'C5.0/See5', 'CART', 'CHAID', 'CITs', 'OCT1', 'QUEST' and 'TAO'"
             )
     
     def fit(self, 
