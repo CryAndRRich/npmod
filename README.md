@@ -40,31 +40,33 @@ npmod/nn/
     └── adam/
 ```
 ## models:
-Every model is built using NumPy or PyTorch (or both)
+Every model is built using NumPy or PyTorch
 
 ```
 models/
 ├── supervised/
 │   ├── classification/
 │   │   ├── decision_tree/
-│   │   │   ├── id3, c4.5, c5.0 algorithm/
-│   │   │   ├── cart algorithm/
-│   │   │   ├── chaid algorithm/
-│   │   │   ├── cits algorithm/
-│   │   │   ├── oc1 algorithm/
-│   │   │   └── quest, tao algorithm/
+│   │   │   ├── id3, c4.5, c5.0/
+│   │   │   ├── cart/
+│   │   │   ├── chaid/
+│   │   │   ├── cits/
+│   │   │   ├── oc1/
+│   │   │   └── quest, tao/
 │   │   ├── k_nearest_neighbors/
 │   │   ├── logistic_regression/
 │   │   ├── naive_bayes/
-│   │   │   ├── gaussian_nb/
-│   │   │   ├── multinomial_nb/
-│   │   │   ├── bernoulli_nb/
-│   │   │   └── categorical_nb/
+│   │   │   ├── gaussian/
+│   │   │   ├── multinomial/
+│   │   │   ├── bernoulli/
+│   │   │   └── categorical/
 │   │   ├── perceptron_learning/
 │   │   ├── softmax_regression/
 │   │   └── support_vector_machines/
+│   │
 │   ├── regression/
 |   |   ├── decision_tree/
+│   │   ├── k_nearest_neighbors/
 │   │   ├── elastic_net/
 │   │   │   ├── lasso_regression/
 │   │   │   └── ridge_regression/
@@ -74,6 +76,7 @@ models/
 │   │   ├── theilsen_regression/
 │   │   ├── bayes_linear_regression/
 │   │   └── linear_regression/
+│   │
 │   └── ensemble/
 │       ├── bagging/
 │       |   └── random_forest/
@@ -83,15 +86,42 @@ models/
 │           ├── lightgbm/
 │           ├── xgboost/
 │           └── catboost/
+│
 ├── unsupervised/
 │   ├── clustering/
-|   |   ├── affinity_propagation/
-│   │   ├── agglomerative_clustering/
-│   │   ├── dbscan/
-│   │   ├── gaussian_mixture_model/
-│   │   ├── k_means_clustering/
-│   │   ├── optics/
-│   │   └── spectral_clustering/
+|   |   ├── partition_based/
+|   |   |   ├── k_means/
+|   |   |   ├── k_medians/
+|   |   |   ├── k_medoids/
+|   |   |   ├── ik_means/
+|   |   |   └── affinity_propagation/
+|   |   |
+│   │   ├── tree_based/
+|   |   |   ├── agglomerative/
+|   |   |   ├── divisive/
+|   |   |   ├── cure/
+|   |   |   └── chameleon/
+|   |   |
+│   │   ├── density_based/
+|   |   |   ├── dbscan/
+|   |   |   ├── hdbscan/
+|   |   |   ├── denclue/
+|   |   |   └── optics/
+|   |   |
+│   │   ├── grid_based/
+|   |   |   ├── gridclus/
+|   |   |   ├── sting/
+|   |   |   ├── waveclus/
+|   |   |   ├── gdilc/
+|   |   |   └── amr/
+|   |   |
+│   │   ├── graph_based/
+|   |   |   └── spectral_clustering/
+|   |   |
+│   │   └── model_based/
+|   |       ├── bayesian_gaussian_mixture_model/
+|   |       └── gaussian_mixture_model/
+|   |  
 │   └── dimensionality_reduction/
 │       ├── isomap/
 │       ├── lda/

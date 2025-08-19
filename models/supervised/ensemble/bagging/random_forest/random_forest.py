@@ -2,90 +2,99 @@ import numpy as np
 import random
 from ....classification import DecisionTreeClassifier
 
-random.seed(42)
-
 class RandomForest():
-    def __init__(self, n_tree: int = 10) -> None:
+    def __init__(self,
+                 n_estimators: int = 100,
+                 max_features: str | int | float = "sqrt",
+                 max_depth: int | None = None,
+                 random_state: int | None = None) -> None:
         """
-        Initialize a Random Forest with multiple decision trees
+        Random Forest Classifier
         
         Parameters:
-            n_tree: Number of trees in the forest
+            n_estimators: Number of trees in the forest
+            max_features: Number of features to consider at each split
+                          - "sqrt": sqrt(n_features)
+                          - "log2": log2(n_features)
+                          - int: fixed number
+                          - float: fraction of features
+            max_depth: Maximum depth of each tree (None = unlimited)
+            random_state: Seed for reproducibility
         """
-        self.n_tree = n_tree
+        self.n_estimators = n_estimators
+        self.max_features = max_features
+        self.max_depth = max_depth
+        self.random_state = random_state
         self.trees = []
-        self.tree_names = []
-
-        self.algorithms = ["ID3", "C4.5", "C5.0", "CART", "CHAID", "CITs", "OC1", "QUEST", "TAO"]
-        # Initialize a counter for each algorithm
-        algo_counter = {algo: 0 for algo in self.algorithms}
-        # Determine the maximum threshold for each algorithm:
-        # If n_tree > 1, each algorithm is allowed to appear at most n_tree // 2 times
-        # If n_tree == 1, there is only one tree, so no restriction is needed
-        threshold = n_tree if n_tree == 1 else n_tree // 2
         
-        for _ in range(self.n_tree):
-            # Get the list of algorithms that have not yet reached the maximum threshold
-            available_algos = [algo for algo in self.algorithms if algo_counter[algo] < threshold]
-            
-            chosen_algo = random.choice(available_algos)
-            algo_counter[chosen_algo] += 1
-            
-            tree = DecisionTreeClassifier(algorithm=chosen_algo)
-            self.trees.append(tree)
-            self.tree_names.append(str(tree))
-    
+        if random_state is not None:
+            np.random.seed(random_state)
+            random.seed(random_state)
+
+    def _get_n_features(self, n_features: int) -> int:
+        """Determine number of features to use at each split"""
+        if isinstance(self.max_features, int):
+            return min(n_features, self.max_features)
+        elif isinstance(self.max_features, float):
+            return max(1, int(self.max_features * n_features))
+        elif self.max_features == "sqrt":
+            return max(1, int(np.sqrt(n_features)))
+        elif self.max_features == "log2":
+            return max(1, int(np.log2(n_features)))
+        else:
+            return n_features
+
     def fit(self, 
             features: np.ndarray, 
             targets: np.ndarray) -> None:
         """
-        Train the Random Forest by creating multiple decision trees
+        Fit the Random Forest model on training data
         
         Parameters:
-            features: Feature matrix of the training data
-            targets: Array of targets corresponding to the training data
+            features: Feature matrix
+            targets: Target labels 
         """
-        n_samples, _ = features.shape
-        
-        for ind in range(self.n_tree):
+        n_samples, n_features = features.shape
+        self.trees = []
+        n_feats_per_tree = self._get_n_features(n_features)
+
+        for _ in range(self.n_estimators):
             # Bootstrap sampling
             indices = np.random.choice(n_samples, size=n_samples, replace=True)
-            sample_features = features[indices]
-            sample_targets = targets[indices]
+            X_sample, y_sample = features[indices], targets[indices]
             
-            # Build a decision tree
-            tree = self.trees[ind] 
-            tree.fit(sample_features, sample_targets)
-    
+            # Random subset of features
+            feat_indices = np.random.choice(n_features, size=n_feats_per_tree, replace=False)
+            
+            # Build tree
+            tree = DecisionTreeClassifier()
+            tree.fit(X_sample[:, feat_indices], y_sample)
+            self.trees.append((tree, feat_indices))
+
     def predict(self, test_features: np.ndarray) -> np.ndarray:
         """
-        Makes predictions on the test set and evaluates the model
-
-        Parameters:
-            test_features: The input features for testing
-
-        Returns:
-            predictions: The prediction targets
-        """
-        num_samples, _ = test_features.shape
-        tree_predictions = [tree.predict(test_features) for tree in self.trees]
-
-        final_predictions = np.zeros(num_samples)
-        for i in range(num_samples):
-            predictions = {}
-            for j in range(self.n_tree):
-                pred = tree_predictions[j][i]
-                if pred not in predictions:
-                    predictions[pred] = 0
-                predictions[pred] += 1
-            
-            final_predictions[i] = sorted([(val, key) for key, val in predictions.items()], reverse=True)[0][1]
+        Predict class labels for samples in features.
         
-        return final_predictions
+        Parameters:
+            test_features: Feature matrix (n_samples, n_features)
+        
+        Returns:
+            preds: Predicted labels (n_samples,)
+        """
+        all_preds = []
+        for tree, feat_indices in self.trees:
+            preds = tree.predict(test_features[:, feat_indices])
+            all_preds.append(preds)
+        
+        all_preds = np.array(all_preds).T 
+        
+        # Majority voting
+        final_preds = []
+        for row in all_preds:
+            values, counts = np.unique(row, return_counts=True)
+            final_preds.append(values[np.argmax(counts)])
+        
+        return np.array(final_preds)
     
     def __str__(self) -> str:
-        self.forest = """Random Forest:\n"""
-        for tree in self.tree_names:
-            self.forest += "- " + tree + "\n"
-
-        return self.forest
+        return "Random Forest"
