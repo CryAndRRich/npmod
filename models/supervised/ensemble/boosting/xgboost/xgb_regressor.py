@@ -26,8 +26,8 @@ class XGBRegressor():
             reg_lambda: L2 regularization term on leaf weights (λ)
             gamma: Minimum loss reduction required to make a split (γ)
         """
-        self.eta = learn_rate
-        self.K = n_estimators
+        self.learn_rate = learn_rate
+        self.n_estimators = n_estimators
         self.tree_kwargs = dict(
             max_depth=max_depth,
             min_samples_split=min_samples_split,
@@ -49,17 +49,23 @@ class XGBRegressor():
             features: Training features, shape (n_samples, n_features)
             targets: True target values, shape (n_samples,)
         """
+        # Initial prediction: mean of targets
         self.init_pred = np.mean(targets)
         predictions = np.full_like(targets, fill_value=self.init_pred, dtype=float)
 
-        for _ in range(self.K):
-            # For squared error: g = f - targets, h = 1
+        for _ in range(self.n_estimators):
+            # Squared error gradient and hessian
             grad = predictions - targets
             hess = np.ones_like(targets)
+
+            # Fit tree
             tree = XGTreeRegressor(**self.tree_kwargs)
             tree.fit(features, grad, hess)
             update = tree.predict(features)
-            predictions -= self.eta * update
+
+            # Update predictions with correct sign
+            predictions += self.learn_rate * update
+
             self.trees.append(tree)
 
     def predict(self, test_features: np.ndarray) -> np.ndarray:
@@ -74,8 +80,7 @@ class XGBRegressor():
         """
         predictions = np.full(shape=(test_features.shape[0],), fill_value=self.init_pred, dtype=float)
         for tree in self.trees:
-            predictions -= self.eta * tree.predict(test_features)
-
+            predictions += self.learn_rate * tree.predict(test_features)
         return predictions
     
     def __str__(self) -> str:

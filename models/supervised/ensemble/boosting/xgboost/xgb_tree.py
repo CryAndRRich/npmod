@@ -15,8 +15,8 @@ class XGTreeRegressor(DecisionTreeRegressor):
             n_feats: Number of features to consider when looking for the best split
             max_depth: Maximum depth of the tree
             min_samples_split: Minimum number of samples required to split an internal node
-            reg_lambda: L2 regularization term on leaf weights (λ)
-            gamma: Minimum loss reduction required to make a split (γ)
+            reg_lambda: L2 regularization term on leaf weights
+            gamma: Minimum loss reduction required to make a split
         """
         super().__init__(n_feats=n_feats,
                          max_depth=max_depth,
@@ -33,7 +33,7 @@ class XGTreeRegressor(DecisionTreeRegressor):
         Fit the tree to gradients and hessians
 
         Parameters:
-            features: Training feature matrix of shape (n_samples, n_features)
+            features: Training feature matrix
             grad: First-order gradients g_i for each sample
             hess: Second-order hessians h_i for each sample
         """
@@ -131,11 +131,20 @@ class XGTreeRegressor(DecisionTreeRegressor):
             H_T: Sum of hessians at parent node (H_L + H_R)
 
         Returns:
-            float: Gain value = 0.5 * [G_L^2/(H_L+λ) + G_R^2/(H_R+λ) - G_T^2/(H_T+λ)] - γ
+            float: Gain value
         """
-        left = G_L ** 2 / (H_L + self.reg_lambda)
-        right = G_R ** 2 / (H_R + self.reg_lambda)
-        total = G_T ** 2 / (H_T + self.reg_lambda)
+        eps = 1e-12
+
+        denom_L = H_L + self.reg_lambda
+        denom_R = H_R + self.reg_lambda
+        denom_T = H_T + self.reg_lambda
+
+        if denom_L <= eps or denom_R <= eps or denom_T <= eps:
+            return -np.inf
+
+        left = (G_L ** 2) / denom_L
+        right = (G_R ** 2) / denom_R
+        total = (G_T ** 2) / denom_T
         return 0.5 * (left + right - total) - self.gamma
 
     def _leaf_weight(self, 
@@ -149,6 +158,16 @@ class XGTreeRegressor(DecisionTreeRegressor):
             H: Sum of hessians for samples at this leaf
 
         Returns:
-            float: Leaf weight = -G / (H + λ)
+            float: Leaf weight
         """
-        return -G / (H + self.reg_lambda)
+        eps  = 1e-12,
+        max_abs_weight = 1e6
+        denom = H + self.reg_lambda
+        if denom <= eps:
+            denom = eps
+        w = -G / denom
+        if not np.isfinite(w):
+            w = np.sign(w) * max_abs_weight
+        else:
+            w = np.clip(w, -max_abs_weight, max_abs_weight)
+        return float(w)

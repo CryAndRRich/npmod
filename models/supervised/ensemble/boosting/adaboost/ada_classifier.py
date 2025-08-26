@@ -1,5 +1,5 @@
 import numpy as np
-from ....regression import DecisionTreeRegressor
+from ....classification import DecisionTreeClassifier
 
 class AdaBoostClassifier():
     def __init__(self,
@@ -10,7 +10,6 @@ class AdaBoostClassifier():
                  n_feats: int = None) -> None:
         """
         AdaBoost Classifier using custom DecisionTreeRegressor as weak learner
-        for binary classification with exponential loss
 
         Parameters:
             learn_rate: The learning rate (shrinkage) for the weak learner weights
@@ -27,6 +26,7 @@ class AdaBoostClassifier():
 
         self.trees = []
         self.alphas = []
+        self.classes_ = None
 
     def fit(self,
             features: np.ndarray,
@@ -35,70 +35,62 @@ class AdaBoostClassifier():
         Train the AdaBoost classifier
 
         Parameters:
-            features: Training feature matrix, shape (n_samples, n_features)
-            targets: Binary target vector of 0s and 1s
+            features: Training feature matrix
+            targets: Target vector
         """
         n_samples = features.shape[0]
-        # Convert targets to {-1, +1}
-        y = np.where(targets == 1, 1, -1)
+        self.classes_ = np.unique(targets)
+        K = len(self.classes_)
 
-        # Initialize sample weights uniformly
-        sample_weights = np.full(shape=n_samples, fill_value=1.0 / n_samples, dtype=float)
+        # initialize uniform weights
+        sample_weights = np.full(n_samples, 1.0 / n_samples)
 
         for _ in range(self.number_of_epochs):
-            # Fit a regression tree to the weighted samples
-            tree = DecisionTreeRegressor(
-                n_feats=self.n_feats,
-                max_depth=self.max_depth,
-                min_samples_split=self.min_samples_split
+            # weak learner
+            stump = DecisionTreeClassifier(
+                algorithm = "ID3"
             )
-            # Assuming DecisionTreeRegressor supports sample_weight kwarg
-            tree.fit(features, y, sample_weight=sample_weights)  
+            stump.fit(features, targets)
 
-            # Get predictions in {-1, +1}
-            pred_raw = tree.predict(features, np.zeros_like(y), get_accuracy=False)
-            h = np.where(pred_raw >= 0.5, 1, -1)
+            # predictions
+            preds = stump.predict(features)
 
-            # Compute weighted error
-            incorrect = (h != y).astype(float)
+            # weighted error
+            incorrect = (preds != targets).astype(float)
             err = np.dot(sample_weights, incorrect) / np.sum(sample_weights)
-
-            # Avoid division by zero / perfect fit
             err = np.clip(err, 1e-10, 1 - 1e-10)
 
-            # Compute model weight
-            alpha = self.learn_rate * 0.5 * np.log((1 - err) / err)
+            # alpha (SAMME)
+            alpha = self.learn_rate * (np.log((1 - err) / err) + np.log(K - 1))
 
-            # Update sample weights
-            sample_weights *= np.exp(-alpha * y * h)
+            # update weights
+            sample_weights *= np.exp(alpha * incorrect)
             sample_weights /= np.sum(sample_weights)
 
-            # Save the weak learner and its weight
-            self.trees.append(tree)
+            # store
+            self.trees.append(stump)
             self.alphas.append(alpha)
 
     def predict(self, test_features: np.ndarray) -> np.ndarray:
         """
-        Predict using the trained AdaBoost model.
+        Predict using the trained AdaBoost model
 
         Parameters:
-            test_features: Test feature matrix, shape (n_samples, n_features)
+            test_features: Test feature matrix
 
         Returns:
-            np.ndarray: Predicted binary labels (0 or 1)
+            np.ndarray: Predicted labels
         """
-        # Aggregate weighted predictions
-        agg = np.zeros(shape=(test_features.shape[0],), dtype=float)
-        for tree, alpha in zip(self.trees, self.alphas):
-            pred_raw = tree.predict(test_features, np.zeros_like(agg), get_accuracy=False)
-            h = np.where(pred_raw >= 0.5, 1, -1)
-            agg += alpha * h
+        n_samples = test_features.shape[0]
+        K = len(self.classes_)
+        class_scores = np.zeros((n_samples, K))
 
-        # Convert sign to (0, 1)
-        pred_sign = np.sign(agg)
-        predictions = np.where(pred_sign > 0, 1, 0)
+        for stump, alpha in zip(self.trees, self.alphas):
+            preds = stump.predict(test_features)
+            for i, c in enumerate(self.classes_):
+                class_scores[:, i] += alpha * (preds == c)
 
-        return predictions
+        return self.classes_[np.argmax(class_scores, axis=1)]
 
     def __str__(self) -> str:
         return "AdaBoost Classifier"

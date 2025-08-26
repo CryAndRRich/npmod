@@ -53,6 +53,7 @@ models/
 │   │   │   ├── cits/
 │   │   │   ├── oc1/
 │   │   │   └── quest, tao/
+│   │   │
 │   │   ├── k_nearest_neighbors/
 │   │   ├── logistic_regression/
 │   │   ├── naive_bayes/
@@ -60,6 +61,7 @@ models/
 │   │   │   ├── multinomial/
 │   │   │   ├── bernoulli/
 │   │   │   └── categorical/
+│   │   │
 │   │   ├── perceptron_learning/
 │   │   ├── softmax_regression/
 │   │   └── support_vector_machines/
@@ -70,6 +72,7 @@ models/
 │   │   ├── elastic_net/
 │   │   │   ├── lasso_regression/
 │   │   │   └── ridge_regression/
+│   │   │
 │   │   ├── generalized_linear_model/
 │   │   ├── huber_regression/
 │   │   ├── stepwise_regression/
@@ -123,16 +126,19 @@ models/
 |   |       └── gaussian_mixture_model/
 |   |  
 │   └── dimensionality_reduction/
-│       ├── isomap/
-│       ├── lda/
-│       ├── lle/
-│       ├── mds/
-│       ├── nmf/
-│       ├── pca/
-│       ├── spectral_embedding/
-│       ├── svd/
-│       ├── t_sne/
-|       └── umap/
+|       ├── linear/
+|       |   ├── pca/
+|       |   ├── lda/
+|       |   └── nmf/
+|       |
+│       └── model_based/
+|           ├── isomap/
+|           ├── lle/
+|           ├── mds/
+|           ├── se/
+|           ├── t_sne/
+|           └── umap/
+|
 └── deep_learning/
     ├── cnn/
     │   ├── lenet/

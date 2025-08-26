@@ -4,7 +4,7 @@ from .cat_tree import CatTreeRegressor
 
 class CatBoostClassifier():
     """
-    CatBoost binary classifier using gradient boosting
+    CatBoost classifier using gradient boosting
     """
     def __init__(self,
                  learn_rate: float = 0.1,
@@ -16,8 +16,7 @@ class CatBoostClassifier():
                  gamma: float = 0.0,
                  cat_features: List[int] = None,
                  n_permutations: int = 1,
-                 random_seed: int = 42,
-                 threshold: float = 0.5) -> None:
+                 random_seed: int = 42) -> None:
         """
         Initialize the CatBoostClassifier
 
@@ -27,12 +26,11 @@ class CatBoostClassifier():
             max_depth: Depth of each oblivious tree
             min_samples_split: Minimum samples to split a node
             n_feats: Number of features to consider at each split
-            reg_lambda: L2 regularization term (λ) on leaf weights
-            gamma: Minimum gain (γ) to perform a split
+            reg_lambda: L2 regularization term on leaf weights
+            gamma: Minimum gain to perform a split
             cat_features: Indices of categorical feature columns
             n_permutations: Permutations for ordered target encoding
             random_seed: Random seed for encoding
-            threshold: Probability threshold for binary classification
         """
         self.eta = learn_rate
         self.K = n_estimators
@@ -46,138 +44,89 @@ class CatBoostClassifier():
         self.cat_features = cat_features or []
         self.n_permutations = n_permutations
         self.random_seed = random_seed
-        self.threshold = threshold
         self.init_raw = None
         self.trees = []
         self._cat_global_mean = {}
+        self.n_classes = None
 
-    def _sigmoid(self, x: np.ndarray) -> np.ndarray:
-        """
-        Sigmoid activation
-
-        Parameters:
-            x: Raw score array
-
-        Returns:
-            np.ndarray: Sigmoid probabilities
-        """
-        return 1.0 / (1.0 + np.exp(-x))
-
-    def ordered_target_encoding(self, 
-                                feature_cols: np.ndarray, 
-                                targets: np.ndarray) -> np.ndarray:
-        """
-        Perform ordered target encoding for categorical column
-
-        Parameters:
-            feature_cols: Categorical values
-            targets: Binary target values (0 or 1)
-
-        Returns:
-            np.ndarray: Encoded numeric array
-        """
-        n = len(targets)
-        encoded = np.zeros(n, dtype=float)
-        rng = np.random.RandomState(self.random_seed)
-        for _ in range(self.n_permutations):
-            perm = rng.permutation(n)
-            sums = {}
-            counts = {}
-            temp = np.zeros(n, dtype=float)
-            for idx in perm:
-                key = feature_cols[idx]
-                if counts.get(key, 0) > 0:
-                    temp[idx] = sums[key] / counts[key]
-                else:
-                    temp[idx] = np.mean(targets[:idx]) if idx > 0 else 0.0
-                sums[key] = sums.get(key, 0.0) + targets[idx]
-                counts[key] = counts.get(key, 0) + 1
-            encoded += temp
-        return encoded / self.n_permutations
+    def _softmax(self, x: np.ndarray) -> np.ndarray:
+        x = x - np.max(x, axis=1, keepdims=True)
+        exp_x = np.exp(x)
+        return exp_x / np.sum(exp_x, axis=1, keepdims=True)
 
     def fit(self, 
             features: np.ndarray, 
             targets: np.ndarray) -> None:
         """
-        Train CatBoostClassifier on binary-labeled data.
+        Train CatBoostClassifier on labeled data
 
         Parameters:
-            features: Feature matrix, shape (n_samples, n_features)
-            targets: Targets, shape (n_samples,)
+            features: Feature matrix
+            targets: Targets values
         """
-        # Encode categorical
-        features_enc = features.copy()
-        for col in self.cat_features:
-            features_enc[:, col] = self.ordered_target_encoding(features[:, col], targets)
-        features_enc = features_enc.astype(float)
+        n_samples = len(targets)
+        self.n_classes = int(np.max(targets)) + 1
 
-        # Store global means for unseen
+        # Optionally store global category 
         for col in self.cat_features:
             vals = features[:, col]
             self._cat_global_mean[col] = {k: np.mean(targets[vals == k]) for k in np.unique(vals)}
 
-        # Initialize raw score = log-odds(p)
-        p = np.clip(np.mean(targets), 1e-6, 1 - 1e-6)
-        self.init_raw = np.log(p / (1 - p))
-        raw_pred = np.full_like(targets, fill_value=self.init_raw, dtype=float)
+        # Initialize raw logits with log priors
+        class_counts = np.bincount(targets, minlength=self.n_classes)
+        priors = class_counts / float(n_samples)
+        priors = np.clip(priors, 1e-12, 1 - 1e-12)
+        self.init_raw = np.log(priors)
+        raw_pred = np.tile(self.init_raw, (n_samples, 1)) 
 
-        # Boosting iterations
-        for _ in range(self.K):
-            prob = self._sigmoid(raw_pred)
-            grad = prob - targets
-            hess = prob * (1 - prob)
+        # Boosting loop: each round train one tree per class (one-vs-rest)
+        self.trees = []
+        for m in range(self.K):
+            prob = self._softmax(raw_pred) 
+            grad = prob.copy()
+            grad[np.arange(n_samples), targets] -= 1.0 
+            hess = prob * (1.0 - prob)  # diagonal approx
 
-            tree = CatTreeRegressor(
-                cat_features=self.cat_features,
-                **self.tree_kwargs
-            )
-            tree.fit(features_enc, grad, hess)
-            update = tree.predict(features_enc)
+            trees_for_round = []
+            for c in range(self.n_classes):
+                tree = CatTreeRegressor(cat_features=self.cat_features, **self.tree_kwargs)
+                # pass per-class grad/hess (1D)
+                tree.fit(features, grad[:, c], hess[:, c])
+                update = tree.predict(features)  # leaf weights
+                raw_pred[:, c] += self.eta * update
+                trees_for_round.append(tree)
 
-            raw_pred -= self.eta * update
-            self.trees.append(tree)
-
-    def _global_encoding(self, features: np.ndarray) -> np.ndarray:
-        """
-        Apply stored encoding for unseen data
-        """
-        features_enc = features.copy().astype(object)
-        for col, mapping in self._cat_global_mean.items():
-            col_vals = features[:, col]
-            enc = np.array([mapping.get(v, np.mean(list(mapping.values()))) for v in col_vals], dtype=float)
-            features_enc[:, col] = enc
-        return features_enc.astype(float)
+            self.trees.append(trees_for_round)
 
     def predict_proba(self, test_features: np.ndarray) -> np.ndarray:
         """
-        Predict probability of positive class
+        Predict probability estimates for each class
 
         Parameters:
             test_features: Feature matrix
 
         Returns:
-            np.ndarray: Probabilities for class 1
+            np.ndarray: Probabilities for each class
         """
-        features_enc = self._global_encoding(test_features)
-        raw_pred = np.full(shape=(test_features.shape[0],), fill_value=self.init_raw, dtype=float)
-        for tree in self.trees:
-            raw_pred -= self.eta * tree.predict(features_enc)
-        return self._sigmoid(raw_pred)
-
+        n = test_features.shape[0]
+        raw_pred = np.tile(self.init_raw, (n, 1))
+        for trees_for_round in self.trees:
+            for c, tree in enumerate(trees_for_round):
+                raw_pred[:, c] += self.eta * tree.predict(test_features)
+        return self._softmax(raw_pred)
+    
     def predict(self, test_features: np.ndarray) -> np.ndarray:
         """
-        Predict binary class labels
+        Predict class labels
 
         Parameters:
             test_features: Feature matrix
 
         Returns:
-            np.ndarray: Predicted labels (0 or 1)
+            np.ndarray: Predicted labels
         """
         proba = self.predict_proba(test_features)
-        predictions = (proba >= self.threshold).astype(int)
-
-        return predictions
+        return np.argmax(proba, axis=1)
 
     def __str__(self) -> str:
         return "CatBoost Classifier"

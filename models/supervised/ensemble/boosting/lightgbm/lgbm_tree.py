@@ -12,7 +12,9 @@ class LightGBMTreeRegressor(XGTreeRegressor):
                  max_leaves: int = 31,
                  min_samples_split: int = 20,
                  reg_lambda: float = 1.0,
-                 gamma: float = 0.0) -> None:
+                 gamma: float = 0.0,
+                 feature_fraction: float = 1.0,
+                 random_state: int = 42) -> None:
         """
         Initialize the LightGBM tree regressor
 
@@ -20,8 +22,10 @@ class LightGBMTreeRegressor(XGTreeRegressor):
             n_feats: Maximum number of features to consider when looking for splits
             max_leaves: Maximum number of leaves to grow (tree complexity control)
             min_samples_split: Minimum number of samples required in a leaf to consider splitting
-            reg_lambda: L2 regularization term for leaf weight (λ)
-            gamma: Minimum loss reduction (gain) required to make a split (γ)
+            reg_lambda: L2 regularization term for leaf weight
+            gamma: Minimum loss reduction (gain) required to make a split
+            feature_fraction: Fraction of features to consider at each split
+            random_state: Random seed for reproducibility
         """
         super().__init__(n_feats=n_feats,
                          max_depth=None,          
@@ -29,6 +33,8 @@ class LightGBMTreeRegressor(XGTreeRegressor):
                          reg_lambda=reg_lambda,
                          gamma=gamma)
         self.max_leaves = max_leaves
+        self.feature_fraction = feature_fraction
+        self.rng = np.random.RandomState(random_state)
 
     def fit(self,
             features: np.ndarray,
@@ -41,52 +47,47 @@ class LightGBMTreeRegressor(XGTreeRegressor):
         or no positive-gain split remains
 
         Parameters:
-            features: Training feature matrix of shape (n_samples, n_features)
-            grad: First-order gradients (g_i) for each sample (shape n_samples,)
-            hess: Second-order hessians (h_i) for each sample (shape n_samples,)
+            features: Training feature matrix 
+            grad: First-order gradients (g_i) for each sample
+            hess: Second-order hessians (h_i) for each sample
         """
         
         _, n_features = features.shape
         self.n_feats = n_features if self.n_feats is None else min(self.n_feats, n_features)
 
-        # Initial root
+        # Root node
         G_root, H_root = grad.sum(), hess.sum()
         root_weight = self._leaf_weight(G_root, H_root)
         root = TreeNode(value=root_weight)
-        # Heap of (-gain, node, indices, G, H)
+
         heap = []
-        # Compute root's best split
-        self._try_push_split(root, features, grad, hess, heap)
+        self._try_push_split(root, features, grad, hess, heap, global_idxs=np.arange(len(grad)))
 
         leaves = 1
         while leaves < self.max_leaves and heap:
-            # Pick the leaf with highest gain
             neg_gain, node, idxs, _, _, feat, thr = heapq.heappop(heap)
             gain = -neg_gain
-            if gain <= 0:
+            if gain <= self.gamma:  # must exceed gamma
                 break
 
-            # Actually split this node
+            # Split node
             node.feature = feat
             node.threshold = thr
             node.value = None
 
-            # Child data subsets
-            left_idx = idxs[features[idxs, feat] <= thr]
-            right_idx = idxs[features[idxs, feat] >  thr]
+            left_mask = features[idxs, feat] <= thr
+            left_idx, right_idx = idxs[left_mask], idxs[~left_mask]
 
-            # Build children
             G_L, H_L = grad[left_idx].sum(), hess[left_idx].sum()
             G_R, H_R = grad[right_idx].sum(), hess[right_idx].sum()
-            left_node  = TreeNode(value=self._leaf_weight(G_L, H_L))
+
+            left_node = TreeNode(value=self._leaf_weight(G_L, H_L))
             right_node = TreeNode(value=self._leaf_weight(G_R, H_R))
             node.left, node.right = left_node, right_node
 
-            # Try to split each new leaf
-            self._try_push_split(left_node, features[left_idx], grad[left_idx], hess[left_idx],
-                                 heap, global_idxs=left_idx)
-            self._try_push_split(right_node, features[right_idx], grad[right_idx], hess[right_idx],
-                                 heap, global_idxs=right_idx)
+            # Try split children
+            self._try_push_split(left_node, features, grad, hess, heap, global_idxs=left_idx)
+            self._try_push_split(right_node, features, grad, hess, heap, global_idxs=right_idx)
 
             leaves += 1
 
@@ -94,7 +95,7 @@ class LightGBMTreeRegressor(XGTreeRegressor):
 
     def _try_push_split(self,
                         node: TreeNode,
-                        feats: np.ndarray,
+                        features: np.ndarray,
                         grad: np.ndarray,
                         hess: np.ndarray,
                         heap: list,
@@ -104,36 +105,49 @@ class LightGBMTreeRegressor(XGTreeRegressor):
 
         Parameters:
             node: The leaf TreeNode to consider splitting
-            feats: Feature sub-matrix for samples in this leaf (n_leaf, n_features)
+            features: Feature sub-matrix for samples in this leaf (n_leaf, n_features)
             grad: Gradient vector for these samples
             hess: Hessian vector for these samples
             heap: The global heap of candidate splits (modified in place)
             global_idxs: Original dataset row indices corresponding to this leaf
         """
-        n_samples, _ = feats.shape
+        n_samples = len(global_idxs)
         if n_samples < self.min_samples_split:
             return
 
-        G_tot, H_tot = grad.sum(), hess.sum()
+        G_tot, H_tot = grad[global_idxs].sum(), hess[global_idxs].sum()
         best_gain, best_feat, best_thr = 0.0, None, None
 
-        for feat in range(feats.shape[1]):
-            if feat >= self.n_feats:
-                break
-            col = feats[:, feat]
-            for thr in np.unique(col):
-                left = col <= thr
-                right = ~left
-                if left.sum() < self.min_samples_split or right.sum() < self.min_samples_split:
-                    continue
+        # Random feature subset (like LightGBM feature_fraction)
+        feat_indices = self.rng.choice(features.shape[1], 
+                                       size=int(self.n_feats * self.feature_fraction),
+                                       replace=False)
 
-                G_L, H_L = grad[left].sum(), hess[left].sum()
-                G_R, H_R = grad[right].sum(), hess[right].sum()
+        for feat in feat_indices:
+            col = features[global_idxs, feat]
+            order = np.argsort(col)
+            col_sorted = col[order]
+            grad_sorted = grad[global_idxs][order]
+            hess_sorted = hess[global_idxs][order]
+
+            # prefix sums
+            G_prefix = np.cumsum(grad_sorted)
+            H_prefix = np.cumsum(hess_sorted)
+
+            for i in range(n_samples - 1):
+                if col_sorted[i] == col_sorted[i + 1]:
+                    continue  # skip identical values
+                G_L, H_L = G_prefix[i], H_prefix[i]
+                G_R, H_R = G_tot - G_L, H_tot - H_L
+                if H_L < 1e-6 or H_R < 1e-6:  # prevent nan
+                    continue
+                if i + 1 < self.min_samples_split or n_samples - (i + 1) < self.min_samples_split:
+                    continue
                 gain = self._gain(G_L, H_L, G_R, H_R, G_tot, H_tot)
                 if gain > best_gain:
-                    best_gain, best_feat, best_thr = gain, feat, thr
+                    best_gain = gain
+                    best_feat = feat
+                    best_thr = (col_sorted[i] + col_sorted[i + 1]) / 2.0
 
-        if best_feat is not None and best_gain > 0:
-            # Store negative gain so heapq gives us max gain first
-            idxs = global_idxs if global_idxs is not None else np.arange(n_samples)
-            heapq.heappush(heap, (-best_gain, node, idxs, G_tot, H_tot, best_feat, best_thr))
+        if best_feat is not None and best_gain > self.gamma:
+            heapq.heappush(heap, (-best_gain, node, global_idxs, G_tot, H_tot, best_feat, best_thr))

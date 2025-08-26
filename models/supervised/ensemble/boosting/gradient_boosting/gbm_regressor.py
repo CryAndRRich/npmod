@@ -39,13 +39,18 @@ class GradientBoostingRegressor():
         """
         # Initialize model with the mean of targets
         self.init_pred = np.mean(targets)
-        # Current predictions
-        current_pred = np.full(shape=targets.shape, fill_value=self.init_pred, dtype=float)
-        # Train trees
+        
+        # Current predictions (start from mean)
+        current_pred = np.full(shape=targets.shape, 
+                               fill_value=self.init_pred, 
+                               dtype=float)
+        
+        # Train boosting stages
         for _ in range(self.number_of_epochs):
-            # Compute residuals (negative gradient)
+            # Compute residuals = negative gradient (MSE -> y - y_pred)
             residuals = targets - current_pred
-            # Fit a regression tree to residuals
+
+            # Fit regression tree on residuals
             tree = DecisionTreeRegressor(
                 n_feats=self.n_feats,
                 max_depth=self.max_depth,
@@ -53,11 +58,13 @@ class GradientBoostingRegressor():
             )
             tree.fit(features, residuals)
 
-            # Update predictions
-            update = tree.predict(features, np.zeros_like(targets), get_accuracy=False)
+            # Predict residuals with this tree
+            update = tree.predict(features)
+
+            # Update overall prediction
             current_pred += self.learn_rate * update
 
-            # Store tree
+            # Save this tree
             self.trees.append(tree)
 
     def predict(self, test_features: np.ndarray) -> np.ndarray:
@@ -70,14 +77,14 @@ class GradientBoostingRegressor():
         Returns:
             np.ndarray: Predicted target values
         """
-        # Start from initial prediction
+        # Start with initial prediction (mean of y in training)
         predictions = np.full(shape=(test_features.shape[0],),
                               fill_value=self.init_pred,
                               dtype=float)
         
-        # Add contributions from each tree
+        # Add contribution from each tree
         for tree in self.trees:
-            predictions += self.learn_rate * tree.predict(test_features, np.zeros_like(predictions), get_accuracy=False)
+            predictions += self.learn_rate * tree.predict(test_features)
 
         return predictions
     

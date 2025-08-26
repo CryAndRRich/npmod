@@ -71,15 +71,15 @@ class ConvNet():
 
         return predictions 
 
-from .alexnet import AlexNet
-from .densenet import DenseNet
-from .googlenet import GoogLeNet
-from .lenet import LeNet
-from .nasnet import NASNet
-from .nin import NiN
-from .resnet34 import ResNet34
-from .resnet152 import ResNet152
-from .resnext import ResNeXt
-from .vgg import VGG
-from .wideresnet import WideResNet
-from .xception import Xception
+from .AlexNet import AlexNet
+from .DenseNet import DenseNet
+from .GoogLeNet import GoogLeNet
+from .LeNet import LeNet
+from .NASNet import NASNet
+from .NiN import NiN
+from .ResNet34 import ResNet34
+from .ResNet152 import ResNet152
+from .ResNeXt import ResNeXt
+from .VGG import VGG
+from .WideResNet import WideResNet
+from .Xception import Xception

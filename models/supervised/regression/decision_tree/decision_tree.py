@@ -6,22 +6,25 @@ class TreeNode():
                  threshold: float = None,
                  left: "TreeNode" = None,
                  right: "TreeNode" = None,
-                 value: float = None) -> None:
+                 value: float = None,
+                 cat_order: list = None) -> None:
         """
-        Node in the decision tree for regression
+        Tree node used in decision trees (XGBoost/CatBoost style)
 
-        Attributes:
-            feature: Index of the feature used for splitting 
-            threshold: Threshold value to split on 
-            left: Left child subtree (samples <= threshold)
-            right: Right child subtree (samples > threshold)
-            value: Predicted value at the leaf node 
+        Parameters:
+            feature: Feature index used for split (None for leaf)
+            threshold: Threshold value (numeric threshold or index for categorical order)
+            left: Left child TreeNode
+            right: Right child TreeNode
+            value: Leaf value (only for leaf nodes)
+            cat_order: List of categories defining split order if feature is categorical
         """
         self.feature = feature
         self.threshold = threshold
         self.left = left
         self.right = right
         self.value = value
+        self.cat_order = cat_order
 
     def is_leaf_node(self) -> bool:
         """Return True if this node is a leaf"""

@@ -10,7 +10,6 @@ class GradientBoostingClassifier():
                  n_feats: int = None) -> None:
         """
         Gradient Boosting Classifier using custom DecisionTreeRegressor as base learner
-        for binary classification with logistic loss
 
         Parameters:
             learn_rate: The learning rate for the gradient descent
@@ -25,20 +24,12 @@ class GradientBoostingClassifier():
         self.min_samples_split = min_samples_split
         self.n_feats = n_feats
 
-        self.init_pred = None
+        self.classes_ = None
         self.trees = []
 
-    def _sigmoid(self, x: np.ndarray) -> np.ndarray:
-        """
-        Sigmoid activation function
-
-        Parameters:
-            x: Input array
-
-        Returns:
-            np.ndarray: Sigmoid of input
-        """
-        return 1.0 / (1.0 + np.exp(-x))
+    def _softmax(self, features: np.ndarray) -> np.ndarray:
+        exp_X = np.exp(features - np.max(features, axis=1, keepdims=True))
+        return exp_X / np.sum(exp_X, axis=1, keepdims=True)
 
     def fit(self,
             features: np.ndarray,
@@ -47,38 +38,44 @@ class GradientBoostingClassifier():
         Train the gradient boosting classifier
 
         Parameters:
-            features: Training feature matrix of shape (n_samples, n_features)
+            features: Training feature matrix
             targets: Training target values
         """
-        # Initialize raw prediction with log-odds of positive class
-        positive_rate = np.clip(np.mean(targets), 1e-6, 1 - 1e-6)
-        self.init_pred = np.log(positive_rate / (1 - positive_rate))
-        raw_pred = np.full_like(targets, fill_value=self.init_pred, dtype=float)
+        n_samples, _ = features.shape
+        self.classes_ = np.unique(targets)
+        n_classes = len(self.classes_)
 
-        # Boosting iterations
+        # Initialize raw scores F_0 = 0 for all classes
+        raw_scores = np.zeros((n_samples, n_classes))
+
+        self.trees = []
+
         for _ in range(self.number_of_epochs):
-            # Compute pseudo-residuals (negative gradient of logistic loss)
-            prob = self._sigmoid(raw_pred)
-            residuals = targets - prob
+            trees_m = []
+            prob = self._softmax(raw_scores)
 
-            # Fit regression tree to residuals
-            tree = DecisionTreeRegressor(
-                n_feats=self.n_feats,
-                max_depth=self.max_depth,
-                min_samples_split=self.min_samples_split
-            )
-            tree.fit(features, residuals)
+            for k, cls in enumerate(self.classes_):
+                # Compute pseudo-residuals for class k
+                y_k = (targets == cls).astype(float)
+                residuals = y_k - prob[:, k]
 
-            # Update raw predictions
-            update = tree.predict(features, np.zeros_like(residuals), get_accuracy=False)
-            raw_pred += self.learn_rate * update
+                # Fit regression tree to residuals
+                tree = DecisionTreeRegressor(
+                    n_feats=self.n_feats,
+                    max_depth=self.max_depth,
+                    min_samples_split=self.min_samples_split
+                )
+                tree.fit(features, residuals)
+                trees_m.append(tree)
 
-            # Store the fitted tree
-            self.trees.append(tree)
+                # Update raw_scores for class k
+                raw_scores[:, k] += self.learn_rate * tree.predict(features)
+
+            self.trees.append(trees_m)
 
     def predict(self, test_features: np.ndarray) -> np.ndarray:
         """
-        Predict using the trained gradient boosting model.
+        Predict using the trained gradient boosting model
 
         Parameters:
             test_features: Test feature matrix
@@ -86,21 +83,16 @@ class GradientBoostingClassifier():
         Returns:
             np.ndarray: Predicted target values
         """
-        # Initialize raw scores with the initial log-odds
-        raw_pred = np.full(shape=(test_features.shape[0],),
-                           fill_value=self.init_pred,
-                           dtype=float)
+        n_samples = test_features.shape[0]
+        n_classes = len(self.classes_)
+        raw_scores = np.zeros((n_samples, n_classes))
 
-        # Add contributions from each regression tree
-        for tree in self.trees:
-            update = tree.predict(test_features, np.zeros_like(raw_pred), get_accuracy=False)
-            raw_pred += self.learn_rate * update
+        for trees_m in self.trees:
+            for k, tree in enumerate(trees_m):
+                raw_scores[:, k] += self.learn_rate * tree.predict(test_features)
 
-        # Convert raw scores to probabilities and then to binary labels
-        prob = self._sigmoid(raw_pred)
-        predictions = (prob >= 0.5).astype(int)
-
-        return predictions
+        prob = self._softmax(raw_scores)
+        return self.classes_[np.argmax(prob, axis=1)]
     
     def __str__(self) -> str:
         return "Gradient Boosting Classifier"
