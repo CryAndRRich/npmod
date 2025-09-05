@@ -1,6 +1,5 @@
 import torch.nn as nn
-import torch.optim as optim
-from ..cnn import Reshape, ConvNet
+from ..cnn import ConvNet
 
 def nin_block(in_channels: int,
               out_channels: int,
@@ -56,19 +55,29 @@ class NiN(ConvNet):
     dropout, and ends with global pooling and flattening before classification
     """
     def init_network(self):
-        # Adjust the blocks for 28x28 input images:
-        # Block1: Use a smaller kernel (5x5) with stride=1 and padding=2 to preserve spatial dimensions.
-        block1 = nin_block(in_channels=1, out_channels=96, kernel_size=5, stride=1, padding=2)
-        # Block2: A standard NiN block with 3x3 convolution.
-        block2 = nin_block(in_channels=96, out_channels=256, kernel_size=3, stride=1, padding=1)
-        # Block3: Similar configuration as block2.
-        block3 = nin_block(in_channels=256, out_channels=384, kernel_size=3, stride=1, padding=1)
-        # Block4: Final block for classification with 10 filters.
-        block4 = nin_block(in_channels=384, out_channels=10, kernel_size=3, stride=1, padding=1)
+        # Adjust the blocks for 28x28 input images
+        block1 = nin_block(in_channels=1, 
+                           out_channels=96, 
+                           kernel_size=5, 
+                           stride=1, 
+                           padding=2)
+        block2 = nin_block(in_channels=96, 
+                           out_channels=256, 
+                           kernel_size=3, 
+                           stride=1, 
+                           padding=1)
+        block3 = nin_block(in_channels=256, 
+                           out_channels=384, 
+                           kernel_size=3, 
+                           stride=1, 
+                           padding=1)
+        block4 = nin_block(in_channels=384, 
+                           out_channels=10, 
+                           kernel_size=3, 
+                           stride=1, 
+                           padding=1)
         
         self.network = nn.Sequential(
-            Reshape(),
-            
             block1,
             nn.MaxPool2d(kernel_size=2, stride=2),
             
@@ -85,8 +94,6 @@ class NiN(ConvNet):
         )
         
         self.network.apply(self.init_weights)
-        self.optimizer = optim.SGD(self.network.parameters(), lr=self.learn_rate)
-        self.criterion = nn.CrossEntropyLoss()
 
     def __str__(self) -> str:
         return "Convolutional Neural Networks: NiN"

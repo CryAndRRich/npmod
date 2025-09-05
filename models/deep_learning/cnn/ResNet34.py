@@ -1,7 +1,6 @@
 import torch
 import torch.nn as nn
-import torch.optim as optim
-from ..cnn import Reshape, ConvNet
+from ..cnn import ConvNet
 
 class Residual(nn.Module):
     """
@@ -41,27 +40,19 @@ class Residual(nn.Module):
             nn.BatchNorm2d(num_features=num_channels)
         )
 
+        self.shortcut = None
         if use_1x1_conv:
-            self.conv = nn.Conv2d(in_channels=input_channels, 
-                                   out_channels=num_channels, 
-                                   kernel_size=1, 
-                                   stride=strides)
-        else:
-            # Skip connection (1x1 convolution for dimension matching)
-            self.conv = None
-
+            self.shortcut = nn.Conv2d(in_channels=input_channels, 
+                                      out_channels=num_channels, 
+                                      kernel_size=1, 
+                                      stride=strides)
         self.relu = nn.ReLU(inplace=True)
-    
+        
     def forward(self, x: torch.Tensor) -> torch.Tensor:
         y = self.net(x)
-        
-        # If 1x1 convolution is used, transform input x
-        if self.conv:
-            x = self.conv(x)
-
-        y += x  # Add skip connection
-        y = self.relu(y)
-        return y
+        if self.shortcut:
+            x = self.shortcut(x)
+        return self.relu(y + x)
 
 def resnet_block(input_channels: int, 
                  num_channels: int, 
@@ -79,50 +70,50 @@ def resnet_block(input_channels: int,
     Returns:
         block:  A list of residual blocks forming a complete ResNet stage
     """
-    block = []
+    layers = []
     for i in range(num_residuals):
         if i == 0 and not first_block:
             # First residual block of a non-initial stage:
             # Uses a 1x1 convolution to match the number of channels and applies stride=2 for downsampling
-            block.append(Residual(input_channels, num_channels, use_1x1_conv=True, strides=2))
+            layers.append(Residual(input_channels, num_channels, use_1x1_conv=True, strides=2))
         else:
             # Standard residual block with identity shortcut (no downsampling)
-            block.append(Residual(num_channels, num_channels))
+            layers.append(Residual(num_channels, num_channels))
 
-    return nn.Sequential(*block)
+    return nn.Sequential(*layers)
 
 class ResNet34(ConvNet):
     def init_network(self):
         # Adjusted block1 for 28x28 input images:
         block1 = nn.Sequential(
             # Replace the original 7x7 conv with a 3x3 conv (stride=1) to better preserve spatial dimensions
-            nn.Conv2d(in_channels=1, out_channels=64, kernel_size=3, stride=1, padding=1),
-            nn.BatchNorm2d(num_features=64),
-            nn.ReLU()
+            nn.Conv2d(in_channels=1, 
+                      out_channels=32, 
+                      kernel_size=3, 
+                      stride=1, 
+                      padding=1),
+            nn.BatchNorm2d(num_features=32),
+            nn.ReLU(inplace=True)
             # Removed MaxPool2d to avoid excessive downsampling for small images
         )
 
-        block2 = resnet_block(64, 64, 3, first_block=True)
-        block3 = resnet_block(64, 128, 4)
-        block4 = resnet_block(128, 256, 6)
-        block5 = resnet_block(256, 512, 3)
+        block2 = resnet_block(32, 32, 3, first_block=True)
+        block3 = resnet_block(32, 64, 4)
+        block4 = resnet_block(64, 128, 6)
+        block5 = resnet_block(128, 256, 3)
         
         self.network = nn.Sequential(
-            Reshape(),
-
             block1,
             block2,
             block3,
             block4,
             block5,
 
-            nn.AdaptiveMaxPool2d(output_size=(1, 1)),
+            nn.AdaptiveAvgPool2d(output_size=(1, 1)),
             nn.Flatten(),
-            nn.Linear(in_features=512, out_features=10)
+            nn.Linear(in_features=256, out_features=10)
         )
         self.network.apply(self.init_weights)
-        self.optimizer = optim.SGD(self.network.parameters(), lr=self.learn_rate)
-        self.criterion = nn.CrossEntropyLoss()
     
     def __str__(self) -> str:
         return "Convolutional Neural Networks: ResNet-34"

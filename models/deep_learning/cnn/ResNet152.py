@@ -1,8 +1,7 @@
 from typing import Tuple
 import torch
 import torch.nn as nn
-import torch.optim as optim
-from ..cnn import Reshape, ConvNet
+from ..cnn import ConvNet
 
 class Bottleneck(nn.Module):
     """
@@ -65,9 +64,7 @@ class Bottleneck(nn.Module):
         if self.downsample is not None:
             x = self.downsample(x)
 
-        y += x
-        y = self.relu(y)
-        return y
+        return self.relu(x + y)
 
 def bottleneck_block(input_channels: int, 
                      channels: int, 
@@ -76,60 +73,65 @@ def bottleneck_block(input_channels: int,
     """
     Creates a stage with multiple bottleneck blocks
 
-    --------------------------------------------------
     Parameters:
         input_channels: Number of input channels for the stage
         channels: Number of intermediate channels for the bottleneck block 
         num_blocks: Number of bottleneck blocks in the stage
         stride: Stride for the first block in the stage (for downsampling)
     
-    --------------------------------------------------
     Returns:
         A tuple consisting of:
          - An nn.Sequential containing the bottleneck blocks of the stage
          - The number of output channels after the stage (for the next stage)
     """
-    block = []
+    blocks = []
     expansion = Bottleneck.expansion
     downsample = None
 
     # If stride is not 1 or input channels don't match output channels, apply downsampling
     if stride != 1 or input_channels != channels * expansion:
         downsample = nn.Sequential(
-            nn.Conv2d(input_channels, channels * expansion, kernel_size=1, stride=stride, bias=False),
-            nn.BatchNorm2d(channels * expansion)
+            nn.Conv2d(in_channels=input_channels, 
+                      out_channels=channels * expansion, 
+                      kernel_size=1, 
+                      stride=stride, 
+                      bias=False),
+            nn.BatchNorm2d(num_features=channels * expansion)
         )
     
     # First block may perform downsampling
-    block.append(Bottleneck(input_channels, channels, stride, downsample))
+    blocks.append(Bottleneck(input_channels, channels, stride, downsample))
     input_channels = channels * expansion
 
     # Subsequent blocks in the stage (stride always = 1, no downsampling)
     for _ in range(1, num_blocks):
-        block.append(Bottleneck(input_channels, channels))
+        blocks.append(Bottleneck(input_channels, channels))
     
-    return (nn.Sequential(*block), input_channels)
+    return (nn.Sequential(*blocks), input_channels)
 
 class ResNet152(ConvNet):
     def init_network(self):
         # Adjusted initial block for 28x28 input images:
         block1 = nn.Sequential(
             # Replace the original 7x7 conv with a 3x3 conv (stride=1) to better preserve spatial dimensions
-            nn.Conv2d(in_channels=1, out_channels=64, kernel_size=3, stride=1, padding=1, bias=False),
-            nn.BatchNorm2d(num_features=64),
+            nn.Conv2d(in_channels=1, 
+                      out_channels=16, 
+                      kernel_size=3, 
+                      stride=1, 
+                      padding=1, 
+                      bias=False),
+            nn.BatchNorm2d(num_features=16),
             nn.ReLU(inplace=True)
             # Removed MaxPool2d to avoid excessive downsampling for small images
         )
 
         # Build the ResNet-152 stages using bottleneck blocks
-        block2, input_channels = bottleneck_block(64, 64, num_blocks=3, stride=1)
-        block3, input_channels = bottleneck_block(input_channels, 128, num_blocks=8, stride=2)
-        block4, input_channels = bottleneck_block(input_channels, 256, num_blocks=36, stride=2)
-        block5, input_channels = bottleneck_block(input_channels, 512, num_blocks=3, stride=2)
+        block2, input_channels = bottleneck_block(16, 16, num_blocks=2, stride=1)
+        block3, input_channels = bottleneck_block(input_channels, 32, num_blocks=4, stride=2)
+        block4, input_channels = bottleneck_block(input_channels, 64, num_blocks=6, stride=2)
+        block5, input_channels = bottleneck_block(input_channels, 128, num_blocks=2, stride=2)
 
         self.network = nn.Sequential(
-            Reshape(),
-
             block1,
             block2,
             block3,
@@ -141,8 +143,6 @@ class ResNet152(ConvNet):
             nn.Linear(in_features=input_channels, out_features=10)
         )
         self.network.apply(self.init_weights)
-        self.optimizer = optim.SGD(self.network.parameters(), lr=self.learn_rate)
-        self.criterion = nn.CrossEntropyLoss()
 
     def __str__(self) -> str:
         return "Convolutional Neural Networks: ResNet-152"

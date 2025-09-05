@@ -1,19 +1,18 @@
 from typing import Tuple
 import torch
 import torch.nn as nn
-import torch.optim as optim
-from ..cnn import Reshape, ConvNet
+from ..cnn import ConvNet
 
 class ResNeXtBottleneck(nn.Module):
     """
     Bottleneck Block for ResNeXt
 
     This block consists of three convolutional layers aggregated into a sequential network:
-      - A 1x1 convolution to reduce the number of channels.
-      - A 3x3 grouped convolution (with cardinality groups) for processing.
-      - A 1x1 convolution to expand the number of channels by the expansion factor.
+      - A 1x1 convolution to reduce the number of channels
+      - A 3x3 grouped convolution (with cardinality groups) for processing
+      - A 1x1 convolution to expand the number of channels by the expansion factor
     
-    The default expansion factor is 4.
+    The default expansion factor is 4
     """
     expansion: int = 4
     def __init__(self, 
@@ -107,9 +106,12 @@ def resnext_block(input_channels: int,
     expansion = ResNeXtBottleneck.expansion
     if stride != 1 or input_channels != channels * expansion:
         downsample = nn.Sequential(
-            nn.Conv2d(input_channels, channels * expansion, kernel_size=1, 
-                      stride=stride, bias=False),
-            nn.BatchNorm2d(channels * expansion)
+            nn.Conv2d(in_channels=input_channels, 
+                      out_channels=channels * expansion, 
+                      kernel_size=1, 
+                      stride=stride, 
+                      bias=False),
+            nn.BatchNorm2d(num_features=channels * expansion)
         )
     
     layers = []
@@ -141,27 +143,45 @@ class ResNeXt(ConvNet):
           - An adaptive average pooling followed by a fully connected layer
         """
         block1 = nn.Sequential(
-            nn.Conv2d(in_channels=1, out_channels=64, kernel_size=3, stride=1, padding=1, bias=False),
+            nn.Conv2d(in_channels=1, 
+                      out_channels=64, 
+                      kernel_size=3, 
+                      stride=1, 
+                      padding=1, 
+                      bias=False),
             nn.BatchNorm2d(64),
             nn.ReLU(inplace=True)
         )
         
-        # Number of blocks per group: [3, 4, 6, 3]
-        cardinality = 32
+        cardinality = 8
         base_width = 4
         
-        block2, in_channels = resnext_block(64, 64, num_blocks=3, stride=1, 
-                                            cardinality=cardinality, base_width=base_width)
-        block3, in_channels = resnext_block(in_channels, 128, num_blocks=4, stride=2, 
-                                            cardinality=cardinality, base_width=base_width)
-        block4, in_channels = resnext_block(in_channels, 256, num_blocks=6, stride=2, 
-                                            cardinality=cardinality, base_width=base_width)
-        block5, in_channels = resnext_block(in_channels, 512, num_blocks=3, stride=1, 
-                                            cardinality=cardinality, base_width=base_width)
+        block2, in_channels = resnext_block(input_channels=64, 
+                                            channels=32, 
+                                            num_blocks=3, 
+                                            stride=1, 
+                                            cardinality=cardinality, 
+                                            base_width=base_width)
+        block3, in_channels = resnext_block(input_channels=in_channels, 
+                                            channels=64, 
+                                            num_blocks=4, 
+                                            stride=2, 
+                                            cardinality=cardinality, 
+                                            base_width=base_width)
+        block4, in_channels = resnext_block(input_channels=in_channels, 
+                                            channels=128, 
+                                            num_blocks=6, 
+                                            stride=2, 
+                                            cardinality=cardinality, 
+                                            base_width=base_width)
+        block5, in_channels = resnext_block(input_channels=in_channels, 
+                                            channels=256, 
+                                            num_blocks=3, 
+                                            stride=1, 
+                                            cardinality=cardinality, 
+                                            base_width=base_width)
         
         self.network = nn.Sequential(
-            Reshape(),
-
             block1,
             block2,
             block3,
@@ -174,8 +194,6 @@ class ResNeXt(ConvNet):
         )
         
         self.network.apply(self.init_weights)
-        self.optimizer = optim.SGD(self.network.parameters(), lr=self.learn_rate)
-        self.criterion = nn.CrossEntropyLoss()
 
     def __str__(self) -> str:
-        return "Convolutional Neural Networks: ResNeXt-50 (32x4d)"
+        return "Convolutional Neural Networks: ResNeXt-50"

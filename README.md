@@ -161,5 +161,12 @@ models/
     │   ├── wgan/
     │   ├── cgan, pix2pix/
     │   └── stylegan, spade/
+    │     
+    ├── autoencoder/
+    │   ├── cae/
+    │   ├── convae/
+    │   ├── vae/
+    │   └── dae/
+    │
     └── mlp/
 ```

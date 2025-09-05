@@ -1,6 +1,5 @@
 import torch.nn as nn
-import torch.optim as optim
-from ..cnn import Reshape, ConvNet
+from ..cnn import ConvNet
     
 def vgg_block(num_convs: int, 
               in_channels: int, 
@@ -30,7 +29,7 @@ def vgg_block(num_convs: int,
         in_channels = out_channels
     
     if use_adaptive_pool:
-        layers.append(nn.AdaptiveMaxPool2d((1, 1)))
+        layers.append(nn.AdaptiveMaxPool2d(output_size=(1, 1)))
     else:
         layers.append(nn.MaxPool2d(kernel_size=2, stride=2))
     
@@ -41,40 +40,37 @@ class VGG(ConvNet):
     def init_network(self):
         # A list of tuples (one per block), where each contains two values: 
         # the number of convolutional layers and the number of output channels
-        conv_arch = ((1, 64), (1, 128), (2, 256), (2, 512), (2, 512))
+        conv_arch = ((1, 32), (1, 64), (2, 128), (2, 256), (2, 256))
         
         conv_layers = []
         in_channels = 1
         
         for i, (num_convs, out_channels) in enumerate(conv_arch):
-            if i == len(conv_arch) - 1:
-                block = vgg_block(num_convs, in_channels, out_channels, use_adaptive_pool=True)
-            else:
-                block = vgg_block(num_convs, in_channels, out_channels)
+            use_adaptive_pool = (i == len(conv_arch) - 1)
+            block = vgg_block(num_convs=num_convs, 
+                              in_channels=in_channels, 
+                              out_channels=out_channels, 
+                              use_adaptive_pool=use_adaptive_pool)
             conv_layers.append(block)
             in_channels = out_channels
         
         self.network = nn.Sequential(
-            Reshape(),
-
             *conv_layers,
 
             nn.Flatten(),
-            nn.Linear(in_features=512, out_features=4096),
-            nn.BatchNorm1d(num_features=4096),
+            nn.Linear(in_features=in_channels, out_features=256),
+            nn.BatchNorm1d(num_features=256),
             nn.ReLU(inplace=True),
 
             nn.Dropout(p=0.5),
-            nn.Linear(in_features=4096, out_features=4096),
-            nn.BatchNorm1d(num_features=4096),
+            nn.Linear(in_features=256, out_features=256),
+            nn.BatchNorm1d(num_features=256),
             nn.ReLU(inplace=True),
 
             nn.Dropout(p=0.5),
-            nn.Linear(in_features=4096, out_features=10)
+            nn.Linear(in_features=256, out_features=10)
         )
         self.network.apply(self.init_weights)
-        self.optimizer = optim.SGD(self.network.parameters(), lr=self.learn_rate)
-        self.criterion = nn.CrossEntropyLoss()
     
     def __str__(self) -> str:
         return "Convolutional Neural Networks: VGG-11"

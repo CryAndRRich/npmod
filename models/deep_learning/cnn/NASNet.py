@@ -1,7 +1,6 @@
 import torch
 import torch.nn as nn
-import torch.optim as optim
-from ..cnn import Reshape, ConvNet
+from ..cnn import ConvNet
 
 class SeparableConv2d(nn.Module):
     """
@@ -37,7 +36,7 @@ class SeparableConv2d(nn.Module):
                                    kernel_size=1, 
                                    bias=False)
         self.bn = nn.BatchNorm2d(num_features=out_channels)
-        self.relu = nn.ReLU()
+        self.relu = nn.ReLU(inplace=True)
 
     def forward(self, x: torch.Tensor) -> torch.Tensor:
         """
@@ -87,7 +86,7 @@ class NormalCell(nn.Module):
                                        kernel_size=3, 
                                        stride=1, 
                                        padding=1)
-        self.relu = nn.ReLU()
+        self.relu = nn.ReLU(inplace=True)
 
     def forward(self, x: torch.Tensor) -> torch.Tensor:
         """
@@ -124,22 +123,21 @@ class ReductionCell(nn.Module):
                                        stride=2, 
                                        padding=1)
         self.branch2 = nn.Sequential(
-            nn.MaxPool2d(kernel_size=3, stride=2, padding=1),
+            nn.MaxPool2d(kernel_size=2, stride=2),
             nn.Conv2d(in_channels=in_channels, 
                       out_channels=out_channels, 
                       kernel_size=1, 
-                      stride=1, 
-                      padding=0, 
+                      stride=1,
                       bias=False),
             nn.BatchNorm2d(num_features=out_channels),
-            nn.ReLU()
+            nn.ReLU(inplace=True)
         )
         self.branch3 = SeparableConv2d(in_channels=in_channels, 
                                        out_channels=out_channels, 
                                        kernel_size=3, 
                                        stride=2, 
                                        padding=1)
-        self.relu = nn.ReLU()
+        self.relu = nn.ReLU(inplace=True)
 
     def forward(self, x: torch.Tensor) -> torch.Tensor:
         """
@@ -165,27 +163,29 @@ class NASNet(ConvNet):
       - Global Average Pooling and a fully-connected layer for classification
     """
     def init_network(self):
-        num_cells = 3
+        num_cells = 2
 
         # Stem: Acts as an initial reduction cell to downsample the input
         stem = nn.Sequential(
-            nn.Conv2d(in_channels=3, out_channels=32, kernel_size=3, stride=1, padding=1),
-            nn.BatchNorm2d(num_features=32),
-            nn.ReLU()
+            nn.Conv2d(in_channels=1, 
+                      out_channels=16, 
+                      kernel_size=3, 
+                      stride=1, 
+                      padding=1),
+            nn.BatchNorm2d(num_features=16),
+            nn.ReLU(inplace=True)
         )
 
-        cells1 = nn.Sequential(*[NormalCell(in_channels=32 if i == 0 else 64, out_channels=64) 
+        cells1 = nn.Sequential(*[NormalCell(in_channels=16 if i == 0 else 32, out_channels=32) 
                                  for i in range(num_cells)])
-        reduction1 = ReductionCell(in_channels=64, out_channels=128)
-        cells2 = nn.Sequential(*[NormalCell(in_channels=128, out_channels=128) 
+        reduction1 = ReductionCell(in_channels=32, out_channels=64)
+        cells2 = nn.Sequential(*[NormalCell(in_channels=64, out_channels=64) 
                                  for _ in range(num_cells)])
-        reduction2 = ReductionCell(in_channels=128, out_channels=256)
-        cells3 = nn.Sequential(*[NormalCell(in_channels=256, out_channels=256) 
+        reduction2 = ReductionCell(in_channels=64, out_channels=128)
+        cells3 = nn.Sequential(*[NormalCell(in_channels=128, out_channels=128) 
                                  for _ in range(num_cells)])
         
         self.network = nn.Sequential(
-            Reshape(),
-            
             stem,
 
             cells1,
@@ -198,12 +198,10 @@ class NASNet(ConvNet):
 
             nn.AdaptiveAvgPool2d(output_size=(1, 1)),
             nn.Flatten(),
-            nn.Linear(in_features=256, out_features=10)
+            nn.Linear(in_features=128, out_features=10)
         )
         
         self.network.apply(self.init_weights)
-        self.optimizer = optim.SGD(self.network.parameters(), lr=self.learn_rate)
-        self.criterion = nn.CrossEntropyLoss()
 
     def __str__(self) -> str:
         return "Convolutional Neural Networks: NASNet"

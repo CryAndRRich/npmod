@@ -1,7 +1,6 @@
 import torch
 import torch.nn as nn
-import torch.optim as optim
-from ..cnn import Reshape, ConvNet
+from ..cnn import ConvNet
 
 class SeparableConv2d(nn.Module):
     """
@@ -37,7 +36,7 @@ class SeparableConv2d(nn.Module):
                                    kernel_size=1, 
                                    bias=False)
         self.bn = nn.BatchNorm2d(num_features=out_channels)
-        self.relu = nn.ReLU(inplace=True)
+        self.relu = nn.ReLU(inplace=False)
 
     def forward(self, x: torch.Tensor) -> torch.Tensor:
         """
@@ -80,7 +79,7 @@ class XceptionBlock(nn.Module):
         layers = []
 
         # First separable convolution may change spatial dimensions via stride
-        layers.append(nn.ReLU(inplace=True))
+        layers.append(nn.ReLU(inplace=False))
         layers.append(SeparableConv2d(in_channels=in_channels, 
                                       out_channels=out_channels, 
                                       kernel_size=3, 
@@ -89,7 +88,7 @@ class XceptionBlock(nn.Module):
 
         # Subsequent separable conv layers keep spatial dimensions constant.
         for _ in range(repeat - 1):
-            layers.append(nn.ReLU(inplace=True))
+            layers.append(nn.ReLU(inplace=False))
             layers.append(SeparableConv2d(in_channels=out_channels, 
                                           out_channels=out_channels, 
                                           kernel_size=3, 
@@ -137,36 +136,70 @@ class Xception(ConvNet):
     def init_network(self):
         # Entry Flow: Initial standard conv layers
         entry_flow = nn.Sequential(
-            nn.Conv2d(in_channels=1, out_channels=32, kernel_size=3, stride=1, padding=1),
+            nn.Conv2d(in_channels=1, 
+                      out_channels=32, 
+                      kernel_size=3, 
+                      stride=1, 
+                      padding=1),
             nn.BatchNorm2d(num_features=32),
-            nn.ReLU(inplace=True),
-            nn.Conv2d(in_channels=32, out_channels=64, kernel_size=3, stride=1, padding=1),
+            nn.ReLU(inplace=False),
+            nn.Conv2d(in_channels=32, 
+                      out_channels=64, 
+                      kernel_size=3, 
+                      stride=1, 
+                      padding=1),
             nn.BatchNorm2d(num_features=64),
-            nn.ReLU(inplace=True)
+            nn.ReLU(inplace=False)
         )
         
         # Xception Blocks for Entry Flow (with downsampling)
-        block1 = XceptionBlock(in_channels=64, out_channels=128, repeat=2, stride=1, skip_connection=True)
-        block2 = XceptionBlock(in_channels=128, out_channels=256, repeat=2, stride=2, skip_connection=True)
+        block1 = XceptionBlock(in_channels=64, 
+                               out_channels=128, 
+                               repeat=2, 
+                               stride=1, 
+                               skip_connection=True)
+        block2 = XceptionBlock(in_channels=128, 
+                               out_channels=256, 
+                               repeat=2, 
+                               stride=1, 
+                               skip_connection=True)
         
         # Middle Flow: Series of Xception Blocks without downsampling
         middle_flow = nn.Sequential(
-            XceptionBlock(in_channels=256, out_channels=256, repeat=2, stride=1, skip_connection=True),
-            XceptionBlock(in_channels=256, out_channels=256, repeat=2, stride=1, skip_connection=True),
-            XceptionBlock(in_channels=256, out_channels=256, repeat=2, stride=1, skip_connection=True)
+            XceptionBlock(in_channels=256, 
+                          out_channels=256, 
+                          repeat=2, 
+                          stride=1, 
+                          skip_connection=True),
+            XceptionBlock(in_channels=256, 
+                          out_channels=256, 
+                          repeat=2, 
+                          stride=1, 
+                          skip_connection=True),
+            XceptionBlock(in_channels=256, 
+                          out_channels=256, 
+                          repeat=2, 
+                          stride=1, 
+                          skip_connection=True)
         )
         
         # Exit Flow: Final Xception Block and separable convolution before classification
         exit_flow = nn.Sequential(
-            XceptionBlock(in_channels=256, out_channels=512, repeat=2, stride=1, skip_connection=True),
-            SeparableConv2d(in_channels=512, out_channels=512, kernel_size=3, stride=1, padding=1),
+            XceptionBlock(in_channels=256, 
+                          out_channels=512, 
+                          repeat=2, 
+                          stride=1, 
+                          skip_connection=True),
+            SeparableConv2d(in_channels=512, 
+                            out_channels=512, 
+                            kernel_size=3, 
+                            stride=1, 
+                            padding=1),
             nn.BatchNorm2d(num_features=512),
-            nn.ReLU(inplace=True)
+            nn.ReLU(inplace=False)
         )
         
         self.network = nn.Sequential(
-            Reshape(),
-
             entry_flow,
 
             block1,
@@ -182,8 +215,6 @@ class Xception(ConvNet):
         )
         
         self.network.apply(self.init_weights)
-        self.optimizer = optim.SGD(self.network.parameters(), lr=self.learn_rate)
-        self.criterion = nn.CrossEntropyLoss()
 
     def __str__(self) -> str:
         return "Convolutional Neural Networks: Xception"

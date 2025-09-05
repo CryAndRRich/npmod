@@ -1,8 +1,7 @@
 from typing import Tuple
 import torch
 import torch.nn as nn
-import torch.optim as optim
-from . import Reshape, ConvNet
+from ..cnn import ConvNet
 
 class WRNBlock(nn.Module):
     """
@@ -92,19 +91,22 @@ def wrn_block(input_channels: int,
     """
     block = []
 
-    block.append(WRNBlock(input_channels, out_channels, stride, dropout_rate))
+    block.append(WRNBlock(in_channels=input_channels, 
+                          out_channels=out_channels, 
+                          stride=stride, 
+                          dropout_rate=dropout_rate))
     input_channels = out_channels
 
     for _ in range(1, num_blocks):
-        block.append(WRNBlock(input_channels, out_channels, stride=1, dropout_rate=dropout_rate))
+        block.append(WRNBlock(in_channels=input_channels, 
+                              out_channels=out_channels, 
+                              stride=1, 
+                              dropout_rate=dropout_rate))
     
     return nn.Sequential(*block), input_channels
 
 class WideResNet(ConvNet):
     def init_network(self):
-        # For WRN-28-10 on CIFAR-10, the typical configuration is:
-        # Depth = 28, widening factor = 10, number of blocks per group = 4
-        # Initial conv layer: 3x3 conv with 16 filters
         block1 = nn.Sequential(
             nn.Conv2d(in_channels=1, 
                       out_channels=16, 
@@ -116,18 +118,23 @@ class WideResNet(ConvNet):
             nn.ReLU(inplace=True)
         )
         
-        # Calculate number of blocks per stage: (28 - 4) / 6 = 4
         n = 4
-        k = 10  # widening factor
+        k = 4  # widening factor
 
-        block2, out_channels = wrn_block(16, 16 * k, num_blocks=n, stride=1)
-        block3, out_channels = wrn_block(out_channels, 32 * k, num_blocks=n, stride=2)
-        # For 28x28 images, we adjust block4's stride to 1 to better preserve spatial dimensions
-        block4, out_channels = wrn_block(out_channels, 64 * k, num_blocks=n, stride=1)
+        block2, out_channels = wrn_block(input_channels=16, 
+                                         out_channels=16 * k, 
+                                         num_blocks=n, 
+                                         stride=1)
+        block3, out_channels = wrn_block(input_channels=out_channels, 
+                                         out_channels=32 * k, 
+                                         num_blocks=n, 
+                                         stride=2)
+        block4, out_channels = wrn_block(input_channels=out_channels, 
+                                         out_channels=64 * k, 
+                                         num_blocks=n, 
+                                         stride=1)
         
         self.network = nn.Sequential(
-            Reshape(),
-
             block1,
             block2,
             block3,
@@ -141,10 +148,8 @@ class WideResNet(ConvNet):
             nn.Linear(in_features=out_channels, out_features=10)
         )
         self.network.apply(self.init_weights)
-        self.optimizer = optim.Adam(self.network.parameters(), lr=self.learn_rate)
-        self.criterion = nn.CrossEntropyLoss()
 
     def __str__(self) -> str:
-        return "Convolutional Neural Networks: WRN-28-10"
+        return "Convolutional Neural Networks: WideResNet"
 
         
