@@ -21,16 +21,16 @@ class Optimizer():
 
     def _initialize_buffers(self) -> List[List[np.ndarray]]:
         """
-        Initializes buffers (e.g., velocities, moments) for each layer's parameters
+        Initializes buffers (e.grad., velocities, moments) for each layer parameters
 
         Returns:
             List[List[np.ndarray]]: A list of buffers initialized to zero, with the same shape as the network parameters
         """
-        return [[np.zeros_like(param) for param in layer.parameters()] for layer in self.net]
-
+        return [[np.zeros_like(p) for p in layer.parameters()] for layer in self.net]
+    
     def step(self) -> None:
         """
-        Performs a single optimization step. To be implemented by subclasses
+        Performs a single optimization step
         """
         pass
 
@@ -38,23 +38,7 @@ class GD(Optimizer):
     """
     Gradient Descent optimizer
     """
-    def __init__(self, 
-                 network: List[Layer],
-                 learn_rate: float = 0.01) -> None:
-        """
-        Initializes the Gradient Descent optimizer
-
-        Parameters:
-            network: The neural network layers to be optimized
-            learn_rate: The learning rate for parameter updates
-        """
-        super().__init__(network, learn_rate)
-    
     def step(self) -> None:
-        """
-        Performs a single optimization step using gradient descent
-        Updates parameters by subtracting the gradient scaled by the learning rate
-        """
         for layer in self.net:
             for param, grad in zip(layer.parameters(), layer.gradients()):
                 param -= self.learn_rate * grad
@@ -80,15 +64,10 @@ class SGD(Optimizer):
         self.velocities = self._initialize_buffers()
     
     def step(self) -> None:
-        """
-        Performs a single optimization step using SGD with momentum
-        Updates parameters using a combination of gradient and momentum
-        """
         for layer, velocities in zip(self.net, self.velocities):
             for param, grad, velocity in zip(layer.parameters(), layer.gradients(), velocities):
-                velocity *= self.momentum
-                velocity -= self.learn_rate * grad
-                param += velocity
+                velocity[:] = self.momentum * velocity + grad
+                param -= self.learn_rate * velocity
 
 class AdaGrad(Optimizer):
     """
@@ -97,7 +76,7 @@ class AdaGrad(Optimizer):
     def __init__(self, 
                  network: List[Layer], 
                  learn_rate: float = 0.01, 
-                 epsilon: float = 1e-8) -> None:
+                 epsilon: float = 1e-10) -> None:
         """
         Initializes the AdaGrad optimizer
 
@@ -108,19 +87,13 @@ class AdaGrad(Optimizer):
         """
         super().__init__(network, learn_rate)
         self.epsilon = epsilon
-        self.velocities = self._initialize_buffers()
+        self.squares = self._initialize_buffers()
     
     def step(self) -> None:
-        """
-        Performs a single optimization step using AdaGrad
-        Adapts the learning rate for each parameter based on historical gradients
-        """
-        for layer, velocities in zip(self.net, self.velocities):
-            for param, grad, velocity in zip(layer.parameters(), layer.gradients(), velocities):
-                velocity += grad ** 2
-                rate_change = np.sqrt(velocity) + self.epsilon
-                adapted_learning_rate = self.learn_rate / rate_change
-                param -= adapted_learning_rate * grad
+        for layer, squares in zip(self.net, self.squares):
+            for param, grad, square in zip(layer.parameters(), layer.gradients(), squares):
+                square[:] += grad ** 2
+                param -= self.learn_rate * grad / (np.sqrt(square) + self.epsilon)
 
 class RMSprop(Optimizer):
     """
@@ -143,17 +116,13 @@ class RMSprop(Optimizer):
         super().__init__(network, learn_rate)
         self.epsilon = epsilon
         self.beta = beta
-        self.velocities = self._initialize_buffers()
+        self.squares = self._initialize_buffers()
     
     def step(self) -> None:
-        """
-        Performs a single optimization step using RMSprop
-        Uses a moving average of squared gradients to scale the learning rate
-        """
-        for layer, velocities in zip(self.net, self.velocities):
-            for param, grad, velocity in zip(layer.parameters(), layer.gradients(), velocities):
-                velocity[:] = self.beta * velocity + (1 - self.beta) * (grad ** 2)
-                param -= self.learn_rate * grad / (np.sqrt(velocity) + self.epsilon)
+        for layer, squares in zip(self.net, self.squares):
+            for param, grad, square in zip(layer.parameters(), layer.gradients(), squares):
+                square[:] = self.beta * square + (1 - self.beta) * grad ** 2
+                param -= self.learn_rate * grad / (np.sqrt(square) + self.epsilon)
 
 class Adam(Optimizer):
     """
@@ -184,17 +153,13 @@ class Adam(Optimizer):
         self.velocities = self._initialize_buffers()
     
     def step(self) -> None:
-        """
-        Performs a single optimization step using Adam
-        Combines the benefits of momentum and RMSprop for parameter updates
-        """
         self.timestep += 1
         for layer, moments, velocities in zip(self.net, self.moments, self.velocities):
             for param, grad, moment, velocity in zip(layer.parameters(), layer.gradients(), moments, velocities):
                 moment[:] = self.beta1 * moment + (1 - self.beta1) * grad
                 velocity[:] = self.beta2 * velocity + (1 - self.beta2) * (grad ** 2)
 
-                corrected_moment = moment / (1 - self.beta1 ** self.timestep)
-                corrected_velocity = velocity / (1 - self.beta2 ** self.timestep)
+                m_hat = moment / (1 - self.beta1 ** self.timestep)
+                v_hat = velocity / (1 - self.beta2 ** self.timestep)
 
-                param -= self.learn_rate * corrected_moment / (np.sqrt(corrected_velocity) + self.epsilon)
+                param -= self.learn_rate * m_hat / (np.sqrt(v_hat) + self.epsilon)

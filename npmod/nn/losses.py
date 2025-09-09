@@ -1,6 +1,6 @@
 import numpy as np
 
-class Loss:
+class Loss():
     """
     Base class for loss functions
     """
@@ -40,7 +40,6 @@ class Loss:
     def __str__(self) -> str:
         pass
 
-
 class MAE(Loss):
     def forward(self, 
                 input: np.ndarray, 
@@ -56,7 +55,6 @@ class MAE(Loss):
     def __str__(self) -> str:
         return "Mean Absolute Error (MAE)"
 
-
 class MSE(Loss):
     def forward(self, 
                 input: np.ndarray, 
@@ -71,7 +69,6 @@ class MSE(Loss):
 
     def __str__(self) -> str:
         return "Mean Squared Error (MSE)"
-
 
 class MALE(Loss):
     def forward(self, 
@@ -94,51 +91,43 @@ class MALE(Loss):
     def __str__(self) -> str:
         return "Mean Absolute Log Error (MALE)"
 
-
 class RSquared(Loss):
     def forward(self, 
                 input: np.ndarray, 
                 target: np.ndarray) -> np.ndarray:
         super().forward(input, target)
-        mean = np.mean(self.input)
-        numerator = np.sum((self.target - self.input) ** 2)
-        dominator = np.sum((self.target - mean) ** 2)
-        if dominator == 0:
+        mean_target = np.mean(target)
+        ss_res = np.sum((target - input) ** 2)
+        ss_tot = np.sum((target - mean_target) ** 2)
+        if ss_tot == 0:
             raise ValueError("The denominator is zero, cannot compute R²")
-        
-        loss = numerator / dominator
+        self.ss_tot = ss_tot  # cache for backward
+        loss = ss_res / ss_tot
         return loss
 
     def backward(self) -> np.ndarray:
-        mean = np.mean(self.input)
-        dominator = np.sum((self.target - mean) ** 2)
-        if dominator == 0:
-            raise ValueError("The denominator is zero, cannot compute self.gradient")
-        self.gradient = -2 * (self.target - self.input) / dominator
+        self.gradient = -2 * (self.target - self.input) / self.ss_tot
         return self.gradient
-
+    
     def __str__(self) -> str:
         return "R Squared (R2)"
-
 
 class MAPE(Loss):
     def forward(self, 
                 input: np.ndarray, 
                 target: np.ndarray) -> np.ndarray:
-        eps = 1e-9
         super().forward(input, target)
-        ratio = np.abs(1 - self.input / (self.target + eps))
-        loss = np.mean(ratio)
-        return loss
+        self.eps = 1e-9
+        self.loss = np.mean(np.abs(input - target) / (target + self.eps))
+        return self.loss
 
     def backward(self) -> np.ndarray:
-        eps = 1e-9
-        self.gradient = -1 / (self.target + eps) / self.input.shape[0]
+        N = self.input.shape[0]
+        self.gradient = np.sign(self.input - self.target) / ((self.target + self.eps) * N)
         return self.gradient
 
     def __str__(self) -> str:
         return "Mean Absolute Percentage Error (MAPE)"
-
 
 class wMAPE(Loss):
     def forward(self, 
@@ -147,30 +136,24 @@ class wMAPE(Loss):
                 weights: float | np.ndarray = None) -> float:
 
         if weights is None:
-            weights = np.ones(input.shape[0])
+            weights = np.ones(input.shape[0], dtype=np.float32)
 
-        assert isinstance(weights, (float, np.ndarray)), \
-            "Weights must be a float or numpy array"
-        
-        if isinstance(weights, np.ndarray) and weights.shape[0] != input.shape[0]:
-            raise ValueError("Weights must have the same shape as input")
-        
-        self.weights = weights
-        eps = 1e-9 # Epsilon to avoid divided by zero
+        self.weights = weights.astype(np.float32) if isinstance(weights, np.ndarray) else np.full(input.shape[0], weights, dtype=np.float32)
         super().forward(input, target)
-        numerator = np.sum(np.abs(self.target - self.input) * weights)
-        dominator = np.sum(np.abs(self.target) * weights) + eps
-        loss = numerator / dominator
+        eps = 1e-9
+        numerator = np.sum(np.abs(self.target - self.input) * self.weights)
+        denominator = np.sum(np.abs(self.target) * self.weights) + eps
+        self.denominator = denominator  # cache for backward
+        self.numerator = numerator
+        loss = numerator / denominator
         return loss
 
     def backward(self) -> np.ndarray:
-        eps = 1e-9 # Epsilon to avoid divided by zero
-        self.gradient = -self.weights / (np.sum(np.abs(self.target) * self.weights) + eps)
+        self.gradient = self.weights * np.sign(self.input - self.target) / self.denominator
         return self.gradient
 
     def __str__(self) -> str:
         return "Weighted Mean Absolute Percentage Error (wMAPE)"
-
 
 class SmoothL1(Loss):
     def forward(self, 
@@ -185,37 +168,41 @@ class SmoothL1(Loss):
     
     def backward(self) -> np.ndarray:
         ln = self.input - self.target
-        self.gradient = np.where(np.abs(ln) < self.beta, ln, np.sign(ln))
+        self.gradient = np.where(np.abs(ln) < self.beta, ln, np.sign(ln)) / self.input.shape[0]
         return self.gradient
 
     def __str__(self) -> str:
         return "Smooth L1 Loss (SmoothL1)"
-
 
 class CE(Loss):
     def forward(self, 
                 input: np.ndarray, 
                 target: np.ndarray) -> np.ndarray:
         super().forward(input, target)
-        eps = 1e-9 # Epsilon to avoid log(0)
-        input = np.where(input + eps <= 0, eps, input)
-        entropy = -target * np.log(input)
-        loss = np.mean(entropy)
-        return loss
+        eps = 1e-9
+        self.input_stable = input - np.max(input, axis=-1, keepdims=True)
+        exp_input = np.exp(self.input_stable)
+        self.softmax = exp_input / np.sum(exp_input, axis=-1, keepdims=True)
+
+        # convert target to one-hot if necessary
+        if target.ndim == 1 or (target.ndim == 2 and target.shape[1] == 1):
+            labels = target.reshape(-1).astype(np.int64)
+            N = labels.shape[0]
+            one_hot = np.zeros((N, input.shape[-1]), dtype=np.float32)
+            one_hot[np.arange(N), labels] = 1.0
+            self.target = one_hot
+        else:
+            self.target = target.astype(np.float32)
+
+        loss = -np.mean(np.sum(self.target * np.log(self.softmax + eps), axis=-1))
+        return float(loss)
     
     def backward(self) -> np.ndarray:
-        ones_for_targets = np.zeros_like(self.input)
-        ones_for_targets[np.arange(len(self.input)), self.target] = 1
-
-        self.input -= np.min(self.input)
-        softmax = np.exp(self.input) / np.exp(self.input).sum(axis=-1, keepdims=True)
-
-        self.gradient = (-ones_for_targets + softmax) / self.input.shape[0]
+        self.gradient = (self.softmax - self.target) / self.input_stable.shape[0]
         return self.gradient
     
     def __str__(self) -> str:
         return "Cross Entropy Loss (CE)"
-
 
 class BCE(Loss):
     def forward(self, 
@@ -223,30 +210,31 @@ class BCE(Loss):
                 target: np.ndarray, 
                 weights: float | np.ndarray = None) -> float:
 
-        if weights is None:
-            weights = np.ones(input.shape[0])
+        super().forward(input, target)
+        eps = 1e-9
 
-        assert isinstance(weights, (float, np.ndarray)), \
-            "Weights must be a float or numpy array"
-        
-        if isinstance(weights, np.ndarray) and weights.shape[0] != input.shape[0]:
-            raise ValueError("Weights must have the same shape as input")
+        if weights is None:
+            weights = np.ones_like(input, dtype=np.float32)
+        elif isinstance(weights, (float, int)):
+            weights = np.full_like(input, weights, dtype=np.float32)
+        else:
+            weights = weights.astype(np.float32)
         
         self.weights = weights
-        eps = 1e-9 # Epsilon to avoid log(0)
-        super().forward(input, target)
-        entropy = -self.weights * ((input * np.log(target + eps)) + ((1 - input) * (np.log(1 - target + eps))))
-        loss = np.mean(entropy)
+        self.input = np.clip(input, eps, 1 - eps)  # avoid log(0)
+        self.target = target
+        
+        # Binary cross entropy with optional weights
+        loss = -np.mean(weights * (target * np.log(self.input) + (1 - target) * np.log(1 - self.input)))
         return loss
     
     def backward(self) -> np.ndarray:
-        eps = 1e-9 # Epsilon to avoid divided by zero
-        self.gradient = self.weights * ((self.input - self.target) / ((self.input * (1 - self.input)) + eps))
+        eps = 1e-9
+        self.gradient = self.weights * (self.input - self.target) / (self.input * (1 - self.input) + eps) / self.input.shape[0]
         return self.gradient
     
     def __str__(self) -> str:
         return "Binary Cross Entropy (BCE)"
-
 
 class KLDiv(Loss):
     def forward(self, 
@@ -254,7 +242,9 @@ class KLDiv(Loss):
                 target: np.ndarray) -> np.ndarray:
         super().forward(input, target)
         eps = 1e-9
-        loss = np.mean(target * (np.log(target + eps) - input))
+        self.input_log = np.log(input + eps)  
+        self.target = target
+        loss = np.mean(np.sum(target * (np.log(target + eps) - self.input_log), axis=-1))
         return loss
     
     def backward(self) -> np.ndarray:

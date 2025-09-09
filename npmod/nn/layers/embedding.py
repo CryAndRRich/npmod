@@ -32,9 +32,8 @@ class Embedding(Layer):
 
     def backward(self, previous_grad: np.ndarray) -> np.ndarray:
         self.grad_weight.fill(0)
-        batch_size, seq_len, _ = previous_grad.shape
-        for b in range(batch_size):
-            for s in range(seq_len):
-                idx = self.input_indices[b, s]
-                self.grad_weight[idx] += previous_grad[b, s]
-        return None  
+
+        # Efficient gradient accumulation
+        np.add.at(self.grad_weight, self.input_indices, previous_grad)
+        
+        return None

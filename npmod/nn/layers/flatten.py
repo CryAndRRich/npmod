@@ -23,4 +23,5 @@ class Flatten(Layer):
             return x.reshape(x.shape[0], -1)
 
     def backward(self, previous_grad: np.ndarray) -> np.ndarray:
+        assert self.forward_shape is not None, "Must call forward before backward"
         return previous_grad.reshape(self.forward_shape)

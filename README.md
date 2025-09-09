@@ -13,26 +13,30 @@ npmod/nn/
 │   ├── linear/
 │   ├── batchnorm/
 │   ├── conv/
-│   │   ├── conv2d, conv3d/
-│   │   └── maxpool2d, maxpool3d/
+│   ├── pooling/
+│   │
 │   └── rnn/
 │       ├── rnn/
 │       ├── lstm/
 │       └── gru/
+│
 ├── activations/
 │   ├── relu, leaky relu/
 │   ├── sigmoid/
 │   ├── tanh/
 │   └── softmax/
+│
 ├── container/
 |   └── sequential/
+│
 ├── losses/
 |   ├── mae, mse, male/
 |   ├── rsquared/
 |   ├── mape, wmape/
 |   ├── smoothl1/
 |   ├── ce, bce/
-|   ├── kldiv/
+|   └── kldiv/
+│
 └── optimizer/
     ├── gd, sgd/
     ├── adagrad/
@@ -145,9 +149,21 @@ models/
     │   ├── alexnet/
     │   ├── nin/
     │   ├── vgg/
-    │   ├── googlenet, xception, nasnet/
-    │   ├── resnet34, resnet152, resnext, wideresnet/
-    │   └── densenet/
+    │   ├── googlenet/
+    │   ├── resnet34, resnet152/
+    │   ├── squeezenet/
+    │   ├── resnext/
+    │   ├── xception/
+    │   ├── densenet/
+    │   ├── wideresnet/
+    │   ├── mobilenet/
+    │   ├── nasnet/
+    │   ├── shufflenet/
+    │   ├── efficientnet/
+    │   ├── regnet/
+    │   ├── ghostnet/
+    │   └── micronet/
+    │
     ├── rnn/
     │   ├── gru, mgu, sru/
     │   ├── lstm/
@@ -155,6 +171,7 @@ models/
     │   ├── janet/
     │   ├── ran/
     │   └── rhn/
+    │
     ├── gan/
     │   ├── gan/
     │   ├── dcgan, lapgan, srgan/

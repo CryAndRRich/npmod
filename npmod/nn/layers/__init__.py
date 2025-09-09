@@ -11,15 +11,13 @@ class Layer():
         """
         Returns the parameters of the layer
         """
-        return
-        yield
+        return []
 
     def gradients(self):
         """
         Returns the gradients of the parameters
         """
-        return
-        yield
+        return []
 
     def forward(self, x: np.ndarray) -> np.ndarray:
         """
@@ -41,6 +39,6 @@ from .dropout import Dropout
 from .flatten import Flatten
 from .embedding import Embedding
 from .batchnorm import BatchNorm
-
-from .conv import *
+from .conv import Conv
+from .pooling import Pooling
 from .rnn import *
