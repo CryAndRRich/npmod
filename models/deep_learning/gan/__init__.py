@@ -31,17 +31,15 @@ class GAN():
 
     def init_weights(self, m: nn.Module) -> None:
         """
-        Initialize the model parameters using the Xavier initializer
+        Initialize the model parameters
 
         Parameters:
             m: The module to initialize
         """
-        if isinstance(m, nn.Linear) or isinstance(m, nn.Conv2d):
-            nn.init.xavier_uniform_(m.weight)
-            if m.bias is not None:
-                nn.init.constant_(m.bias, 0)
-        elif isinstance(m, nn.BatchNorm1d) or isinstance(m, nn.BatchNorm2d):
-            nn.init.constant_(m.weight, 1)
+        if hasattr(m, 'weight') and m.weight is not None:
+            if isinstance(m, (nn.Conv2d, nn.ConvTranspose2d, nn.Linear)):
+                nn.init.normal_(m.weight, 0.0, 0.02)
+        if hasattr(m, 'bias') and m.bias is not None:
             nn.init.constant_(m.bias, 0)
 
     def fit(self, dataloader: DataLoader) -> None:
@@ -51,35 +49,7 @@ class GAN():
         Parameters:
             dataloader: DataLoader for real images
         """
-        self.init_network()
-
-        for _ in range(self.number_of_epochs):
-            for real_images, _ in dataloader:
-                batch_size = real_images.size(0)
-
-                valid = torch.ones((batch_size, 1))
-                fake = torch.zeros((batch_size, 1))
-
-                # Train Discriminator
-                self.optimizer_D.zero_grad()
-                real_validity = self.discriminator(real_images)
-                loss_real = self.criterion(real_validity, valid)
-
-                z = torch.randn(batch_size, self.latent_dim)
-                generated_images = self.generator(z)
-                fake_validity = self.discriminator(generated_images.detach())
-                loss_fake = self.criterion(fake_validity, fake)
-
-                loss_D = (loss_real + loss_fake) / 2
-                loss_D.backward()
-                self.optimizer_D.step()
-
-                # Train Generator
-                self.optimizer_G.zero_grad()
-                gen_validity = self.discriminator(generated_images)
-                loss_G = self.criterion(gen_validity, valid)
-                loss_G.backward()
-                self.optimizer_G.step()
+        pass
 
     def generate(self, noise: torch.Tensor) -> torch.Tensor:
         """
@@ -96,12 +66,5 @@ class GAN():
             generated_images = self.generator(noise)
         return generated_images
 
-from .gan import VanillaGAN
-from .dcgan import DCGAN
-from .lapgan import LAPGAN
-from .srgan import SRGAN
-from .wgan import WGAN
-from .cgan import CGAN
-from .pix2pix import Pix2Pix
-from .stylegan import StyleGAN
-from .spade import SPADE
+from .supervised import *
+from .unsupervised import *

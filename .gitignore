@@ -6,3 +6,8 @@ catboost_info
 
 *.ipynb
 *.cpp
+
+*.h5
+*.pth
+*.pkl
+*.npy
