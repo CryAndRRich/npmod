@@ -207,9 +207,9 @@ class DCGAN(GAN):
             epoch_loss_D /= len(dataloader)
             epoch_loss_G /= len(dataloader)
 
-            if (epoch + 1) % 10 == 0 or epoch == 0:
-                print(f"Epoch [{epoch + 1}/{self.number_of_epochs}] "
-                      f"Loss_D: {epoch_loss_D:.4f} | Loss_G: {epoch_loss_G:.4f}")
+            # if (epoch + 1) % 10 == 0 or epoch == 0:
+            #     print(f"Epoch [{epoch + 1}/{self.number_of_epochs}] "
+            #           f"Loss_D: {epoch_loss_D:.4f} | Loss_G: {epoch_loss_G:.4f}")
 
     def __str__(self) -> str:
         return "DCGAN (Deep Convolutional GAN)"
