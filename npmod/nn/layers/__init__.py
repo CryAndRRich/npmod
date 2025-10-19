@@ -34,11 +34,12 @@ class Layer():
     def __call__(self, x):
         return self.forward(x)
 
-from .linear import Linear
-from .dropout import Dropout
 from .flatten import Flatten
+from .dropout import Dropout, DropConnect
 from .embedding import Embedding
-from .batchnorm import BatchNorm
+from .linear import Linear
 from .conv import Conv
 from .pooling import Pooling
+from .batchnorm import BatchNorm, GroupNorm
+from .weightnorm import WeightNorm
 from .rnn import *

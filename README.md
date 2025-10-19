@@ -7,13 +7,16 @@ A simple **deep learning framework** built using **pure NumPy**
 ```
 npmod/nn/
 ├── layers/
-│   ├── linear/
-│   ├── dropout/
 │   ├── flatten/
+│   ├── dropout/
+│   ├── droconnect/
 │   ├── linear/
-│   ├── batchnorm/
+│   ├── linear/
 │   ├── conv/
 │   ├── pooling/
+│   ├── batchnorm/
+│   ├── groupnorm/
+│   ├── weightnorm/
 │   │
 │   └── rnn/
 │       ├── rnn/
@@ -21,10 +24,33 @@ npmod/nn/
 │       └── gru/
 │
 ├── activations/
-│   ├── relu, leaky relu/
+│   ├── relu/
+│   │   ├── relu.py
+│   │   ├── leaky_relu.py
+│   │   ├── prelu.py
+│   │   ├── elu.py
+│   │   ├── selu.py
+│   │   └── relu6.py
+│   │
 │   ├── sigmoid/
+│   │   ├── sigmoid.py
+│   │   ├── hard_sigmoid.py
+│   │   └── log_sigmoid.py
+│   │
 │   ├── tanh/
-│   └── softmax/
+│   │   ├── tanh.py
+│   │   └── hard_tanh.py
+│   │
+│   ├── softmax/
+│   │   ├── softmax.py
+│   │   └── log_softmax.py
+│   │
+│   └── smooth/
+│       ├── gelu.py
+│       ├── swish.py
+│       ├── hard_swish.py
+│       ├── softplus.py
+│       └── mish.py
 │
 ├── container/
 |   └── sequential/
@@ -144,6 +170,8 @@ models/
 |           └── umap/
 |
 └── deep_learning/
+    ├── mlp/
+    │
     ├── cnn/
     │   ├── lenet/
     │   ├── alexnet/
@@ -173,17 +201,22 @@ models/
     │   └── rhn/
     │
     ├── gan/
-    │   ├── gan/
-    │   ├── dcgan, lapgan, srgan/
-    │   ├── wgan/
-    │   ├── cgan, pix2pix/
-    │   └── stylegan, spade/
+    │   ├── supervised/
+    |   |   ├── cgan/
+    |   |   ├── pix2pix/
+    |   |   └── srgan/
+    |   |     
+    │   └── supervised/
+    |       ├── gan/
+    |       ├── dcgan/
+    |       ├── lapgan/
+    |       ├── wgan/
+    |       ├── spade/
+    |       └── stylegan/
     │     
-    ├── autoencoder/
-    │   ├── cae/
-    │   ├── convae/
-    │   ├── vae/
-    │   └── dae/
-    │
-    └── mlp/
+    └── autoencoder/
+        ├── cae/
+        ├── convae/
+        ├── vae/
+        └── dae/
 ```
