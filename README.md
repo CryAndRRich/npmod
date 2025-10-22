@@ -56,18 +56,57 @@ npmod/nn/
 |   └── sequential/
 │
 ├── losses/
-|   ├── mae, mse, male/
-|   ├── rsquared/
-|   ├── mape, wmape/
-|   ├── smoothl1/
-|   ├── ce, bce/
-|   └── kldiv/
+│   ├── regression/
+│   │   ├── mae.py
+│   │   ├── mse.py
+│   │   ├── male.py
+│   │   ├── rsquared.py
+│   │   ├── mape.py
+│   │   ├── wmape.py
+│   │   ├── smoothl1.py
+│   │   ├── huber.py
+│   │   ├── logcosh.py
+│   │   └── quantile.py
+│   │
+│   ├── classification/
+│   │   ├── ce.py
+│   │   ├── bce.py
+│   │   ├── focalloss.py
+│   │   ├── labelsmoothingce.py
+│   │   └── diceloss.py
+│   │
+│   ├── divergence/
+│   │   ├── kldiv.py
+│   │   ├── jsdiv.py
+│   │   └── wasserstein.py
+│   │
+│   └── ranking/
+│       ├── __init__.py
+│       ├── hinge_embedding.py
+│       ├── margin_ranking.py
+│       └── triplet_margin.py
 │
 └── optimizer/
-    ├── gd, sgd/
-    ├── adagrad/
-    ├── rmsprop/
-    └── adam/
+    ├── classical/
+    │   ├── gd.py              
+    │   └── sgd.py             
+    │
+    ├── adaptive/
+    │   ├── adagrad.py
+    │   ├── rmsprop.py
+    │   ├── adam.py
+    │   ├── adamw.py
+    │   ├── radam.py
+    │   ├── adabelief.py
+    │   └── lookahead.py
+    │
+    └── modern/
+        ├── lamb.py
+        ├── novograd.py
+        ├── ranger.py
+        ├── apollo.py
+        ├── sophia.py
+        └── lion.py
 ```
 ## models:
 Every model is built using NumPy or PyTorch
@@ -113,6 +152,7 @@ models/
 │   └── ensemble/
 │       ├── bagging/
 │       |   └── random_forest/
+│       |   
 |       └── boosting/
 │           ├── gradient_boosting/
 │           ├── adaboost/

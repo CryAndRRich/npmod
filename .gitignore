@@ -11,3 +11,7 @@ catboost_info
 *.pth
 *.pkl
 *.npy
+
+*.svg
+
+*.json
