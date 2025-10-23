@@ -204,7 +204,7 @@ def test_pooling() -> None:
 
 
 if __name__ == "__main__":
-    # test_linear()
+    test_linear()
     """
     ===== Testing Linear =====
     Forward max diff: 0.000000
@@ -213,7 +213,7 @@ if __name__ == "__main__":
     Grad bias max diff: 0.000000
     """
 
-    # test_conv2d()
+    test_conv2d()
     """
     ===== Testing Conv2D =====
     Forward max diff: 0.000000
@@ -222,7 +222,7 @@ if __name__ == "__main__":
     Grad bias max diff: 0.000001
     """
 
-    # test_batchnorm()
+    test_batchnorm()
     """
     ===== Testing BatchNorm1d =====
     Forward max diff: 0.000000
@@ -231,20 +231,20 @@ if __name__ == "__main__":
     Grad beta max diff: 0.000000
     """
 
-    # test_embedding()
+    test_embedding()
     """
     ===== Testing Embedding =====
     Forward max diff: 0.000000
     Grad weight max diff: 0.000000
     """
 
-    # test_flatten()
+    test_flatten()
     """===== Testing Flatten =====
     Forward max diff: 0.000000
     Grad input max diff: 0.000000
     """
 
-    # test_pooling()
+    test_pooling()
     """
     ===== Testing MaxPool2d =====
     Forward max diff: 0.000000

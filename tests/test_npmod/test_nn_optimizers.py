@@ -157,14 +157,14 @@ def test_optimizer_conv2d(npConv: Layer,
 
 if __name__ == "__main__":
     # Testing optimizers with Linear layer
-    #test_optimizer_linear(npLinear, GD, lambda p, lr: optim.SGD(p, lr=lr, momentum=0))
-    #test_optimizer_linear(npLinear, SGD, lambda p, lr: optim.SGD(p, lr=lr, momentum=0.01, dampening=0, nesterov=False))
+    test_optimizer_linear(npLinear, GD, lambda p, lr: optim.SGD(p, lr=lr, momentum=0))
+    test_optimizer_linear(npLinear, SGD, lambda p, lr: optim.SGD(p, lr=lr, momentum=0.01, dampening=0, nesterov=False))
     
-    #test_optimizer_linear(npLinear, AdaGrad, optim.Adagrad)
-    #test_optimizer_linear(npLinear, RMSprop, lambda p, lr: optim.RMSprop(p, lr=lr, alpha=0.9, eps=1e-8))
-    #test_optimizer_linear(npLinear, Adam, optim.Adam)
-    #test_optimizer_linear(npLinear, AdamW, optim.AdamW)
-    #test_optimizer_linear(npLinear, RAdam, optim.RAdam)
+    test_optimizer_linear(npLinear, AdaGrad, optim.Adagrad)
+    test_optimizer_linear(npLinear, RMSprop, lambda p, lr: optim.RMSprop(p, lr=lr, alpha=0.9, eps=1e-8))
+    test_optimizer_linear(npLinear, Adam, optim.Adam)
+    test_optimizer_linear(npLinear, AdamW, optim.AdamW)
+    test_optimizer_linear(npLinear, RAdam, optim.RAdam)
     """
     ===== Testing Linear + GD =====
     Step 1:

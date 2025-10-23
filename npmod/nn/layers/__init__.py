@@ -42,4 +42,3 @@ from .conv import Conv
 from .pooling import Pooling
 from .batchnorm import BatchNorm, GroupNorm
 from .weightnorm import WeightNorm
-from .rnn import *

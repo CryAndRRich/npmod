@@ -16,12 +16,12 @@ npmod/nn/
 │   ├── pooling/
 │   ├── batchnorm/
 │   ├── groupnorm/
-│   ├── weightnorm/
-│   │
-│   └── rnn/
-│       ├── rnn/
-│       ├── lstm/
-│       └── gru/
+│   └── weightnorm/
+│   
+├── rnn/
+│   ├── rnn/
+│   ├── lstm/
+│   └── gru/
 │
 ├── activations/
 │   ├── relu/
