@@ -1,6 +1,5 @@
 import torch
 import torch.nn as nn
-import torch.optim as optim
 from ..rnn import RecurNet
 
 class MGUCell(nn.Module):
@@ -8,34 +7,34 @@ class MGUCell(nn.Module):
                  input_size: int, 
                  hidden_size: int) -> None:
         """
-        Initialize MGU cell
+        Initialize the MGU cell
 
         Parameters:
-            input_size: Dimension of input vector
+            input_size: Dimension of the input vector
             hidden_size: Number of hidden units in the cell
         """
         super().__init__()
         self.input_size = input_size
         self.hidden_size = hidden_size
 
-        # Parameters for update gate z_t
+        # Update gate
         self.W_z = nn.Linear(input_size + hidden_size, hidden_size)
 
-        # Parameters for candidate hidden state h~_t
+        # Candidate hidden state
         self.W_h = nn.Linear(input_size + hidden_size, hidden_size)
 
     def forward(self, 
                 x_t: torch.Tensor, 
                 h_prev: torch.Tensor) -> torch.Tensor:
         """
-        Perform forward pass for one time step
+        Compute one time step of the MGU cell
 
         Parameters:
-            x_t: Input at current time step 
-            h_prev: Previous hidden state 
+            x_t: Input tensor at current time step
+            h_prev: Hidden state from previous time step
 
         Returns:
-            h_t: Updated hidden state 
+            h_t: Updated hidden state
         """
         combined = torch.cat([x_t, h_prev], dim=1)
         z_t = torch.sigmoid(self.W_z(combined))
@@ -43,61 +42,69 @@ class MGUCell(nn.Module):
         h_t = (1 - z_t) * h_prev + z_t * h_tilde
         return h_t
 
+
 class MGUNet(nn.Module):
-    def __init__(self, 
-                 embedding: nn.Embedding, 
-                 cell: MGUCell, 
-                 fc: nn.Linear) -> None:
+    def __init__(self,
+                 input_size: int,
+                 hidden_size: int,
+                 output_size: int,
+                 forecast_horizon: int = 1,
+                 num_layers: int = 1,
+                 dropout: float = 0.1) -> None:
         """
-        Initialize the MGU classification network
+        Initialize the MGU network
 
         Parameters:
-            embedding: Embedding layer for input tokens
-            cell: Recurrent cell (MGU)
-            fc: Fully connected layer for output classification
+            input_size: Dimension of the input features
+            hidden_size: Number of hidden units in the MGU cell
+            output_size: Output dimension
+            forecast_horizon: Number of time steps to forecast
+            num_layers: Number of MGU layers
+            dropout: Dropout rate applied after recurrent processing
         """
         super().__init__()
-        self.embedding = embedding
-        self.cell = cell
-        self.fc = fc
+        self.hidden_size = hidden_size
+        self.num_layers = num_layers
+        self.forecast_horizon = forecast_horizon
+
+        layers = []
+        for i in range(num_layers):
+            in_size = input_size if i == 0 else hidden_size
+            layers.append(MGUCell(in_size, hidden_size))
+        self.layers = nn.ModuleList(layers)
+
+        self.dropout = nn.Dropout(dropout)
+        self.fc = nn.Linear(hidden_size, output_size)
 
     def forward(self, x: torch.Tensor) -> torch.Tensor:
-        """
-        Forward pass through the network
+        batch_size, seq_len, _ = x.size()
 
-        Parameters:
-            x: Input tensor 
-
-        Returns:
-            out: Logits tensor
-        """
-        embedded = self.embedding(x)
-        batch_size, seq_len, _ = embedded.shape
-
-        h = torch.zeros(batch_size, self.cell.hidden_size, device=embedded.device)
+        h = [torch.zeros(batch_size, self.hidden_size) for _ in range(self.num_layers)]
+        outputs = []
 
         for t in range(seq_len):
-            x_t = embedded[:, t, :]
-            h = self.cell(x_t, h)
+            x_t = x[:, t, :]
+            for l in range(self.num_layers):
+                h[l] = self.layers[l](x_t, h[l])
+                x_t = h[l]
+            outputs.append(h[-1].unsqueeze(1))
 
-        out = self.fc(h)
+        outputs = torch.cat(outputs, dim=1) 
+        outputs = self.dropout(outputs[:, -self.forecast_horizon:, :])
+        out = self.fc(outputs) 
         return out
+
 
 class MGU(RecurNet):
     def init_network(self) -> None:
-        """
-        Initialize the embedding layer, MGU cell, classification layer, 
-        and the optimizer and loss function
-        """
-        embedding = nn.Embedding(num_embeddings=self.vocab_size, embedding_dim=self.embed_dim)
-        cell = MGUCell(input_size=self.embed_dim, hidden_size=self.hidden_size)
-        fc = nn.Linear(self.hidden_size, self.num_classes)
-
-        self.network = MGUNet(embedding, cell, fc)
-        self.network.apply(self.init_weights)
-
-        self.optimizer = optim.Adam(self.network.parameters(), lr=self.learn_rate)
-        self.criterion = nn.CrossEntropyLoss()
+        self.network = MGUNet(
+            input_size=self.input_size,
+            hidden_size=self.hidden_size,
+            output_size=self.output_size,
+            forecast_horizon=self.forecast_horizon,
+            num_layers=self.num_layers,
+            dropout=self.dropout
+        )
 
     def __str__(self) -> str:
         return "Minimal Gated Unit (MGU)"

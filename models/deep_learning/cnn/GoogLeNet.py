@@ -80,43 +80,100 @@ class Inception(nn.Module):
         return torch.cat(tensors=(p1, p2, p3, p4), dim=1)
     
 class GoogLeNet(ConvNet):
-    """
-    GoogLeNet built using convolutional layers and Inception blocks,
-    followed by an Adaptive Average Pooling layer and a fully-connected layer
-    """
     def init_network(self):
-        """
-        Initializes the GoogLeNet network architecture
-        """
         block1 = nn.Sequential(
-            nn.Conv2d(in_channels=1, 
-                      out_channels=32, 
-                      kernel_size=3, 
-                      stride=1, 
-                      padding=1),
-            nn.BatchNorm2d(num_features=32),
+            nn.Conv2d(in_channels=3, 
+                      out_channels=64, 
+                      kernel_size=7, 
+                      stride=2, 
+                      padding=3,
+                      bias=False),
+            nn.BatchNorm2d(num_features=64),
             nn.ReLU(inplace=True),
-            nn.MaxPool2d(kernel_size=2, stride=2)
+            nn.MaxPool2d(kernel_size=3, 
+                         stride=2,
+                         padding=1)
         )
 
         block2 = nn.Sequential(
-            nn.Conv2d(in_channels=32, out_channels=32, kernel_size=1),
-            nn.BatchNorm2d(num_features=32),
-            nn.ReLU(inplace=True),
-            nn.Conv2d(in_channels=32, out_channels=64, kernel_size=3, padding=1),
+            nn.Conv2d(in_channels=64, 
+                      out_channels=64, 
+                      kernel_size=1,
+                      bias=False),
             nn.BatchNorm2d(num_features=64),
             nn.ReLU(inplace=True),
-            nn.MaxPool2d(kernel_size=2, stride=2) 
+
+            nn.Conv2d(in_channels=64, 
+                      out_channels=192, 
+                      kernel_size=3, 
+                      padding=1,
+                      bias=False),
+            nn.BatchNorm2d(num_features=192),
+            nn.ReLU(inplace=True),
+            nn.MaxPool2d(kernel_size=3, 
+                         stride=2,
+                         padding=1) 
         )
 
         block3 = nn.Sequential(
-            Inception(in_channels=64, c1=16, c2=(16, 24), c3=(4, 8), c4=8),
-            Inception(in_channels=56, c1=24, c2=(24, 32), c3=(8, 16), c4=16),
-            nn.MaxPool2d(kernel_size=2, stride=2) 
+            Inception(in_channels=192, 
+                      c1=64, 
+                      c2=(96, 128), 
+                      c3=(16, 32), 
+                      c4=32),
+            Inception(in_channels=256, 
+                      c1=128, 
+                      c2=(128, 192), 
+                      c3=(32, 96), 
+                      c4=64),
+            nn.MaxPool2d(kernel_size=3, 
+                         stride=2,
+                         padding=1) 
         )
 
         block4 = nn.Sequential(
-            Inception(in_channels=88, c1=32, c2=(32, 48), c3=(8, 16), c4=16)
+            Inception(in_channels=480, 
+                      c1=192, 
+                      c2=(96, 208), 
+                      c3=(16, 48), 
+                      c4=64),
+            Inception(in_channels=512, 
+                      c1=160, 
+                      c2=(112, 224), 
+                      c3=(24, 64), 
+                      c4=64),
+            Inception(in_channels=512, 
+                      c1=128, 
+                      c2=(128, 256), 
+                      c3=(24, 64), 
+                      c4=64),
+            Inception(in_channels=512, 
+                      c1=112, 
+                      c2=(144, 288), 
+                      c3=(32, 64), 
+                      c4=64),
+            Inception(in_channels=528, 
+                      c1=256, 
+                      c2=(160, 320), 
+                      c3=(32, 128),
+                      c4=128),
+            nn.MaxPool2d(kernel_size=3, 
+                         stride=2, 
+                         padding=1) 
+        
+        )
+
+        block5 = nn.Sequential(
+            Inception(in_channels=832, 
+                      c1=256, 
+                      c2=(160, 320), 
+                      c3=(32, 128), 
+                      c4=128),
+            Inception(in_channels=832, 
+                      c1=384, 
+                      c2=(192, 384), 
+                      c3=(48, 128), 
+                      c4=128),
         )
 
         self.network = nn.Sequential(
@@ -124,12 +181,12 @@ class GoogLeNet(ConvNet):
             block2,
             block3,
             block4,
+            block5,
 
             nn.AdaptiveAvgPool2d(output_size=(1, 1)),
             nn.Flatten(),
-            nn.Linear(in_features=112, out_features=10)
+            nn.Linear(in_features=1024, out_features=self.out_channels)
         )
-        self.network.apply(self.init_weights)
     
     def __str__(self) -> str:
-        return "Convolutional Neural Networks: GoogLeNet (Inception)"
+        return "Convolutional Neural Networks: GoogLeNet (InceptionV1)"

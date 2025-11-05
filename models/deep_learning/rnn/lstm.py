@@ -1,66 +1,62 @@
-from typing import Optional
 import torch
 import torch.nn as nn
-import torch.optim as optim
 from ..rnn import RecurNet
 
 class LSTMNet(nn.Module):
-    """
-    LSTM network module for text classification
-    """
-    def __init__(self, 
-                 embedding: nn.Embedding, 
-                 lstm: nn.LSTM, 
-                 fc: nn.Linear) -> None:
+    def __init__(self,
+                 input_size: int,
+                 hidden_size: int,
+                 output_size: int,
+                 forecast_horizon: int = 1,
+                 num_layers: int = 1,
+                 bidirectional: bool = False,
+                 dropout: float = 0.1) -> None:
+        """
+        LSTM - Long Short-Term Memory Network
+
+        Parameters:
+            input_size: Number of input features
+            hidden_size: Number of hidden units in each LSTM layer
+            output_size: Dimension of the output layer
+            forecast_horizon: Number of time steps to forecast
+            num_layers: Number of LSTM layers
+            bidirectional: Whether to use a bidirectional LSTM
+            dropout: Dropout rate between LSTM layers
+        """
         super().__init__()
-        self.embedding = embedding
-        self.lstm = lstm
-        self.fc = fc
+
+        self.lstm = nn.LSTM(
+            input_size=input_size,
+            hidden_size=hidden_size,
+            num_layers=num_layers,
+            batch_first=True,
+            bidirectional=bidirectional,
+            dropout=dropout if num_layers > 1 else 0.0
+        )
+
+        self.forecast_horizon = forecast_horizon
+        self.output_size = output_size
+
+        fc_in = hidden_size * (2 if bidirectional else 1)
+        self.fc = nn.Linear(fc_in, output_size)
 
     def forward(self, x: torch.Tensor) -> torch.Tensor:
-        x = self.embedding(x)
-        out, (_, _) = self.lstm(x)
-        out = out[:, -1, :]  # Take output from last time step
-        out = self.fc(out)
+        out, _ = self.lstm(x)
+        out = self.fc(out[:, -self.forecast_horizon:, :])
         return out
 
+
 class LSTM(RecurNet):
-    def __init__(self,
-                 learn_rate: float,
-                 number_of_epochs: int,
-                 vocab_size: int,
-                 embed_dim: int = 100,
-                 hidden_size: int = 128,
-                 num_layers: int = 1,
-                 num_classes: int = 10,
-                 batch_size: Optional[int] = None) -> None:
-        super().__init__(
-            learn_rate=learn_rate,
-            number_of_epochs=number_of_epochs,
-            vocab_size=vocab_size,
-            embed_dim=embed_dim,
-            hidden_size=hidden_size,
-            num_classes=num_classes,
-            batch_size=batch_size
-        )
-        self.num_layers = num_layers
-
     def init_network(self) -> None:
-        """
-        Initialize LSTM network components and training utilities
-        """
-        embedding = nn.Embedding(num_embeddings=self.vocab_size, embedding_dim=self.embed_dim)
-        lstm = nn.LSTM(input_size=self.embed_dim,
-                       hidden_size=self.hidden_size,
-                       num_layers=self.num_layers,
-                       batch_first=True)
-        fc = nn.Linear(self.hidden_size, self.num_classes)
-
-        self.network = LSTMNet(embedding, lstm, fc)
-        self.network.apply(self.init_weights)
-
-        self.optimizer = optim.Adam(self.network.parameters(), lr=self.learn_rate)
-        self.criterion = nn.CrossEntropyLoss()
+        self.network = LSTMNet(
+            input_size=self.input_size,
+            hidden_size=self.hidden_size,
+            output_size=self.output_size,
+            forecast_horizon=self.forecast_horizon,
+            num_layers=self.num_layers,
+            bidirectional=self.bidirectional,
+            dropout=self.dropout
+        )
 
     def __str__(self) -> str:
         return "Long Short-Term Memory (LSTM)"

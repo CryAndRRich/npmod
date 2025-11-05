@@ -90,15 +90,11 @@ def transition_block(input_channels: int,
     return block
 
 class DenseNet(ConvNet):
-    """
-    DenseNet consists of an initial convolution layer, followed by a series of
-    Dense Blocks and Transition Blocks. The final layers perform classification
-    """
     def init_network(self):
         # Set initial number of channels and growth rate for the dense blocks
-        num_channels, growth_rate = 16, 12
+        num_channels, growth_rate = 64, 32
         # Define number of convolution layers in each dense block
-        num_convs_in_dense_blocks = [2, 2, 2, 2]
+        num_convs_in_dense_blocks = [6, 12, 24, 16]
         layers = []
         # Build the dense blocks with interleaved transition blocks
         for i, num_convs in enumerate(num_convs_in_dense_blocks):
@@ -110,27 +106,26 @@ class DenseNet(ConvNet):
                 num_channels = num_channels // 2
         blocks = nn.Sequential(*layers)
 
-        # Modified initial layers for 28x28 images
         self.network = nn.Sequential(
-            nn.Conv2d(in_channels=1, 
-                      out_channels=16, 
-                      kernel_size=3, 
-                      stride=1, 
-                      padding=1),
-            nn.BatchNorm2d(num_features=16),
+            nn.Conv2d(in_channels=3, 
+                      out_channels=64, 
+                      kernel_size=7, 
+                      stride=2, 
+                      padding=3),
+            nn.BatchNorm2d(num_features=64),
             nn.ReLU(inplace=True),
-            nn.MaxPool2d(kernel_size=2, stride=2),
+            nn.MaxPool2d(kernel_size=3, 
+                         stride=2,
+                         padding=1),
             
             blocks,
             
             nn.BatchNorm2d(num_features=num_channels),
             nn.ReLU(inplace=True),
-            nn.AdaptiveMaxPool2d(output_size=(1, 1)),
+            nn.AdaptiveAvgPool2d(output_size=(1, 1)),
             nn.Flatten(),
-            nn.Linear(in_features=num_channels, out_features=10)
+            nn.Linear(in_features=num_channels, out_features=self.out_channels)
         )
 
-        self.network.apply(self.init_weights)
-    
     def __str__(self) -> str:
         return "Convolutional Neural Networks: DenseNet-121"

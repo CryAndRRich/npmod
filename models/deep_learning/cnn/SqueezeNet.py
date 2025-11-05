@@ -48,16 +48,18 @@ class Fire(nn.Module):
 class SqueezeNet(ConvNet):
     def init_network(self):
         self.network = nn.Sequential(
-            nn.Conv2d(in_channels=1, 
-                      out_channels=96, 
+            nn.Conv2d(in_channels=3, 
+                      out_channels=64, 
                       kernel_size=3, 
-                      stride=1, 
+                      stride=2, 
                       padding=1),  
-            nn.BatchNorm2d(num_features=96),
+            nn.BatchNorm2d(num_features=64),
             nn.ReLU(inplace=True),
-            nn.MaxPool2d(kernel_size=2, stride=2),  
+            nn.MaxPool2d(kernel_size=3, 
+                         stride=2,
+                         padding=1),  
 
-            Fire(in_channels=96, 
+            Fire(in_channels=64, 
                  squeeze_channels=16, 
                  expand1x1_channels=64, 
                  expand3x3_channels=64),  
@@ -69,7 +71,9 @@ class SqueezeNet(ConvNet):
                  squeeze_channels=32, 
                  expand1x1_channels=128, 
                  expand3x3_channels=128),
-            nn.MaxPool2d(kernel_size=2, stride=2),
+            nn.MaxPool2d(kernel_size=3, 
+                         stride=2,
+                         padding=1),  
 
             Fire(in_channels=256, 
                  squeeze_channels=32, 
@@ -87,21 +91,25 @@ class SqueezeNet(ConvNet):
                  squeeze_channels=64, 
                  expand1x1_channels=256, 
                  expand3x3_channels=256),
-            nn.MaxPool2d(kernel_size=2, stride=2),  
+            nn.MaxPool2d(kernel_size=3, 
+                         stride=2,
+                         padding=1),  
 
             Fire(in_channels=512, 
                  squeeze_channels=64, 
                  expand1x1_channels=256, 
                  expand3x3_channels=256),
 
-            nn.Conv2d(in_channels=512, out_channels=10, kernel_size=1),  
-            nn.BatchNorm2d(num_features=10),
+            nn.Conv2d(in_channels=512, 
+                      out_channels=self.out_channels, 
+                      kernel_size=1,
+                      bias=False),  
+            nn.BatchNorm2d(num_features=self.out_channels),
             nn.ReLU(inplace=True),
 
             nn.AdaptiveAvgPool2d(output_size=(1, 1)),
             nn.Flatten()
         )
-        self.network.apply(self.init_weights)
 
     def __str__(self) -> str:
-        return "Convolutional Neural Networks: SqueezeNet"
+        return "Convolutional Neural Networks: SqueezeNet-1.1"

@@ -38,19 +38,14 @@ def vgg_block(num_convs: int,
 
 class VGG(ConvNet):
     def init_network(self):
-        # A list of tuples (one per block), where each contains two values: 
-        # the number of convolutional layers and the number of output channels
-        conv_arch = ((1, 32), (1, 64), (2, 128), (2, 256), (2, 256))
-        
+        conv_arch = ((2, 64), (2, 128), (3, 256), (3, 512), (3, 512))
         conv_layers = []
-        in_channels = 1
+        in_channels = 3
         
-        for i, (num_convs, out_channels) in enumerate(conv_arch):
-            use_adaptive_pool = (i == len(conv_arch) - 1)
+        for num_convs, out_channels in conv_arch:
             block = vgg_block(num_convs=num_convs, 
                               in_channels=in_channels, 
-                              out_channels=out_channels, 
-                              use_adaptive_pool=use_adaptive_pool)
+                              out_channels=out_channels)
             conv_layers.append(block)
             in_channels = out_channels
         
@@ -58,19 +53,18 @@ class VGG(ConvNet):
             *conv_layers,
 
             nn.Flatten(),
-            nn.Linear(in_features=in_channels, out_features=256),
-            nn.BatchNorm1d(num_features=256),
+            nn.Linear(in_features=512 * 7 * 7, out_features=4096),
+            nn.BatchNorm1d(num_features=4096),
             nn.ReLU(inplace=True),
-
             nn.Dropout(p=0.5),
-            nn.Linear(in_features=256, out_features=256),
-            nn.BatchNorm1d(num_features=256),
+
+            nn.Linear(in_features=4096, out_features=4096),
+            nn.BatchNorm1d(num_features=4096),
             nn.ReLU(inplace=True),
-
             nn.Dropout(p=0.5),
-            nn.Linear(in_features=256, out_features=10)
+
+            nn.Linear(in_features=4096, out_features=self.out_channels)
         )
-        self.network.apply(self.init_weights)
     
     def __str__(self) -> str:
-        return "Convolutional Neural Networks: VGG-11"
+        return "Convolutional Neural Networks: VGG-16"

@@ -2,22 +2,22 @@ import torch
 import torch.optim as optim
 import torch.nn as nn
 
-# Since CNNs primarily operate with 224x224 images (ImageNet dataset), 
-# the model architectures in this CNN folder will be modified 
-# to suit 28x28 images for convenient training
 class ConvNet():
     def __init__(self,
                  learn_rate: float, 
-                 number_of_epochs: int) -> None:
+                 number_of_epochs: int,
+                 out_channels: int = 10) -> None:
         """
         Initializes the Convolutional Neural Networks
 
         Parameters:
             learn_rate: The learning rate for the network update
             number_of_epochs: The number of training iterations
+            out_channels: The number of output channels / classes
         """
         self.learn_rate = learn_rate
         self.number_of_epochs = number_of_epochs
+        self.out_channels = out_channels
     
     def init_network(self) -> None:
         """Initialize the network, optimizer and loss function"""
@@ -42,6 +42,7 @@ class ConvNet():
             verbose: If True, prints training progress
         """
         self.init_network()
+        self.network.apply(self.init_weights)
         self.optimizer = optim.Adam(self.network.parameters(), lr=self.learn_rate)
         self.criterion = nn.CrossEntropyLoss()
     
@@ -59,7 +60,7 @@ class ConvNet():
     
             if verbose:
                 avg_loss = running_loss / len(train_loader)
-                print(f"Epoch [{epoch+1}/{self.number_of_epochs}], Loss: {avg_loss:.4f}")
+                print(f"Epoch [{epoch + 1}/{self.number_of_epochs}], Loss: {avg_loss:.4f}")
     
     def predict(self, test_loader: torch.utils.data.DataLoader) -> torch.Tensor:
         """
@@ -70,32 +71,30 @@ class ConvNet():
 
         Returns:
             predictions: The prediction targets
-            labels: The true targets
         """
         self.network.eval()
         all_preds = []
-        all_labels = []
     
         with torch.no_grad():
-            for features, targets in test_loader:
+            for features in test_loader:
+                if isinstance(features, (list, tuple)):
+                    features = features[0]
+
                 logits = self.network(features)
                 preds = torch.argmax(logits, dim=1)
-    
                 all_preds.append(preds)
-                all_labels.append(targets)
     
         predictions = torch.cat(all_preds, dim=0)
-        labels = torch.cat(all_labels, dim=0)
     
-        return predictions, labels
+        return predictions
 
-from .LeNet import LeNet             
+from .LeNet import LeNet    
+
 from .AlexNet import AlexNet       
 from .NiN import NiN                
 from .VGG import VGG             
 from .GoogLeNet import GoogLeNet    
-from .ResNet34 import ResNet34  
-from .ResNet152 import ResNet152   
+from .ResNet import ResNet
 from .SqueezeNet import SqueezeNet   
 from .ResNeXt import ResNeXt         
 from .Xception import Xception   

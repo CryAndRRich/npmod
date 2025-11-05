@@ -1,6 +1,8 @@
 # Machine Learning/Deep Learning
 This repository consists of **two main parts**: a simple **deep learning framework** ([npmod](https://github.com/CryAndRRich/npmod/tree/main/npmod)) and some basic **machine learning/deep learning models** ([models](https://github.com/CryAndRRich/npmod/tree/main/models)). Since this is for learning purposes, everything is built **from scratch** using NumPy and PyTorch (mostly NumPy)
 
+All datasets used to test the models are publicly available and can be found in the **data directory** ([data](https://github.com/CryAndRRich/npmod/tree/main/data)) or via the links provided at the end of this README
+
 ## npmod: NumPy module
 A simple **deep learning framework** built using **pure NumPy**
 
@@ -218,7 +220,7 @@ models/
     │   ├── nin/
     │   ├── vgg/
     │   ├── googlenet/
-    │   ├── resnet34, resnet152/
+    │   ├── resnet/
     │   ├── squeezenet/
     │   ├── resnext/
     │   ├── xception/
@@ -233,12 +235,17 @@ models/
     │   └── micronet/
     │
     ├── rnn/
-    │   ├── gru, mgu, sru/
     │   ├── lstm/
-    │   ├── indrnn, scrn, ugrnn, yamrnn/
+    │   ├── gru/
+    │   ├── mgu/
+    │   ├── ugrnn/
+    │   ├── rhn/
+    │   ├── sru/
     │   ├── janet/
+    │   ├── indrnn/
     │   ├── ran/
-    │   └── rhn/
+    │   ├── scrn/
+    │   └── yamrnn/
     │
     ├── gan/
     │   ├── supervised/
@@ -259,4 +266,22 @@ models/
         ├── convae/
         ├── vae/
         └── dae/
+```
+## data:
+```
+data/
+├── brisc2025.zip                       # https://arxiv.org/abs/2506.14318
+├── cifar10.zip                         # https://www.kaggle.com/datasets/valentynsichkar/cifar10-preprocessed
+├── clouds.zip                          # https://www.kaggle.com/datasets/jockeroika/clouds-photos
+├── Country-data.csv                    # https://www.kaggle.com/datasets/rohan0301/unsupervised-learning-on-country-data
+├── diabetes.csv                        # https://www.kaggle.com/datasets/abdallamahgoub/diabetes
+├── fitness_dataset.csv                 # https://www.kaggle.com/datasets/muhammedderric/fitness-classification-dataset-synthetic
+├── pokemon-dataset-10000.zip           # https://www.kaggle.com/datasets/noodulz/pokemon-dataset-1000fitness-classification-dataset-synthetic
+├── rem.zip                             # https://www.kaggle.com/datasets/andy8744/rezero-rem-anime-faces-for-gan-training
+├── satellite.zip                       # https://www.kaggle.com/datasets/mahmoudreda55/satellite-image-classification
+├── star_classification.csv             # https://www.kaggle.com/datasets/fedesoriano/stellar-classification-dataset-sdss17
+├── Student_Performance.csv             # https://www.kaggle.com/datasets/nikhil7280/student-performance-multiple-linear-regression
+├── synthetic_coffee_health_10000.csv   # https://www.kaggle.com/datasets/uom190346a/global-coffee-health-dataset
+├── tom_and_jerry.zip                   # https://www.kaggle.com/datasets/balabaskar/tom-and-jerry-image-classification
+└── weather5k.zip                       # https://arxiv.org/abs/2406.14399
 ```

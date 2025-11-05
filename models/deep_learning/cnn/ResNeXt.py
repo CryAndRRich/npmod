@@ -36,7 +36,7 @@ class ResNeXtBottleneck(nn.Module):
         super().__init__(**kwargs)
         
         # Calculate the inner width for the grouped convolution
-        inner_channels = cardinality * base_width
+        inner_channels = int(channels * (base_width / 64.0)) * cardinality
         
         # Build the bottleneck network as a single sequential block
         self.network = nn.Sequential(
@@ -134,50 +134,45 @@ def resnext_block(input_channels: int,
 
 class ResNeXt(ConvNet):
     def init_network(self):
-        """
-        Initializes the ResNeXt-50 (32x4d) network adapted for 28x28 images
-
-        The architecture follows:
-          - An initial 3x3 convolution block (without max pooling) to better suit small input images
-          - Four blocks of ResNeXt bottleneck blocks
-          - An adaptive average pooling followed by a fully connected layer
-        """
         block1 = nn.Sequential(
-            nn.Conv2d(in_channels=1, 
+            nn.Conv2d(in_channels=3, 
                       out_channels=64, 
-                      kernel_size=3, 
-                      stride=1, 
-                      padding=1, 
+                      kernel_size=7, 
+                      stride=2, 
+                      padding=3, 
                       bias=False),
-            nn.BatchNorm2d(64),
-            nn.ReLU(inplace=True)
+            nn.BatchNorm2d(num_features=64),
+            nn.ReLU(inplace=True),
+            nn.MaxPool2d(kernel_size=3, 
+                         stride=2, 
+                         padding=1)
         )
         
-        cardinality = 8
+        cardinality = 32
         base_width = 4
         
         block2, in_channels = resnext_block(input_channels=64, 
-                                            channels=32, 
+                                            channels=128, 
                                             num_blocks=3, 
                                             stride=1, 
                                             cardinality=cardinality, 
                                             base_width=base_width)
         block3, in_channels = resnext_block(input_channels=in_channels, 
-                                            channels=64, 
+                                            channels=256, 
                                             num_blocks=4, 
                                             stride=2, 
                                             cardinality=cardinality, 
                                             base_width=base_width)
         block4, in_channels = resnext_block(input_channels=in_channels, 
-                                            channels=128, 
+                                            channels=512, 
                                             num_blocks=6, 
                                             stride=2, 
                                             cardinality=cardinality, 
                                             base_width=base_width)
         block5, in_channels = resnext_block(input_channels=in_channels, 
-                                            channels=256, 
+                                            channels=1024, 
                                             num_blocks=3, 
-                                            stride=1, 
+                                            stride=2, 
                                             cardinality=cardinality, 
                                             base_width=base_width)
         
@@ -190,10 +185,8 @@ class ResNeXt(ConvNet):
 
             nn.AdaptiveAvgPool2d(output_size=(1, 1)),
             nn.Flatten(),
-            nn.Linear(in_features=in_channels, out_features=10)
+            nn.Linear(in_features=in_channels, out_features=self.out_channels)
         )
-        
-        self.network.apply(self.init_weights)
 
     def __str__(self) -> str:
         return "Convolutional Neural Networks: ResNeXt-50"

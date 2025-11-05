@@ -9,8 +9,8 @@ class MicroBlock(nn.Module):
     def __init__(self, 
                  in_channels: int, 
                  out_channels: int, 
-                 stride: int = 1, 
-                 expansion: int = 2) -> None:
+                 stride: int = 2, 
+                 expansion: int = 6) -> None:
         """
         Initialize the MicroBlock
         
@@ -66,37 +66,38 @@ class MicroBlock(nn.Module):
 class MicroNet(ConvNet):
     def init_network(self):
         self.network = nn.Sequential(
-            nn.Conv2d(in_channels=1, 
-                      out_channels=16, 
+            nn.Conv2d(in_channels=3, 
+                      out_channels=32, 
                       kernel_size=3, 
-                      stride=1, 
+                      stride=2, 
                       padding=1, 
                       bias=False),
-            nn.BatchNorm2d(num_features=16),
+            nn.BatchNorm2d(32),
             nn.ReLU6(inplace=True),
 
-            MicroBlock(in_channels=16,
-                       out_channels=32, 
-                       stride=2, 
-                       expansion=2),
-            MicroBlock(in_channels=32,
-                       out_channels=64, 
-                       stride=2, 
-                       expansion=2),
-            MicroBlock(in_channels=64,
-                       out_channels=128, 
-                       stride=2, 
-                       expansion=2),
-            MicroBlock(in_channels=128,
-                       out_channels=128, 
-                       stride=1, 
-                       expansion=2),
-            
+            MicroBlock(in_channels=32,  out_channels=64),
+
+            MicroBlock(in_channels=64,  out_channels=128),
+
+            MicroBlock(in_channels=128,  out_channels=256),
+
+            MicroBlock(in_channels=256, out_channels=512),
+
+            MicroBlock(in_channels=512, 
+                       out_channels=512, 
+                       stride=1),
+
+            nn.Conv2d(in_channels=512, 
+                      out_channels=1024, 
+                      kernel_size=1, 
+                      bias=False),
+            nn.BatchNorm2d(num_features=1024),
+            nn.ReLU6(inplace=True),
+
             nn.AdaptiveAvgPool2d(output_size=1),
             nn.Flatten(),
-            nn.Linear(in_features=128, out_features=10)
+            nn.Linear(in_features=1024, out_features=self.out_channels)
         )
-        self.network.apply(self.init_weights)
 
     def __str__(self):
         return "Convolutional Neural Networks: MicroNet"

@@ -48,44 +48,46 @@ def nin_block(in_channels: int,
     return block
 
 class NiN(ConvNet):
-    """
-    NiN (Network in Network) implementation adapted for 28x28 input images
-    
-    The architecture is composed of multiple NiN blocks, interleaved with pooling layers,
-    dropout, and ends with global pooling and flattening before classification
-    """
     def init_network(self):
-        # Adjust the blocks for 28x28 input images
-        block1 = nin_block(in_channels=1, 
+        block1 = nin_block(in_channels=3, 
                            out_channels=96, 
-                           kernel_size=5, 
-                           stride=1, 
+                           kernel_size=11, 
+                           stride=4, 
                            padding=2)
+        
         block2 = nin_block(in_channels=96, 
                            out_channels=256, 
-                           kernel_size=3, 
-                           stride=1, 
-                           padding=1)
+                           kernel_size=5, 
+                           stride=2, 
+                           padding=2)
+        
         block3 = nin_block(in_channels=256, 
                            out_channels=384, 
                            kernel_size=3, 
                            stride=1, 
                            padding=1)
+        
         block4 = nin_block(in_channels=384, 
-                           out_channels=10, 
+                           out_channels=self.out_channels, 
                            kernel_size=3, 
                            stride=1, 
                            padding=1)
         
         self.network = nn.Sequential(
             block1,
-            nn.MaxPool2d(kernel_size=2, stride=2),
+            nn.MaxPool2d(kernel_size=3, 
+                         stride=2, 
+                         padding=1),
             
             block2,
-            nn.MaxPool2d(kernel_size=2, stride=2),
+            nn.MaxPool2d(kernel_size=3, 
+                         stride=2, 
+                         padding=1),
             
             block3,
-            nn.MaxPool2d(kernel_size=2, stride=2),
+            nn.MaxPool2d(kernel_size=3, 
+                         stride=2, 
+                         padding=1),
             nn.Dropout2d(p=0.5),
             
             block4,
@@ -93,7 +95,5 @@ class NiN(ConvNet):
             nn.Flatten()
         )
         
-        self.network.apply(self.init_weights)
-
     def __str__(self) -> str:
         return "Convolutional Neural Networks: NiN"

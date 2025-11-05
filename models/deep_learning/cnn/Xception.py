@@ -129,17 +129,13 @@ class XceptionBlock(nn.Module):
         return out + skip
 
 class Xception(ConvNet):
-    """
-    Xception model uses depthwise separable convolutions and residual connections. 
-    The network is divided into Entry Flow, Middle Flow, and Exit Flow
-    """
     def init_network(self):
         # Entry Flow: Initial standard conv layers
         entry_flow = nn.Sequential(
-            nn.Conv2d(in_channels=1, 
+            nn.Conv2d(in_channels=3, 
                       out_channels=32, 
                       kernel_size=3, 
-                      stride=1, 
+                      stride=2, 
                       padding=1),
             nn.BatchNorm2d(num_features=32),
             nn.ReLU(inplace=False),
@@ -156,47 +152,41 @@ class Xception(ConvNet):
         block1 = XceptionBlock(in_channels=64, 
                                out_channels=128, 
                                repeat=2, 
-                               stride=1, 
-                               skip_connection=True)
+                               stride=2)
         block2 = XceptionBlock(in_channels=128, 
                                out_channels=256, 
                                repeat=2, 
-                               stride=1, 
-                               skip_connection=True)
+                               stride=2)
+        block3 = XceptionBlock(in_channels=256, 
+                               out_channels=728, 
+                               repeat=2, 
+                               stride=2)
         
         # Middle Flow: Series of Xception Blocks without downsampling
-        middle_flow = nn.Sequential(
-            XceptionBlock(in_channels=256, 
-                          out_channels=256, 
-                          repeat=2, 
-                          stride=1, 
-                          skip_connection=True),
-            XceptionBlock(in_channels=256, 
-                          out_channels=256, 
-                          repeat=2, 
-                          stride=1, 
-                          skip_connection=True),
-            XceptionBlock(in_channels=256, 
-                          out_channels=256, 
-                          repeat=2, 
-                          stride=1, 
-                          skip_connection=True)
-        )
+        middle_blocks = []
+        for _ in range(8):
+            middle_blocks.append(XceptionBlock(in_channels=728, 
+                                               out_channels=728, 
+                                               repeat=3,
+                                               stride=1))
+        middle_flow = nn.Sequential(*middle_blocks)
         
         # Exit Flow: Final Xception Block and separable convolution before classification
         exit_flow = nn.Sequential(
-            XceptionBlock(in_channels=256, 
-                          out_channels=512, 
+            XceptionBlock(in_channels=728, 
+                          out_channels=1024, 
                           repeat=2, 
-                          stride=1, 
-                          skip_connection=True),
-            SeparableConv2d(in_channels=512, 
-                            out_channels=512, 
+                          stride=2),
+            SeparableConv2d(in_channels=1024, 
+                            out_channels=1536, 
                             kernel_size=3, 
                             stride=1, 
                             padding=1),
-            nn.BatchNorm2d(num_features=512),
-            nn.ReLU(inplace=False)
+            SeparableConv2d(in_channels=1536, 
+                            out_channels=2048, 
+                            kernel_size=3, 
+                            stride=1, 
+                            padding=1)
         )
         
         self.network = nn.Sequential(
@@ -204,6 +194,7 @@ class Xception(ConvNet):
 
             block1,
             block2,
+            block3,
 
             middle_flow,
 
@@ -211,10 +202,8 @@ class Xception(ConvNet):
 
             nn.AdaptiveAvgPool2d(output_size=(1, 1)),
             nn.Flatten(),
-            nn.Linear(in_features=512, out_features=10)
+            nn.Linear(in_features=2048, out_features=self.out_channels)
         )
         
-        self.network.apply(self.init_weights)
-
     def __str__(self) -> str:
         return "Convolutional Neural Networks: Xception"

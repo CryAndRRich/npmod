@@ -107,49 +107,61 @@ def wrn_block(input_channels: int,
 
 class WideResNet(ConvNet):
     def init_network(self):
-        block1 = nn.Sequential(
-            nn.Conv2d(in_channels=1, 
-                      out_channels=16, 
-                      kernel_size=3, 
-                      stride=1, 
-                      padding=1, 
-                      bias=False),
-            nn.BatchNorm2d(num_features=16),
-            nn.ReLU(inplace=True)
-        )
-        
-        n = 4
-        k = 4  # widening factor
+        depth = 28
+        widen_factor = 10
 
-        block2, out_channels = wrn_block(input_channels=16, 
-                                         out_channels=16 * k, 
+        n = (depth - 4) // 6 
+
+        in_channels = 64
+
+        block1 = nn.Sequential(
+            nn.Conv2d(in_channels=3, 
+                      out_channels=in_channels,
+                      kernel_size=7, 
+                      stride=2, 
+                      padding=3, 
+                      bias=False),
+            nn.BatchNorm2d(num_features=in_channels),
+            nn.ReLU(inplace=True),
+            nn.MaxPool2d(kernel_size=3, 
+                         stride=2, 
+                         padding=1)
+        )
+
+        block2, out_channels = wrn_block(input_channels=in_channels, 
+                                         out_channels=64 * widen_factor, 
                                          num_blocks=n, 
                                          stride=1)
+        
         block3, out_channels = wrn_block(input_channels=out_channels, 
-                                         out_channels=32 * k, 
+                                         out_channels=128 * widen_factor, 
                                          num_blocks=n, 
                                          stride=2)
+        
         block4, out_channels = wrn_block(input_channels=out_channels, 
-                                         out_channels=64 * k, 
+                                         out_channels=256 * widen_factor, 
                                          num_blocks=n, 
-                                         stride=1)
+                                         stride=2)
+        
+        block5, out_channels = wrn_block(input_channels=out_channels, 
+                                         out_channels=512 * widen_factor, 
+                                         num_blocks=n, 
+                                         stride=2)
         
         self.network = nn.Sequential(
             block1,
             block2,
             block3,
             block4,
+            block5,
 
             nn.BatchNorm2d(num_features=out_channels),
             nn.ReLU(inplace=True),
 
             nn.AdaptiveAvgPool2d(output_size=(1, 1)),
             nn.Flatten(),
-            nn.Linear(in_features=out_channels, out_features=10)
+            nn.Linear(in_features=out_channels, out_features=self.out_channels)
         )
-        self.network.apply(self.init_weights)
 
     def __str__(self) -> str:
-        return "Convolutional Neural Networks: WideResNet"
-
-        
+        return "Convolutional Neural Networks: WideResNet-28-10"

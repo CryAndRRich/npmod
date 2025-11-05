@@ -1,6 +1,5 @@
 import torch
 import torch.nn as nn
-import torch.optim as optim
 from ..rnn import RecurNet
 
 class RANCell(nn.Module):
@@ -11,87 +10,106 @@ class RANCell(nn.Module):
         Initialize the RAN cell
 
         Parameters:
-            input_size: Size of the input vector at each time step
+            input_size: Size of input vector at each time step
             hidden_size: Number of hidden units
         """
         super().__init__()
         self.hidden_size = hidden_size
-        self.Wf = nn.Linear(input_size, hidden_size)
-        self.Uf = nn.Linear(hidden_size, hidden_size, bias=False)
 
-        self.Wi = nn.Linear(input_size, hidden_size)
-        self.Ui = nn.Linear(hidden_size, hidden_size, bias=False)
+        # Forget gate parameters
+        self.W_f = nn.Linear(input_size, hidden_size)
+        self.U_f = nn.Linear(hidden_size, hidden_size, bias=False)
+
+        # Input gate parameters
+        self.W_i = nn.Linear(input_size, hidden_size)
+        self.U_i = nn.Linear(hidden_size, hidden_size, bias=False)
+
+        # Input projection
+        self.W_x = nn.Linear(input_size, hidden_size)
 
     def forward(self, 
-                x: torch.Tensor, 
+                x_t: torch.Tensor, 
                 h_prev: torch.Tensor) -> torch.Tensor:
         """
         Forward pass for one time step of the RAN cell
 
         Parameters:
-            x: Input tensor at current time step
+            x_t: Input tensor at current time step
             h_prev: Previous hidden state
 
         Returns:
             h_t: Current hidden state
         """
-        f_t = torch.sigmoid(self.Wf(x) + self.Uf(h_prev))
-        i_t = torch.sigmoid(self.Wi(x) + self.Ui(h_prev))
-        h_t = f_t * h_prev + i_t * x
+        f_t = torch.sigmoid(self.W_f(x_t) + self.U_f(h_prev))
+        i_t = torch.sigmoid(self.W_i(x_t) + self.U_i(h_prev))
+        x_proj = self.W_x(x_t)
+        h_t = f_t * h_prev + i_t * x_proj
         return h_t
+
 
 class RANNet(nn.Module):
     def __init__(self,
-                 vocab_size: int,
-                 embed_dim: int,
+                 input_size: int,
                  hidden_size: int,
-                 num_classes: int) -> None:
+                 output_size: int,
+                 forecast_horizon: int = 1,
+                 num_layers: int = 1,
+                 dropout: float = 0.1) -> None:
         """
-        Initialize the RAN classification network
+        Initialize the RAN network
 
         Parameters:
-            vocab_size: Size of the input vocabulary
-            embed_dim: Dimension of the embedding vectors
+            input_size: Dimension of the input features
             hidden_size: Number of hidden units in the RAN cell
-            num_classes: Number of output classes
+            output_size: Output dimension
+            forecast_horizon: Number of time steps to forecast
+            num_layers: Number of RAN layers
+            dropout: Dropout rate applied after recurrent processing
         """
         super().__init__()
-        self.embedding = nn.Embedding(vocab_size, embed_dim)
-        self.ran_cell = RANCell(embed_dim, hidden_size)
-        self.fc = nn.Linear(hidden_size, num_classes)
+        self.hidden_size = hidden_size
+        self.num_layers = num_layers
+        self.forecast_horizon = forecast_horizon
+
+        # Stacked RAN layers
+        layers = []
+        for i in range(num_layers):
+            in_size = input_size if i == 0 else hidden_size
+            layers.append(RANCell(in_size, hidden_size))
+        self.layers = nn.ModuleList(layers)
+
+        self.dropout = nn.Dropout(dropout)
+        self.fc = nn.Linear(hidden_size, output_size)
 
     def forward(self, x: torch.Tensor) -> torch.Tensor:
-        """
-        Forward pass through the RAN network
-
-        Parameters:
-            x: Input tensor 
-
-        Returns:
-            out: Logits tensor 
-        """
-        x = self.embedding(x)
         batch_size, seq_len, _ = x.size()
-        h = torch.zeros(batch_size, self.ran_cell.hidden_size, device=x.device)
+
+        h = [torch.zeros(batch_size, self.hidden_size) for _ in range(self.num_layers)]
+        outputs = []
 
         for t in range(seq_len):
-            h = self.ran_cell(x[:, t, :], h)
+            x_t = x[:, t, :]
+            for l in range(self.num_layers):
+                h[l] = self.layers[l](x_t, h[l])
+                x_t = h[l]
+            outputs.append(h[-1].unsqueeze(1))
 
-        out = self.fc(h)
+        outputs = torch.cat(outputs, dim=1) 
+        outputs = self.dropout(outputs[:, -self.forecast_horizon:, :])
+        out = self.fc(outputs) 
         return out
+
 
 class RAN(RecurNet):
     def init_network(self) -> None:
-        """
-        Initialize RANNet model, weights, loss function, and optimizer
-        """
-        self.network = RANNet(self.vocab_size,
-                              self.embed_dim,
-                              self.hidden_size,
-                              self.num_classes)
-        self.network.apply(self.init_weights)
-        self.optimizer = optim.Adam(self.network.parameters(), lr=self.learn_rate)
-        self.criterion = nn.CrossEntropyLoss()
+        self.network = RANNet(
+            input_size=self.input_size,
+            hidden_size=self.hidden_size,
+            output_size=self.output_size,
+            forecast_horizon=self.forecast_horizon,
+            num_layers=self.num_layers,
+            dropout=self.dropout
+        )
 
     def __str__(self) -> str:
         return "Recurrent Additive Network (RAN)"

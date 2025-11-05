@@ -72,32 +72,34 @@ class RegNet(ConvNet):
         stage_channels = [24, 56, 152, 368]
         stage_blocks = [1, 1, 4, 7]
 
-        layers = []
-
-        layers.append(nn.Conv2d(in_channels=1, 
-                                out_channels=stem_channels, 
-                                kernel_size=3, 
-                                stride=1, 
-                                padding=1, 
-                                bias=False))
-        layers.append(nn.BatchNorm2d(num_features=stem_channels))
-        layers.append(nn.ReLU(inplace=True))
+        layers = [
+            nn.Conv2d(in_channels=3, 
+                      out_channels=stem_channels,
+                      kernel_size=3, 
+                      stride=2, 
+                      padding=1, 
+                      bias=False),
+            nn.BatchNorm2d(num_features=stem_channels),
+            nn.ReLU(inplace=True),
+            nn.MaxPool2d(kernel_size=3, 
+                         stride=2, 
+                         padding=1)
+        ]
 
         in_channels = stem_channels
         for out_channels, blocks in zip(stage_channels, stage_blocks):
             for i in range(blocks):
                 stride = 2 if i == 0 else 1
-                layers.append(RegNetBlock(in_channels=in_channels, 
-                                          out_channels=out_channels, 
+                layers.append(RegNetBlock(in_channels=in_channels,
+                                          out_channels=out_channels,
                                           stride=stride))
                 in_channels = out_channels
 
         layers.append(nn.AdaptiveAvgPool2d(output_size=1))
         layers.append(nn.Flatten())
-        layers.append(nn.Linear(in_features=in_channels, out_features=10))
+        layers.append(nn.Linear(in_features=in_channels, out_features=self.out_channels))
 
         self.network = nn.Sequential(*layers)
-        self.network.apply(self.init_weights)
 
     def __str__(self):
         return "Convolutional Neural Networks: RegNetX-200MF"

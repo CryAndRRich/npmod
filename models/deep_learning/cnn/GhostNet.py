@@ -57,29 +57,41 @@ class GhostModule(nn.Module):
 class GhostNet(ConvNet):
     def init_network(self):
         self.network = nn.Sequential(
-            nn.Conv2d(in_channels=1, 
+            nn.Conv2d(in_channels=3, 
                       out_channels=16, 
                       kernel_size=3, 
-                      stride=1, 
+                      stride=2, 
                       padding=1, 
                       bias=False),
             nn.BatchNorm2d(num_features=16),
             nn.ReLU(inplace=True),
 
-            GhostModule(in_channels=16, out_channels=32, stride=1),
-            nn.MaxPool2d(kernel_size=2),  
+            GhostModule(in_channels=16, 
+                        out_channels=32, 
+                        stride=2),
 
-            GhostModule(in_channels=32, out_channels=64, stride=1),
-            nn.MaxPool2d(kernel_size=2),  
+            GhostModule(in_channels=32, 
+                        out_channels=64, 
+                        stride=2),
 
-            GhostModule(in_channels=64, out_channels=128, stride=1),
-            GhostModule(in_channels=128, out_channels=256, stride=1),
+            GhostModule(in_channels=64, 
+                        out_channels=128, 
+                        stride=2),
+
+            GhostModule(in_channels=128, out_channels=256),
+            GhostModule(in_channels=256, out_channels=512),
+
+            nn.Conv2d(in_channels=512, 
+                      out_channels=1280, 
+                      kernel_size=1,
+                      bias=False),
+            nn.BatchNorm2d(num_features=1280),
+            nn.ReLU(inplace=True),
 
             nn.AdaptiveAvgPool2d(output_size=1),
             nn.Flatten(),
-            nn.Linear(in_features=256, out_features=10)
+            nn.Linear(in_features=1280, out_features=self.out_channels)
         )
-        self.network.apply(self.init_weights)
 
     def __str__(self):
         return "Convolutional Neural Networks: GhostNet"

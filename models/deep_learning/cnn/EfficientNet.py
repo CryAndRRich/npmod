@@ -94,30 +94,29 @@ class MBConv(nn.Module):
 
 class EfficientNet(ConvNet):
     def init_network(self):
-        layers = []
         # Stem
-        layers.extend([
-            nn.Conv2d(in_channels=1, 
-                      out_channels=16, 
+        layers = [
+            nn.Conv2d(in_channels=3, 
+                      out_channels=32, 
                       kernel_size=3, 
-                      stride=1, 
+                      stride=2, 
                       padding=1, 
                       bias=False),
-            nn.BatchNorm2d(num_features=16),
+            nn.BatchNorm2d(num_features=32),
             nn.SiLU(inplace=True)
-        ])
+        ]
 
         cfgs = [
             (1, 16, 1, 1),
             (6, 24, 2, 2),
-            (6, 32, 2, 2),
-            (6, 48, 2, 1),
-            (6, 64, 2, 1),
-            (6, 96, 2, 2),
-            (6, 160, 1, 1),
+            (6, 40, 2, 2),
+            (6, 80, 3, 2),
+            (6, 112, 3, 1),
+            (6, 192, 4, 2),
+            (6, 320, 1, 1)
         ]
 
-        in_channels = 16
+        in_channels = 32
         for expand_ratio, out_channels, n, s in cfgs:
             for i in range(n):
                 stride = s if i == 0 else 1
@@ -130,18 +129,17 @@ class EfficientNet(ConvNet):
         # Head
         layers.extend([
             nn.Conv2d(in_channels=in_channels, 
-                      out_channels=320, 
+                      out_channels=1280, 
                       kernel_size=1, 
                       bias=False),
-            nn.BatchNorm2d(num_features=320),
+            nn.BatchNorm2d(num_features=1280),
             nn.SiLU(inplace=True),
             nn.AdaptiveAvgPool2d(output_size=1),
             nn.Flatten(),
-            nn.Linear(in_features=320, out_features=10)
+            nn.Linear(in_features=1280, out_features=self.out_channels)
         ])
 
         self.network = nn.Sequential(*layers)
-        self.network.apply(self.init_weights)
 
     def __str__(self):
         return "Convolutional Neural Networks: EfficientNet-Lite"

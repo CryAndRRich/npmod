@@ -47,15 +47,15 @@ class MobileNet(ConvNet):
     def init_network(self):
         layers = []
 
-        width_mult = 0.25  # shrink channels to 1/4
+        width_mult = 1.0
         def c(channels: int) -> int: 
             return max(8, int(channels * width_mult))
 
         # First conv
-        layers.append(nn.Conv2d(in_channels=1, 
+        layers.append(nn.Conv2d(in_channels=3, 
                                 out_channels=c(32), 
                                 kernel_size=3, 
-                                stride=1, 
+                                stride=2, 
                                 padding=1, 
                                 bias=False))
         layers.append(nn.BatchNorm2d(num_features=c(32)))
@@ -79,10 +79,9 @@ class MobileNet(ConvNet):
         # Classifier
         layers.append(nn.AdaptiveAvgPool2d(output_size=1))
         layers.append(nn.Flatten())
-        layers.append(nn.Linear(in_features=c(1024), out_features=10))
+        layers.append(nn.Linear(in_features=c(1024), out_features=self.out_channels))
 
         self.network = nn.Sequential(*layers)
-        self.network.apply(self.init_weights)
 
     def __str__(self):
         return "Convolutional Neural Networks: MobileNetV1"

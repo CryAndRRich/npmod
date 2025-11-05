@@ -95,33 +95,38 @@ class ShuffleBlock(nn.Module):
 class ShuffleNet(ConvNet):
     def init_network(self):
         groups = 2  
-        out_channels = [24, 48, 96, 192]
+        out_channels = [24, 240, 480, 960] 
+        num_blocks = [4, 8, 4] 
 
-        layers = []
-        # First conv
-        layers.append(nn.Conv2d(in_channels=1, 
-                                out_channels=out_channels[0], 
-                                kernel_size=3, 
-                                stride=1, 
-                                padding=1, 
-                                bias=False))
-        layers.append(nn.BatchNorm2d(num_features=out_channels[0]))
-        layers.append(nn.ReLU(inplace=True))
+        layers = [
+            nn.Conv2d(in_channels=3, 
+                      out_channels=out_channels[0], 
+                      kernel_size=3, 
+                      stride=2, 
+                      padding=1, 
+                      bias=False),
+            nn.BatchNorm2d(num_features=out_channels[0]),
+            nn.ReLU(inplace=True),
+            nn.MaxPool2d(kernel_size=3, 
+                         stride=2, 
+                         padding=1)
+        ]
 
         in_channel = out_channels[0]
-        for out_channel in out_channels[1:]:
-            layers.append(ShuffleBlock(in_channels=in_channel, 
-                                       out_channels=out_channel, 
-                                       stride=2, 
-                                       groups=groups))
-            in_channel = out_channel
+        for stage, (out_channel, blocks) in enumerate(zip(out_channels[1:], num_blocks), start=2):
+            for i in range(blocks):
+                stride = 2 if i == 0 else 1
+                layers.append(ShuffleBlock(in_channels=in_channel, 
+                                           out_channels=out_channel, 
+                                           stride=stride, 
+                                           groups=groups))
+                in_channel = out_channel
 
         layers.append(nn.AdaptiveAvgPool2d(output_size=1))
         layers.append(nn.Flatten())
-        layers.append(nn.Linear(in_features=in_channel, out_features=10))
+        layers.append(nn.Linear(in_features=in_channel, out_features=self.out_channels))
 
         self.network = nn.Sequential(*layers)
-        self.network.apply(self.init_weights)
 
     def __str__(self):
         return "Convolutional Neural Networks: ShuffleNetV1"

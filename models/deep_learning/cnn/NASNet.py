@@ -153,37 +153,34 @@ class ReductionCell(nn.Module):
         return self.relu(out)
 
 class NASNet(ConvNet):
-    """
-    Full NASNet Architecture
-
-    The architecture consists of:
-      - A stem that acts as an initial reduction cell
-      - A series of Normal Cells
-      - Interleaved Reduction Cells
-      - Global Average Pooling and a fully-connected layer for classification
-    """
     def init_network(self):
         num_cells = 2
 
-        # Stem: Acts as an initial reduction cell to downsample the input
+        # Stem
         stem = nn.Sequential(
-            nn.Conv2d(in_channels=1, 
-                      out_channels=16, 
+            nn.Conv2d(in_channels=3, 
+                      out_channels=32, 
                       kernel_size=3, 
-                      stride=1, 
+                      stride=2, 
                       padding=1),
-            nn.BatchNorm2d(num_features=16),
+            nn.BatchNorm2d(num_features=32),
             nn.ReLU(inplace=True)
         )
 
-        cells1 = nn.Sequential(*[NormalCell(in_channels=16 if i == 0 else 32, out_channels=32) 
-                                 for i in range(num_cells)])
-        reduction1 = ReductionCell(in_channels=32, out_channels=64)
-        cells2 = nn.Sequential(*[NormalCell(in_channels=64, out_channels=64) 
-                                 for _ in range(num_cells)])
-        reduction2 = ReductionCell(in_channels=64, out_channels=128)
-        cells3 = nn.Sequential(*[NormalCell(in_channels=128, out_channels=128) 
-                                 for _ in range(num_cells)])
+        cells1 = nn.Sequential(*[
+            NormalCell(in_channels=32 if i == 0 else 64, out_channels=64) 
+            for i in range(num_cells)
+        ])
+        reduction1 = ReductionCell(in_channels=64, out_channels=128)
+        cells2 = nn.Sequential(*[
+            NormalCell(in_channels=128, out_channels=128)
+            for _ in range(num_cells)
+        ])
+        reduction2 = ReductionCell(in_channels=128, out_channels=256)
+        cells3 = nn.Sequential(*[
+            NormalCell(in_channels=256, out_channels=256)
+            for _ in range(num_cells)
+        ])
         
         self.network = nn.Sequential(
             stem,
@@ -198,10 +195,8 @@ class NASNet(ConvNet):
 
             nn.AdaptiveAvgPool2d(output_size=(1, 1)),
             nn.Flatten(),
-            nn.Linear(in_features=128, out_features=10)
+            nn.Linear(in_features=256, out_features=self.out_channels)
         )
         
-        self.network.apply(self.init_weights)
-
     def __str__(self) -> str:
         return "Convolutional Neural Networks: NASNet"
