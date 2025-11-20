@@ -1,12 +1,11 @@
 from typing import Tuple
 import torch
 import torch.nn as nn
-from torch.utils.data import DataLoader
 
 class GAN():
     def __init__(self,
                  latent_dim: int,
-                 img_shape: Tuple[int],
+                 img_shape: Tuple[int, int, int],
                  learn_rate: float,
                  number_of_epochs: int) -> None:
         """
@@ -29,25 +28,33 @@ class GAN():
         """
         pass
 
-    def init_weights(self, m: nn.Module) -> None:
+    def init_weights(self, 
+                     m: nn.Module,
+                     type: str = "normal") -> None:
         """
         Initialize the model parameters
 
         Parameters:
             m: The module to initialize
+            type: The type of initialization to use
         """
-        if hasattr(m, 'weight') and m.weight is not None:
-            if isinstance(m, (nn.Conv2d, nn.ConvTranspose2d, nn.Linear)):
-                nn.init.normal_(m.weight, 0.0, 0.02)
-        if hasattr(m, 'bias') and m.bias is not None:
-            nn.init.constant_(m.bias, 0)
+        if isinstance(m, (nn.Conv2d, nn.ConvTranspose2d, nn.Linear)):
+            if type == "normal":
+                nn.init.normal_(m.weight, mean=0.0, std=0.02)
+            elif type == "orthogonal":
+                nn.init.orthogonal_(m.weight)
+            if getattr(m, "bias", None) is not None:
+                nn.init.zeros_(m.bias)
 
-    def fit(self, dataloader: DataLoader) -> None:
+    def fit(self, 
+            dataloader: torch.utils.data.DataLoader,
+            verbose: bool = False) -> None:
         """
         Train the GAN using the provided DataLoader
 
         Parameters:
             dataloader: DataLoader for real images
+            verbose: If True, print training progress
         """
         pass
 
@@ -66,5 +73,10 @@ class GAN():
             generated_images = self.generator(noise)
         return generated_images
 
-from .supervised import *
-from .unsupervised import *
+from .VanillaGAN import VanillaGAN
+from .DCGAN import DCGAN
+from .LAPGAN import LAPGAN
+from .WGAN import WGAN
+from .ProGAN import ProGAN
+from .BigGAN import BigGAN
+from .StyleGAN import StyleGAN

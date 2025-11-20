@@ -1,155 +1,213 @@
 # This script tests various custom autoencoder models
-# The results are under print function calls in case you dont want to run the code
+# The results are under print function calls and in data/img/result_autoencoder.png in case you dont want to run the code
 
 import os
-import sys 
-sys.path.append(os.path.abspath(os.path.join(os.path.dirname(__file__), '../..')))
+import sys
+from typing import Tuple 
+sys.path.append(os.path.abspath(os.path.join(os.path.dirname(__file__), "../..")))
+
+import numpy as np
 
 import torch
-import torch.nn as nn
-import torch.optim as optim
-from torchvision import datasets, transforms
-from torch.utils.data import DataLoader
+import torch.nn.functional as F
+from torch.utils.data import TensorDataset, DataLoader
 
 # Importing the custom models
-from models.deep_learning.autoencoder.dae import DenoisingAutoencoder
-from models.deep_learning.autoencoder.vae import VariationalAutoencoder
-from models.deep_learning.autoencoder.cae import ContractiveAutoencoder
-from models.deep_learning.autoencoder.convae import ConvAutoencoder
+from models.deep_learning.autoencoder import Autoencoder
+from models.deep_learning.autoencoder.AE import VanillaAE
+from models.deep_learning.autoencoder.RegularizedAE import RegularizedAE
+from models.deep_learning.autoencoder.ConvolutionalAE import ConvolutionalAE
+from models.deep_learning.autoencoder.VAE import VAE
+from models.deep_learning.autoencoder.AAE import AAE
+from models.deep_learning.autoencoder.VQVAE import VQVAE
+from models.deep_learning.autoencoder.MAE import MAE
 
+# Function to load dSprites dataset
+def dsprites_dataloader(size: int, 
+                        latents_sizes: np.ndarray, 
+                        latents_bases: np.ndarray, 
+                        imgs: np.ndarray,
+                        batch_size: int = 128, 
+                        shuffle: bool = True) -> DataLoader:
+    samples = np.zeros((size, latents_sizes.size))
+    for lat_i, lat_size in enumerate(latents_sizes):
+        samples[:, lat_i] = np.random.randint(lat_size, size=size)
 
-# === Trainer for Autoencoders === #
-class Trainer():
-    def __init__(self, 
-                 model: nn.Module, 
-                 lr: float = 1e-3, 
-                 epochs: int = 20, 
-                 device: str = "cpu") -> None:
-        self.model = model.to(device)
-        self.lr = lr
-        self.epochs = epochs
-        self.device = device
-        self.optimizer = optim.Adam(self.model.parameters(), lr=self.lr)
+    indices = np.dot(samples, latents_bases).astype(int)
+    
+    data_tensor = torch.from_numpy(imgs[indices]).float()
+    data_tensor = data_tensor.unsqueeze(1)
+    
+    dataset = TensorDataset(data_tensor, data_tensor)
+    loader = DataLoader(dataset, batch_size=batch_size, shuffle=shuffle)
+    
+    return loader
 
-    def fit(self, dataloader: torch.utils.data.DataLoader) -> None:
-        self.model.train()
-        for epoch in range(1, self.epochs + 1):
-            total_loss = 0.0
-            for batch in dataloader:
-                if isinstance(batch, (list, tuple)):
-                    batch = batch[0]
-                batch = batch.to(self.device).float().view(batch.size(0), -1)
-
-                self.optimizer.zero_grad()
-                output = self.model(batch)
-                loss = self.model.loss_function(batch, output)
-                loss.backward()
-                self.optimizer.step()
-                total_loss += loss.item()
-
-            avg_loss = total_loss / len(dataloader)
-            print(f"Epoch {epoch}/{self.epochs}, Loss: {avg_loss:.4f}")
-
-    def evaluate(self, dataloader: torch.utils.data.DataLoader) -> float:
-        self.model.eval()
-        total_loss = 0.0
-        with torch.no_grad():
-            for batch in dataloader:
-                if isinstance(batch, (list, tuple)):
-                    batch = batch[0]
-                batch = batch.to(self.device).float().view(batch.size(0), -1)
-                output = self.model(batch)
-                loss = self.model.loss_function(batch, output)
-                total_loss += loss.item()
-        avg_loss = total_loss / len(dataloader)
-        print(f"Evaluation Loss: {avg_loss:.4f}")
-        return avg_loss
-
-    def reconstruct(self, x: torch.Tensor) -> tuple:
-        self.model.eval()
-        with torch.no_grad():
-            x = x.to(self.device).float().view(x.size(0), -1)
-            output = self.model(x)
-            if isinstance(output, tuple):  # VAE output
-                output = output[0]
-        return x, output
-# ====================
-
+# Function to evaluate model performance
+def evaluate_performance(model: Autoencoder, 
+                         dataloader: DataLoader) -> Tuple[float, float]:
+    model.encoder.eval()
+    model.decoder.eval()
+    
+    total_mse = 0.0
+    total_psnr = 0.0
+    num_batches = 0
+    
+    with torch.no_grad():
+        for imgs, _ in dataloader:
+            reconstructed = model.reconstruct(imgs)
+            if isinstance(reconstructed, (list, tuple)):
+                reconstructed = reconstructed[0]
+            
+            mse_batch = F.mse_loss(reconstructed, imgs)
+            psnr_batch = 10 * torch.log10(1.0 / (mse_batch + 1e-10))
+            
+            total_mse += mse_batch.item()
+            total_psnr += psnr_batch.item()
+            num_batches += 1
+            
+    avg_mse = total_mse / num_batches
+    avg_psnr = total_psnr / num_batches
+    
+    return avg_mse, avg_psnr
 
 if __name__ == "__main__":
     # === Load Dataset === 
-    transform = transforms.ToTensor()
-    train_dataset = datasets.MNIST(root="./data", train=True, download=True, transform=transform)
-    test_dataset = datasets.MNIST(root="./data", train=False, download=True, transform=transform)
+    # Load dSprites dataset
+    # https://github.com/google-deepmind/dsprites-dataset
+    dsprites_zip = np.load("dsprites_ndarray_co1sh3sc6or40x32y32_64x64.npz", encoding="latin1", allow_pickle=True)
+    dsprites_imgs = dsprites_zip["imgs"]
+    dsprites_metadata = dsprites_zip["metadata"][()]
+    dsprites_latents_sizes = dsprites_metadata["latents_sizes"]
+    dsprites_latents_bases = np.concatenate((dsprites_latents_sizes[::-1].cumprod()[::-1][1:], np.array([1,])))
 
-    train_loader = DataLoader(train_dataset, batch_size=128, shuffle=True)
-    test_loader = DataLoader(test_dataset, batch_size=128, shuffle=False)
+    train_dsprites_loader = dsprites_dataloader(size=60000,
+                                                latents_sizes=dsprites_latents_sizes,
+                                                latents_bases=dsprites_latents_bases,
+                                                imgs=dsprites_imgs,
+                                                batch_size=128,
+                                                shuffle=True)
+    test_dsprites_loader = dsprites_dataloader(size=5000,
+                                               latents_sizes=dsprites_latents_sizes,
+                                               latents_bases=dsprites_latents_bases,
+                                               imgs=dsprites_imgs,
+                                               batch_size=128,
+                                               shuffle=False)
     # ====================
 
+    
+    # === Test Autoencoder === 
+    models = {
+        "AE": VanillaAE(latent_dim=10, input_shape=(1, 64, 64), learn_rate=1e-3, number_of_epochs=20, hidden_dims=[512, 256]),
+        "Sparse AE": RegularizedAE(latent_dim=10, input_shape=(1, 64, 64), learn_rate=1e-3, number_of_epochs=20, hidden_dims=[512, 256], reg_type="sparse", reg_coeff=1e-4),
+        "Denoising AE": RegularizedAE(latent_dim=10, input_shape=(1, 64, 64), learn_rate=1e-3, number_of_epochs=20, hidden_dims=[512, 256], reg_type="denoising", noise_factor=0.5),
+        "Contractive AE": RegularizedAE(latent_dim=10, input_shape=(1, 64, 64), learn_rate=1e-3, number_of_epochs=20, hidden_dims=[512, 256], reg_type="contractive", reg_coeff=1e-4),
+        "Convolutional AE": ConvolutionalAE(latent_dim=10, input_shape=(1, 64, 64), learn_rate=1e-3, number_of_epochs=20, hidden_channels=[32, 64, 128]),
+        "VAE": VAE(latent_dim=10, input_shape=(1, 64, 64), learn_rate=1e-3, number_of_epochs=20, hidden_dims=[512, 256], kld_weight=0.5),
+        "AAE" : AAE(latent_dim=10, input_shape=(1, 64, 64), learn_rate=2e-4, number_of_epochs=20, hidden_dims=[512, 256]),
+        "VQ-VAE": VQVAE(latent_dim=10, input_shape=(1, 64, 64), learn_rate=1e-3, number_of_epochs=20, hidden_channels=[32, 64]),
+        "MAE": MAE(embed_dim=12, input_shape=(1, 64, 64), learn_rate=1e-3, number_of_epochs=20)
+    }
 
-    # === Test Autoencoder === #
-    models = [
-        DenoisingAutoencoder(input_dim=784, latent_dim=64),
-        VariationalAutoencoder(input_dim=784, latent_dim=20),
-        ContractiveAutoencoder(input_dim=784, latent_dim=64),
-        ConvAutoencoder()
-    ]
+    for name, model in models.items():
+        print("==============================================================")
+        print(f"{name} Result")
+        print("==============================================================")
 
-    for model in models:
-        trainer = Trainer(model, 
-                        lr=1e-3, 
-                        epochs=5, 
-                        device="cuda" if torch.cuda.is_available() else "cpu")
+        model.fit(train_loader=train_dsprites_loader, verbose=True)
 
-        print("==============================================================")
-        print(f"{model.__str__()} Results")
-        print("==============================================================")
-        trainer.fit(train_loader)
-        print("==============================================================")
-        trainer.evaluate(test_loader)
+        mse_score, psnr_score = evaluate_performance(model=model, dataloader=test_dsprites_loader)
+        print(f"Reconstruction Error (MSE): {mse_score:.6f}")
+        print(f"PSNR: {psnr_score:.2f} dB")
 
     """
     ==============================================================
-    Denoising Autoencoder Results
+    AE Result
     ==============================================================
-    Epoch 1/5, Loss: 0.0506
-    Epoch 2/5, Loss: 0.0228
-    Epoch 3/5, Loss: 0.0172
-    Epoch 4/5, Loss: 0.0144
-    Epoch 5/5, Loss: 0.0125
+    Epoch [5/20] | Loss: 0.004752
+    Epoch [10/20] | Loss: 0.003776
+    Epoch [15/20] | Loss: 0.003354
+    Epoch [20/20] | Loss: 0.003091
+    Reconstruction Error (MSE): 0.002873
+    PSNR: 25.43 dB
+        
     ==============================================================
-    Evaluation Loss: 0.0114
+    Sparse AE Result
+    ==============================================================
+    Epoch [5/20] | Loss: 0.004897
+    Epoch [10/20] | Loss: 0.003945
+    Epoch [15/20] | Loss: 0.003504
+    Epoch [20/20] | Loss: 0.003248
+    Reconstruction Error (MSE): 0.003043
+    PSNR: 25.18 dB
+    
+    ==============================================================
+    Denoising AE Result
+    ==============================================================
+    Epoch [5/20] | Loss: 0.006752
+    Epoch [10/20] | Loss: 0.005933
+    Epoch [15/20] | Loss: 0.005467
+    Epoch [20/20] | Loss: 0.005157
+    Reconstruction Error (MSE): 0.006746
+    PSNR: 21.72 dB
+    
+    ==============================================================
+    Contractive AE Result
+    ==============================================================
+    Epoch [5/20] | Loss: 0.004826
+    Epoch [10/20] | Loss: 0.003875
+    Epoch [15/20] | Loss: 0.003455
+    Epoch [20/20] | Loss: 0.003190
+    Reconstruction Error (MSE): 0.003038
+    PSNR: 25.19 dB
 
     ==============================================================
-    Variational Autoencoder Results
+    Convolutional AE Result
     ==============================================================
-    Epoch 1/5, Loss: 0.2961
-    Epoch 2/5, Loss: 0.2646
-    Epoch 3/5, Loss: 0.2642
-    Epoch 4/5, Loss: 0.2639
-    Epoch 5/5, Loss: 0.2637
-    ==============================================================
-    Evaluation Loss: 0.2634
+    Epoch [5/20] | Loss: 0.008660
+    Epoch [10/20] | Loss: 0.002933
+    Epoch [15/20] | Loss: 0.002243
+    Epoch [20/20] | Loss: 0.002032
+    Reconstruction Error (MSE): 0.006362
+    PSNR: 21.97 dB
 
     ==============================================================
-    Contractive Autoencoder Results
+    VAE Result
     ==============================================================
-    Epoch 1/5, Loss: 0.0701
-    Epoch 2/5, Loss: 0.0572
-    Epoch 3/5, Loss: 0.0500
-    Epoch 4/5, Loss: 0.0412
-    Epoch 5/5, Loss: 0.0387
-    ==============================================================
-    Evaluation Loss: 0.0374
+    Epoch [5/20] | Total Loss: 34.0436 (Recon: 25.9195, KLD: 16.2481)
+    Epoch [10/20] | Total Loss: 31.5239 (Recon: 23.0656, KLD: 16.9165)
+    Epoch [15/20] | Total Loss: 30.2002 (Recon: 21.6011, KLD: 17.1982)
+    Epoch [20/20] | Total Loss: 29.4784 (Recon: 20.7964, KLD: 17.3640)
+    Reconstruction Error (MSE): 0.004904
+    PSNR: 23.10 dB
 
     ==============================================================
-    Convolutional Autoencoder Results
+    AAE Result
     ==============================================================
-    Epoch 1/5, Loss: 0.0222
-    Epoch 2/5, Loss: 0.0018
-    Epoch 3/5, Loss: 0.0012
-    Epoch 4/5, Loss: 0.0009
-    Epoch 5/5, Loss: 0.0008
+    Epoch [5/20] | Recon: 0.0075 | Disc: 0.6939 | Gen: 0.6966
+    Epoch [10/20] | Recon: 0.0068 | Disc: 0.6939 | Gen: 0.6916
+    Epoch [15/20] | Recon: 0.0063 | Disc: 0.6935 | Gen: 0.6937
+    Epoch [20/20] | Recon: 0.0062 | Disc: 0.6941 | Gen: 0.6934
+    Reconstruction Error (MSE): 0.006883
+    PSNR: 21.63 dB
+
     ==============================================================
-    Evaluation Loss: 0.0007
+    VQ-VAE Result
+    ==============================================================
+    Epoch [5/20] | Total Loss: 0.0035 (Recon: 0.0007, VQ: 0.0027)
+    Epoch [10/20] | Total Loss: 0.0017 (Recon: 0.0002, VQ: 0.0014)
+    Epoch [15/20] | Total Loss: 0.0010 (Recon: 0.0001, VQ: 0.0009)
+    Epoch [20/20] | Total Loss: 0.0007 (Recon: 0.0001, VQ: 0.0006)
+    Reconstruction Error (MSE): 0.000064
+    PSNR: 42.04 dB
+
+    ==============================================================
+    MAE Result
+    ==============================================================
+    Epoch [5/20] | Loss: 0.023355
+    Epoch [10/20] | Loss: 0.010881
+    Epoch [15/20] | Loss: 0.009457
+    Epoch [20/20] | Loss: 0.008664
+    Reconstruction Error (MSE): 0.009084
+    PSNR: 20.44 dB
     """

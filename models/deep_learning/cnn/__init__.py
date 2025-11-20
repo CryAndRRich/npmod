@@ -58,7 +58,7 @@ class ConvNet():
     
                 running_loss += loss.item()
     
-            if verbose:
+            if verbose and (epoch + 1) % 10 == 0:
                 avg_loss = running_loss / len(train_loader)
                 print(f"Epoch [{epoch + 1}/{self.number_of_epochs}], Loss: {avg_loss:.4f}")
     

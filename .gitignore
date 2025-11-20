@@ -7,15 +7,22 @@ catboost_info
 MNIST
 
 *.zip
+*.npz
+*.hdf5
 
 *.ipynb
 *.cpp
 
 *.h5
 *.pth
+*.pt
 *.pkl
 *.npy
 
 *.svg
 
+*.csv
 *.json
+
+*.gif
+*.mp4

@@ -81,7 +81,7 @@ if __name__ == "__main__":
     # ====================
 
 
-    # === Test CNN === #
+    # === Test CNN === 
     models = {
         "LeNet": LeNet(learn_rate=0.01, number_of_epochs=5),
 

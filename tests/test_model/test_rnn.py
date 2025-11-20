@@ -116,7 +116,7 @@ if __name__ == "__main__":
     # ====================
 
 
-    # === Test RNN === #
+    # === Test RNN === 
     models = {
         "LSTM": LSTM(learn_rate=2e-4, number_of_epochs=5, input_size=input_size, output_size=output_size, forecast_horizon=forecast_horizon),
         "GRU": GRU(learn_rate=2e-4, number_of_epochs=5, input_size=input_size, output_size=output_size, forecast_horizon=forecast_horizon),
