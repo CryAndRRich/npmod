@@ -301,14 +301,25 @@ models/
     |   ├── biggan
     |   └── stylegan
     │     
-    └── autoencoder/
-        ├── ae
-        ├── regularized_ae
-        ├── convolutional_ae
-        ├── vae
-        ├── aae
-        ├── vq_vae
-        └── mae
+    ├── autoencoder/
+    │   ├── ae
+    │   ├── regularized_ae
+    │   ├── convolutional_ae
+    │   ├── vae
+    │   ├── aae
+    │   ├── vq_vae
+    │   └── mae
+    │     
+    └── diffusion/
+        ├── unconditional/
+        |   └── ddim
+        |
+        └── conditional/
+            ├── sd1.5, sd3
+            ├── flux
+            ├── hunyuan
+            └── kadinsky
+
 ```
 ## data:
 ```
