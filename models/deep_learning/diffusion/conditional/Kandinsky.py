@@ -1,37 +1,37 @@
+from typing import List, Tuple
+import math
+
 import torch
 import torch.nn as nn
 import torch.nn.functional as F
-import math
-from typing import List, Tuple, Optional
 
-from transformers import CLIPTextModel, CLIPTokenizer, CLIPVisionModel, CLIPImageProcessor
+from transformers import CLIPTextModel, CLIPTokenizer, CLIPVisionModel
 from diffusers import AutoencoderKL
 
-# ==========================================
-# PART 1: BLOCKS WITH IMAGE EMBEDDING INJECTION
-# ==========================================
 
 class TimeImageEmbeddings(nn.Module):
-    """
-    Điểm đặc trưng của Kandinsky:
-    Time Embedding được cộng gộp với Image Embedding (từ Prior/CLIP Vision).
-    Điều này giúp U-Net "nhìn" thấy concept ảnh ngay từ thông tin thời gian.
-    """
-    def __init__(self, time_dim: int, image_emb_dim: int = 768):
+    def __init__(self, 
+                 time_dim: int, 
+                 image_emb_dim: int = 1024) -> None:
+        """
+        Combines time step embeddings with image embeddings
+        
+        Parameters:
+            time_dim: Dimension of the time embeddings
+            image_emb_dim: Dimension of the image embeddings
+        """
         super().__init__()
         self.time_dim = time_dim
         
-        # Sinusoidal Time Embs
         self.time_proj = nn.Linear(time_dim, time_dim)
-        
-        # Projection cho Image Embedding (đưa về cùng chiều với time)
         self.image_proj = nn.Linear(image_emb_dim, time_dim)
         
         self.act = nn.SiLU()
-        self.final = nn.Linear(time_dim, time_dim * 4) # Scale lên cho các ResBlock
+        self.final = nn.Linear(time_dim, time_dim * 4)
 
-    def forward(self, t: torch.Tensor, image_emb: torch.Tensor) -> torch.Tensor:
-        # 1. Time Sinusoidal
+    def forward(self, 
+                t: torch.Tensor, 
+                image_emb: torch.Tensor) -> torch.Tensor:
         device = t.device
         half_dim = self.time_dim // 2
         embeddings = math.log(10000) / (half_dim - 1)
@@ -39,65 +39,96 @@ class TimeImageEmbeddings(nn.Module):
         embeddings = t[:, None] * embeddings[None, :]
         time_emb = torch.cat((embeddings.sin(), embeddings.cos()), dim=-1)
         
-        # 2. Project
         time_vec = self.time_proj(time_emb)
         img_vec = self.image_proj(image_emb)
         
-        # 3. Add & Activate (Time + Image Concept)
         vec = time_vec + img_vec 
         return self.final(self.act(vec))
 
 class KandinskyResBlock(nn.Module):
-    def __init__(self, in_channels: int, out_channels: int, emb_dim: int):
+    def __init__(self, 
+                 in_channels: int, 
+                 out_channels: int, 
+                 emb_dim: int) -> None:
         super().__init__()
-        self.norm1 = nn.GroupNorm(32, in_channels)
-        self.conv1 = nn.Conv2d(in_channels, out_channels, 3, padding=1)
+        self.norm1 = nn.GroupNorm(num_groups=32, num_channels=in_channels)
+        self.conv1 = nn.Conv2d(in_channels=in_channels, 
+                               out_channels=out_channels, 
+                               kernel_size=3, 
+                               padding=1)
         
-        self.emb_proj = nn.Linear(emb_dim, out_channels)
+        self.emb_proj = nn.Linear(in_features=emb_dim, out_features=out_channels)
         
-        self.norm2 = nn.GroupNorm(32, out_channels)
-        self.conv2 = nn.Conv2d(out_channels, out_channels, 3, padding=1)
+        self.norm2 = nn.GroupNorm(num_groups=32, num_channels=out_channels)
+        self.conv2 = nn.Conv2d(in_channels=out_channels, 
+                               out_channels=out_channels, 
+                               kernel_size=3, 
+                               padding=1)
         
-        self.shortcut = nn.Conv2d(in_channels, out_channels, 1) if in_channels != out_channels else nn.Identity()
+        self.shortcut = nn.Identity()
+        if in_channels != out_channels:
+            self.shortcut = nn.Conv2d(in_channels=in_channels, 
+                                      out_channels=out_channels, 
+                                      kernel_size=1) 
 
-    def forward(self, x: torch.Tensor, emb: torch.Tensor) -> torch.Tensor:
-        # emb ở đây chứa cả thông tin Time và Image
+    def forward(self, 
+                x: torch.Tensor, 
+                emb: torch.Tensor) -> torch.Tensor:
         h = self.conv1(F.silu(self.norm1(x)))
         h = h + self.emb_proj(F.silu(emb))[:, :, None, None]
         h = self.conv2(F.silu(self.norm2(h)))
         return h + self.shortcut(x)
 
-# Tái sử dụng CrossAttention từ các bài trước (vì Kandinsky cũng dùng Attention cơ bản)
 class CrossAttention(nn.Module):
-    def __init__(self, d_model: int, d_context: int = 768, n_head: int = 8):
+    def __init__(self, 
+                 d_model: int, 
+                 d_context: int = 768, 
+                 n_head: int = 8) -> None:
         super().__init__()
         self.n_head = n_head
         self.d_head = d_model // n_head
         self.scale = self.d_head ** -0.5
-        self.to_q = nn.Linear(d_model, d_model, bias=False)
-        self.to_k = nn.Linear(d_context, d_model, bias=False)
-        self.to_v = nn.Linear(d_context, d_model, bias=False)
-        self.to_out = nn.Linear(d_model, d_model)
+        
+        self.to_q = nn.Linear(in_features=d_model, 
+                              out_features=d_model, 
+                              bias=False)
+        self.to_k = nn.Linear(in_features=d_context, 
+                              out_features=d_model, 
+                              bias=False)
+        self.to_v = nn.Linear(in_features=d_context, 
+                              out_features=d_model, 
+                              bias=False)
+        self.to_out = nn.Linear(in_features=d_model, out_features=d_model)
 
-    def forward(self, x: torch.Tensor, context: torch.Tensor) -> torch.Tensor:
+    def forward(self, 
+                x: torch.Tensor, 
+                context: torch.Tensor) -> torch.Tensor:
         batch_size, seq_len, _ = x.shape
         q = self.to_q(x).view(batch_size, seq_len, self.n_head, self.d_head).permute(0, 2, 1, 3)
         k = self.to_k(context).view(batch_size, -1, self.n_head, self.d_head).permute(0, 2, 1, 3)
         v = self.to_v(context).view(batch_size, -1, self.n_head, self.d_head).permute(0, 2, 1, 3)
-        attn = (q @ k.transpose(-2, -1)) * self.scale
-        attn = attn.softmax(dim=-1)
-        out = attn @ v
+        
+        out = F.scaled_dot_product_attention(q, k, v)
         out = out.permute(0, 2, 1, 3).reshape(batch_size, seq_len, -1)
         return self.to_out(out)
 
 class KandinskyAttentionBlock(nn.Module):
-    def __init__(self, channels: int, n_heads: int, d_context: int = 768):
+    def __init__(self, 
+                 channels: int, 
+                 n_heads: int, 
+                 d_context: int = 768) -> None:
         super().__init__()
-        self.norm = nn.GroupNorm(32, channels)
-        self.attn = CrossAttention(channels, d_context, n_heads)
-        self.proj_out = nn.Conv2d(channels, channels, kernel_size=1)
+        self.norm = nn.GroupNorm(num_groups=32, num_channels=channels)
+        self.attn = CrossAttention(d_model=channels, 
+                                   d_context=d_context, 
+                                   n_head=n_heads)
+        self.proj_out = nn.Conv2d(in_channels=channels, 
+                                  out_channels=channels, 
+                                  kernel_size=1)
 
-    def forward(self, x: torch.Tensor, context: torch.Tensor) -> torch.Tensor:
+    def forward(self, 
+                x: torch.Tensor, 
+                context: torch.Tensor) -> torch.Tensor:
         b, c, h, w = x.shape
         x_in = x
         x = self.norm(x).view(b, c, -1).permute(0, 2, 1)
@@ -105,52 +136,112 @@ class KandinskyAttentionBlock(nn.Module):
         x = x.permute(0, 2, 1).view(b, c, h, w)
         return self.proj_out(x) + x_in
 
-# ==========================================
-# PART 2: KANDINSKY DECODER (U-Net)
-# ==========================================
 
 class KandinskyUNet(nn.Module):
     def __init__(self, 
                  c_in: int = 4, 
                  c_out: int = 4, 
                  time_dim: int = 256, 
-                 image_emb_dim: int = 768, # CLIP ViT-L/14 output dim
-                 text_emb_dim: int = 768):
+                 image_emb_dim: int = 1024, 
+                 text_emb_dim: int = 768) -> None:
+        """
+        Kandinsky 2.2 U-Net architecture
+        
+        Parameters:
+            c_in: Number of input channels
+            c_out: Number of output channels
+            time_dim: Dimension of the time embeddings
+            image_emb_dim: Dimension of the image embeddings
+            text_emb_dim: Dimension of the text embeddings
+        """
         super().__init__()
         self.time_dim = time_dim
         
-        # Time + Image Conditioning
         self.time_mlp = TimeImageEmbeddings(time_dim, image_emb_dim)
         
-        self.conv_in = nn.Conv2d(c_in, 64, kernel_size=3, padding=1)
+        base_ch = 32 
         
-        # Down
-        self.down1 = KandinskyResBlock(64, 128, time_dim * 4)
-        self.attn1 = KandinskyAttentionBlock(128, 4, text_emb_dim)
-        self.pool1 = nn.Conv2d(128, 128, 3, stride=2, padding=1)
+        self.conv_in = nn.Conv2d(in_channels=c_in, 
+                                 out_channels=base_ch, 
+                                 kernel_size=3, 
+                                 padding=1)
         
-        self.down2 = KandinskyResBlock(128, 256, time_dim * 4)
-        self.attn2 = KandinskyAttentionBlock(256, 8, text_emb_dim)
-        self.pool2 = nn.Conv2d(256, 256, 3, stride=2, padding=1)
+        self.down1 = KandinskyResBlock(in_channels=base_ch, 
+                                       out_channels=base_ch * 2, 
+                                       emb_dim=time_dim * 4)
+        self.attn1 = KandinskyAttentionBlock(channels=base_ch * 2, 
+                                             n_heads=4, 
+                                             d_context=text_emb_dim)
+        self.pool1 = nn.Conv2d(in_channels=base_ch * 2, 
+                               out_channels=base_ch * 2, 
+                               kernel_size=3, 
+                               stride=2, 
+                               padding=1)
         
-        # Mid
-        self.mid1 = KandinskyResBlock(256, 512, time_dim * 4)
-        self.mid_attn = KandinskyAttentionBlock(512, 8, text_emb_dim)
-        self.mid2 = KandinskyResBlock(512, 256, time_dim * 4)
+        self.down2 = KandinskyResBlock(in_channels=base_ch * 2, 
+                                       out_channels=base_ch * 4, 
+                                       emb_dim=time_dim * 4)
+        self.attn2 = KandinskyAttentionBlock(channels=base_ch * 4, 
+                                             n_heads=8, 
+                                             d_context=text_emb_dim)
+        self.pool2 = nn.Conv2d(in_channels=base_ch * 4, 
+                               out_channels=base_ch * 4, 
+                               kernel_size=3, 
+                               stride=2, 
+                               padding=1)
         
-        # Up
+        self.mid1 = KandinskyResBlock(in_channels=base_ch * 4, 
+                                      out_channels=base_ch * 8, 
+                                      emb_dim=time_dim * 4)
+        self.mid_attn = KandinskyAttentionBlock(channels=base_ch * 8, 
+                                                n_heads=8, 
+                                                d_context=text_emb_dim)
+        self.mid2 = KandinskyResBlock(in_channels=base_ch * 8, 
+                                      out_channels=base_ch * 4, 
+                                      emb_dim=time_dim * 4)
+        
         self.up_sample1 = nn.Upsample(scale_factor=2)
-        self.up1 = KandinskyResBlock(256 + 256, 128, time_dim * 4)
-        self.attn_up1 = KandinskyAttentionBlock(128, 4, text_emb_dim)
+        self.up1 = KandinskyResBlock(in_channels=base_ch * 4 + base_ch * 4, 
+                                     out_channels=base_ch * 2, 
+                                     emb_dim=time_dim * 4)
+        self.attn_up1 = KandinskyAttentionBlock(channels=base_ch * 2, 
+                                                n_heads=4, 
+                                                d_context=text_emb_dim)
         
         self.up_sample2 = nn.Upsample(scale_factor=2)
-        self.up2 = KandinskyResBlock(128 + 128, 64, time_dim * 4)
-        self.attn_up2 = KandinskyAttentionBlock(64, 4, text_emb_dim)
+        self.up2 = KandinskyResBlock(in_channels=base_ch * 2 + base_ch * 2, 
+                                     out_channels=base_ch, 
+                                     emb_dim=time_dim * 4)
+        self.attn_up2 = KandinskyAttentionBlock(channels=base_ch, 
+                                                n_heads=4, 
+                                                d_context=text_emb_dim)
         
-        self.conv_out = nn.Conv2d(64, c_out, kernel_size=3, padding=1)
+        self.conv_out = nn.Conv2d(in_channels=base_ch, 
+                                  out_channels=c_out, 
+                                  kernel_size=3, 
+                                  padding=1)
 
-    def forward(self, x: torch.Tensor, t: torch.Tensor, context: torch.Tensor, image_emb: torch.Tensor) -> torch.Tensor:
-        # Tính toán vector điều kiện tổng hợp (Time + Image)
+        # Init weights
+        self.apply(self._init_weights)
+
+    def _init_weights(self, m: nn.Module) -> None:
+        if isinstance(m, nn.Conv2d):
+            nn.init.xavier_uniform_(m.weight)
+            if m.bias is not None:
+                nn.init.constant_(m.bias, 0)
+        elif isinstance(m, nn.GroupNorm):
+            nn.init.constant_(m.weight, 1)
+            nn.init.constant_(m.bias, 0)
+        elif isinstance(m, nn.Linear):
+            nn.init.xavier_uniform_(m.weight)
+            if m.bias is not None:
+                nn.init.constant_(m.bias, 0)
+
+    def forward(self, 
+                x: torch.Tensor, 
+                t: torch.Tensor, 
+                context: torch.Tensor, 
+                image_emb: torch.Tensor) -> torch.Tensor:
         emb = self.time_mlp(t, image_emb)
         
         x1 = self.conv_in(x)
@@ -179,17 +270,9 @@ class KandinskyUNet(nn.Module):
         
         return self.conv_out(up2)
 
-# ==========================================
-# PART 3: HELPERS & SCHEDULER
-# ==========================================
 
 class KandinskyCombinedEmbedder(nn.Module):
-    """
-    Kandinsky cần cả 2 thứ:
-    1. Text Encoder (cho Cross-Attention của UNet)
-    2. Image Encoder (cho Prior/Injection vào Time Embedding của UNet)
-    """
-    def __init__(self, device="cuda"):
+    def __init__(self, device: str = "cuda") -> None:
         super().__init__()
         self.device = device
         
@@ -197,31 +280,29 @@ class KandinskyCombinedEmbedder(nn.Module):
         self.tokenizer = CLIPTokenizer.from_pretrained("openai/clip-vit-large-patch14")
         self.text_model = CLIPTextModel.from_pretrained("openai/clip-vit-large-patch14").to(device)
         
-        # Vision Encoder (Dùng để lấy image embedding khi training)
-        self.image_processor = CLIPImageProcessor.from_pretrained("openai/clip-vit-large-patch14")
+        # Vision Encoder
         self.vision_model = CLIPVisionModel.from_pretrained("openai/clip-vit-large-patch14").to(device)
         
         self.text_model.eval().requires_grad_(False)
         self.vision_model.eval().requires_grad_(False)
 
-    def get_text_embeds(self, prompts: List[str]):
+    def get_text_embeds(self, prompts: List[str]) -> torch.Tensor:
         tokens = self.tokenizer(prompts, padding="max_length", max_length=77, truncation=True, return_tensors="pt").to(self.device)
         with torch.no_grad():
             outputs = self.text_model(tokens.input_ids)
-        return outputs.last_hidden_state # [B, 77, 768]
+        return outputs.last_hidden_state
 
-    def get_image_embeds(self, images: torch.Tensor):
-        # images tensor ở đây giả định là raw pixel [0-1] hoặc normalized
-        # Cần resize/norm theo chuẩn CLIP Vision
-        # Demo đơn giản: resize về 224x224
-        images = F.interpolate(images, size=(224, 224), mode='bicubic')
+    def get_image_embeds(self, images: torch.Tensor) -> torch.Tensor:
+        # Resize to 224x224 for CLIP Vision
+        images = F.interpolate(images, size=(224, 224), mode="bicubic")
         with torch.no_grad():
             outputs = self.vision_model(pixel_values=images).pooler_output
-        return outputs # [B, 768]
+        return outputs
 
-class DDPMScheduler:
-    # Kandinsky 2.2 dùng Noise Prediction
-    def __init__(self, num_train_timesteps: int = 1000, device="cuda"):
+class DDPMScheduler():
+    def __init__(self, 
+                 num_train_timesteps: int = 1000, 
+                 device: str = "cuda") -> None:
         self.device = device
         self.num_train_timesteps = num_train_timesteps
         self.beta = torch.linspace(0.00085, 0.012, num_train_timesteps).to(device)
@@ -231,51 +312,46 @@ class DDPMScheduler:
     def sample_timesteps(self, n: int) -> torch.Tensor:
         return torch.randint(0, self.num_train_timesteps, (n,), device=self.device)
 
-    def noise_images(self, x: torch.Tensor, t: torch.Tensor) -> Tuple[torch.Tensor, torch.Tensor]:
+    def noise_images(self, 
+                     x: torch.Tensor, 
+                     t: torch.Tensor) -> Tuple[torch.Tensor, torch.Tensor]:
         sqrt_alpha_hat = torch.sqrt(self.alpha_hat[t])[:, None, None, None]
         sqrt_one_minus_alpha_hat = torch.sqrt(1 - self.alpha_hat[t])[:, None, None, None]
         epsilon = torch.randn_like(x)
         return sqrt_alpha_hat * x + sqrt_one_minus_alpha_hat * epsilon, epsilon
     
-    def step(self, model_output, t, sample):
+    def step(self, 
+             model_output: torch.Tensor, 
+             t: torch.Tensor, 
+             sample: torch.Tensor) -> torch.Tensor:
         alpha_t = self.alpha_hat[t]
         alpha_prev = self.alpha_hat[t-1] if t > 0 else torch.tensor(1.0).to(self.device)
         pred_x0 = (sample - torch.sqrt(1 - alpha_t) * model_output) / torch.sqrt(alpha_t)
         dir_xt = torch.sqrt(1 - alpha_prev) * model_output
         return torch.sqrt(alpha_prev) * pred_x0 + dir_xt
 
-# ==========================================
-# PART 4: MAIN KANDINSKY 2.2 CLASS
-# ==========================================
 
-class Kandinsky2_2:
-    def __init__(self, device="cuda"):
+class Kandinsky2_2():
+    def __init__(self, device: str = "cuda") -> None:
         self.device = device
         self.img_size = 64
         
-        # 1. Embedders
         self.embedder = KandinskyCombinedEmbedder(device)
-        
-        # 2. VAE (Kandinsky dùng MOVQ, nhưng ta dùng AutoencoderKL thay thế cho tiện demo)
         self.vae = AutoencoderKL.from_pretrained("CompVis/stable-diffusion-v1-4", subfolder="vae").to(device)
         
-        # 3. UNet (Decoder)
         self.unet = KandinskyUNet(
-            c_in=4, c_out=4, 
+            c_in=4, 
+            c_out=4, 
             time_dim=256, 
-            image_emb_dim=768, 
+            image_emb_dim=1024,
             text_emb_dim=768
         ).to(device)
         
-        # 4. Prior (Simplified)
-        # Trong thực tế, Prior là một model diffusion riêng biệt (Transformer) map Text -> Image Emb.
-        # Ở đây tôi tạo một dummy Prior (Linear layer) để code generate chạy được flow.
-        # Khi training, ta dùng Image Embed thật từ ảnh nên không cần Prior.
         self.prior_dummy = nn.Sequential(
-            nn.Linear(768, 768), # Map pooled text -> Image Emb
+            nn.Linear(768, 768), 
             nn.LayerNorm(768)
         ).to(device)
-        self.prior_dummy.eval() # Không train prior trong loop này
+        self.prior_dummy.eval()
 
         self.scheduler = DDPMScheduler(device=device)
         self.vae.eval().requires_grad_(False)
@@ -292,24 +368,21 @@ class Kandinsky2_2:
         return (imgs / 2 + 0.5).clamp(0, 1).cpu().permute(0, 2, 3, 1).numpy()
 
     @torch.no_grad()
-    def generate(self, prompt: str, steps: int = 50, cfg_scale: float = 4.0, unet_override=None):
+    def generate(self, 
+                 prompt: str, 
+                 steps: int = 50, 
+                 cfg_scale: float = 4.0, 
+                 unet_override = None) -> torch.Tensor:
         unet = unet_override if unet_override is not None else self.unet
         unet.eval()
         
-        # 1. Prior Step: Tạo Image Embedding từ Text
-        # Lấy Text Embedding cho Prior (thường là pooled output)
         text_emb_seq = self.embedder.get_text_embeds([prompt])
-        text_pooled = text_emb_seq.mean(dim=1) # Global text vector
-        
-        # "Fake" Prior execution (Trong thực tế phải chạy diffusion loop của Prior)
+        text_pooled = text_emb_seq.mean(dim=1)
         image_emb = self.prior_dummy(text_pooled) 
         
-        # 2. Decoder Step: Tạo Latent Image
         cond_text = self.embedder.get_text_embeds([prompt])
         uncond_text = self.embedder.get_text_embeds([""])
         
-        # Double image_emb cho batch (cond + uncond)
-        # Uncond image_emb thường là vector 0
         uncond_image_emb = torch.zeros_like(image_emb)
         
         context = torch.cat([uncond_text, cond_text])
@@ -319,13 +392,11 @@ class Kandinsky2_2:
         timesteps = torch.flip(torch.arange(0, self.scheduler.num_train_timesteps, 
                                             self.scheduler.num_train_timesteps // steps), [0]).to(self.device)
         
-        for t in timesteps:
+        for i, t in enumerate(timesteps):
             latent_input = torch.cat([latents] * 2)
             t_input = torch.cat([t.unsqueeze(0)] * 2)
             
-            # UNet forward nhận thêm image_emb
             noise_pred = unet(latent_input, t_input, context, img_embs)
-            
             noise_pred_uncond, noise_pred_text = noise_pred.chunk(2)
             noise_pred = noise_pred_uncond + cfg_scale * (noise_pred_text - noise_pred_uncond)
             
